@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Slide Luồng làm việc</title>
+<meta name="description" content="Slide trình chiếu tương tác độc lập mô tả trực quan các luồng hoạt động và luồng dữ liệu của hệ thống Qranty.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-main: #070b13;
+  --bg-card: #0f172a;
+  --bg-node: #1e293b;
+  --border-color: #334155;
+  --brand: #3b82f6;
+  --brand-glow: rgba(59, 130, 246, 0.4);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --radius: 16px;
+  --radius-sm: 8px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════════════════════════════════════
+   HEADER
+   ══════════════════════════════════════════ */
+header {
+  padding: 16px 24px;
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--brand), #1d4ed8);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.brand-name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+
+.brand-badge {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+
+/* Operational Flow Switcher */
+.flow-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 2px;
+}
+
+.fs-item {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all .2s;
+  user-select: none;
+}
+
+.fs-item.active {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.fs-item:hover:not(.active) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Database Sync Status Indicator */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #a7f3d0;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+  animation: pulseSync 2s infinite;
+}
+
+@keyframes pulseSync {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ══════════════════════════════════════════
+   MAIN LAYOUT
+   ══════════════════════════════════════════ */
+.main-deck {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+/* Left Section: Interactive Blueprint Grid */
+.deck-canvas-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border-color);
+}
+
+/* Grid Pattern Background */
+.canvas-bg {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.02) 1.5px, transparent 1.5px),
+    linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
+  background-size: 24px 24px, 120px 120px, 120px 120px;
+  z-index: 1;
+}
+
+/* SVG Connection Lines Layer */
+.canvas-svg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.flow-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.flow-line-active {
+  fill: none;
+  stroke: url(#blueGradient);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 8, 12;
+  animation: flowDash 20s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.6));
+}
+
+@keyframes flowDash {
+  to { stroke-dashoffset: -1000px; }
+}
+
+/* Nodes Container */
+.canvas-nodes-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+/* Interactive Node Card */
+.node-card {
+  position: absolute;
+  width: 200px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.2, 1, 0.2, 1);
+  transform: translate(-50%, -50%);
+}
+
+.node-card:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: var(--brand);
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35);
+  transform: translate(-50%, -50%) translateY(-3px);
+}
+
+.node-card.active {
+  background: rgba(30, 58, 138, 0.85);
+  border-color: #60a5fa;
+  box-shadow: 0 12px 32px rgba(96, 165, 250, 0.45);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.node-meta {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.node-icon-box {
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.node-icon-box.manual { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.node-icon-box.auto { background: linear-gradient(135deg, #10b981, #059669); }
+.node-icon-box.print { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.node-icon-box.notif { background: linear-gradient(135deg, #ec4899, #db2777); }
+.node-icon-box.search { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+.node-icon-box svg {
+  width: 14px; height: 14px;
+}
+
+.node-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.node-snippet {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Right Section: Deep Details Panel ── */
+.deck-details-panel {
+  width: 420px;
+  background-color: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+
+.panel-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.panel-hdr-meta {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.panel-hdr-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #fff;
+  margin-top: 2px;
+}
+
+.panel-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+.panel-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.sec-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sec-title svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.step-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* CSS Mockup Container */
+.mockup-canvas {
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 14px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Mockup Elements */
+.wf-form { display: flex; flex-direction: column; gap: 8px; font-size: 11px; }
+.wf-title { font-size: 9.5px; font-weight: 900; letter-spacing: .08em; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 3px; }
+.wf-row { display: flex; flex-direction: column; gap: 3.5px; }
+.wf-row label { font-weight: 700; color: var(--text-secondary); }
+.wf-input { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 5px; padding: 6px 9px; font-weight: 600; color: #fff; }
+.wf-input.highlight { border-color: var(--brand); color: #60a5fa; font-weight: 800; background: rgba(59, 130, 246, 0.1); }
+.wf-input-group { display: flex; gap: 5px; flex-wrap: wrap; }
+.wf-badge { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 4px; padding: 2px 8px; font-size: 9.5px; font-weight: 700; color: #93c5fd; }
+.wf-badge.success { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+.wf-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wf-action { background: linear-gradient(135deg, var(--brand), #1d4ed8); color: #fff; text-align: center; border-radius: 6px; padding: 8px; font-weight: 800; margin-top: 4px; }
+.wf-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 5px; font-size: 11px; }
+.wf-text-large { font-size: 12.5px; font-weight: 900; color: #fff; }
+.wf-text-muted { color: var(--text-secondary); font-weight: 500; }
+.wf-table-wrap { font-size: 10px; }
+.wf-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.wf-table th { background: rgba(255, 255, 255, 0.05); font-weight: 800; color: var(--text-secondary); text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--border-color); }
+.wf-table td { padding: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); font-weight: 600; color: #fff; }
+.wf-tag { font-size: 8.5px; font-weight: 900; padding: 1px 5px; border-radius: 3px; text-transform: uppercase; }
+.wf-tag.thu { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.wf-tag.chi { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.wf-tag.active { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.wf-txt-success { color: #34d399; font-weight: 700; }
+.wf-txt-warn { color: #fbbf24; font-weight: 700; }
+.wf-txt-danger { color: #f87171; font-weight: 700; }
+.red-text { color: #f87171; font-weight: 800; }
+.wf-receipt { background: #fff; border: 1px solid #fff; padding: 12px; font-family: monospace; font-size: 10px; color: #000; }
+.wf-receipt-hdr { text-align: center; font-weight: 800; font-size: 11.5px; }
+.wf-receipt-sep { text-align: center; letter-spacing: -1px; margin: 4px 0; }
+.wf-receipt-qr { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 8px; }
+.wf-qr-box { width: 52px; height: 52px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 7.5px; font-weight: 800; }
+.wf-qr-sub { font-size: 8px; color: #666; text-align: center; }
+.wf-phone { background: #0f172a; border-radius: 12px; border: 3px solid var(--border-color); height: 160px; display: flex; flex-direction: column; overflow: hidden; font-size: 10px; }
+.wf-phone-bar { background: #070b13; padding: 4px 8px; color: #fff; font-weight: 800; font-size: 8.5px; }
+.wf-phone-chat { flex: 1; padding: 8px; display: flex; flex-direction: column; justify-content: flex-end; }
+.wf-chat-sender { font-weight: 800; color: #38bdf8; font-size: 8px; margin-bottom: 2px; }
+.wf-chat-msg { background: #1e293b; color: #f8fafc; border-radius: 8px 8px 8px 0; padding: 7px 9px; line-height: 1.4; border: 1px solid var(--border-color); }
+.wf-search-wrap { display: flex; gap: 4px; }
+.wf-btn { background: var(--brand); color: #fff; border: none; border-radius: 5px; padding: 4px 8px; font-size: 10px; font-weight: 700; }
+.wf-result { border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 6px; display: none; flex-direction: column; gap: 3.5px; }
+.wf-result.active { display: flex; }
+.wf-result-title { font-weight: 800; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+.wf-stickers { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.wf-sticker { border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); border-radius: 4px; padding: 6px; display: flex; align-items: center; gap: 6px; }
+.wf-sticker-qr { width: 22px; height: 22px; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: 900; }
+.wf-sticker-sn { font-size: 8px; font-family: monospace; font-weight: 700; color: var(--text-secondary); }
+
+/* Storage state display */
+.data-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: #c084fc;
+}
+.data-badge code {
+  font-family: monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Links List */
+.link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.link-card:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--brand);
+}
+
+.link-icon {
+  color: var(--brand);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.link-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.link-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #60a5fa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-desc {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* ══════════════════════════════════════════
+   FOOTER (DECK NAV CONTROLS)
+   ══════════════════════════════════════════ */
+footer {
+  padding: 14px 24px;
+  background: rgba(15, 23, 42, 0.6);
+  border-top: 1px solid var(--border-color);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.real-time-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-label {
+  color: var(--text-muted);
+}
+
+.stat-value {
+  color: #fff;
+  font-weight: 700;
+}
+
+.deck-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slide-counter {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 12px;
+}
+
+.deck-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.deck-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--text-secondary);
+}
+
+.deck-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.deck-btn.primary {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.deck-btn.primary:hover:not(:disabled) {
+  background: #2563eb;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+</style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+      </div>
+      <div class="brand-name">Qranty</div>
+      <div class="brand-badge">Bản đồ luồng tích hợp</div>
+    </div>
+
+    <!-- Switch between workflows -->
+    <div class="flow-switcher" id="flowSwitcher">
+      <div class="fs-item active" data-flow="banhang">Luồng Bán hàng &amp; Doanh thu</div>
+      <div class="fs-item" data-flow="suachua">Luồng Tiếp nhận &amp; Sửa chữa</div>
+      <div class="fs-item" data-flow="nhapkho">Luồng Nhập hàng &amp; Nhà cung cấp</div>
+    </div>
+
+    <!-- Sync status connected to actual database -->
+    <div class="sync-status">
+      <div class="sync-dot"></div>
+      <span id="syncLabel">Đang đồng bộ live với App</span>
+    </div>
+  </header>
+
+  <!-- Main Grid: Interactive Canvas & Right Details Panel -->
+  <div class="main-deck">
+    <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">Sơ đồ luồng làm việc tích hợp hệ thống Qranty</h1>
+
+    <div class="deck-canvas-container">
+      <div class="canvas-bg"></div>
+
+      <svg class="canvas-svg-layer" id="deckSvg">
+        <defs>
+          <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6" />
+            <stop offset="50%" stop-color="#60a5fa" />
+            <stop offset="100%" stop-color="#3b82f6" />
+          </linearGradient>
+        </defs>
+        <!-- Lines injected by JS -->
+      </svg>
+
+      <!-- Nodes Layout -->
+      <div class="canvas-nodes-layer" id="nodesLayout">
+        <!-- Node cards injected by JS -->
+      </div>
+    </div>
+
+    <!-- Drawer details on the right -->
+    <div class="deck-details-panel">
+      <div class="panel-header">
+        <span class="panel-hdr-meta" id="panelMeta">Bước...</span>
+        <div class="panel-hdr-title" id="panelTitle">Tên bước hoạt động</div>
+      </div>
+
+      <div class="panel-body">
+        <!-- Description -->
+        <div>
+          <div class="sec-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Chi tiết vận hành
+          </div>
+          <div class="step-description" id="stepDesc">
+            Mô tả hoạt động...
+          </div>
+        </div>
+
+        <!-- CSS Mockup -->
+        <div>
+          <div class="sec-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+            Bản vẽ Wireframe UI
+          </div>
+          <div class="mockup-canvas" id="stepMockup">
+            <!-- Mockup injected by JS -->
+          </div>
+        </div>
+
+        <!-- Data flow status -->
+        <div>
+          <div class="sec-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Dữ liệu tác động (LocalStorage)
+          </div>
+          <div class="data-badge" id="stepDataBadge">
+            <code>localStorage</code>
+          </div>
+        </div>
+
+        <!-- Deep links to files -->
+        <div>
+          <div class="sec-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Kiểm tra màn hình / Code nguồn
+          </div>
+          <div class="link-list" id="stepLinkList">
+            <!-- Links injected by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation and Live Stats Footer -->
+  <footer>
+    <div class="real-time-stats">
+      <div class="stat-item">
+        <span class="stat-label">Tổng doanh thu thật:</span>
+        <span class="stat-value" id="statsRevenue">0 đ</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Giao dịch bán:</span>
+        <span class="stat-value" id="statsSales">0 đơn</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Bảo hành đã kích hoạt:</span>
+        <span class="stat-value" id="statsWarranty">0 phiếu</span>
+      </div>
+    </div>
+
+    <!-- Presentation controls -->
+    <div class="deck-nav">
+      <div class="slide-counter" id="slideCounter">Bước 1 / 5</div>
+      <button class="deck-btn" id="btnPrev" onclick="navigateStep(-1)">← Phía trước</button>
+      <button class="deck-btn primary" id="btnNext" onclick="navigateStep(1)">Tiếp theo →</button>
+    </div>
+  </footer>
+
+  <script>
+  // ── Core Slide Definitions ──
+  const WORKFLOWS = {
+    banhang: {
+      label: "Luồng Bán hàng & tài chính",
+      nodes: [
+        {
+          id: "s1", x: 12, y: 50,
+          name: "Tạo phiếu bán hàng",
+          type: "manual",
+          meta: "1. Thao tác nhanh (Bán hàng)",
+          snippet: "Nhân viên khai báo đơn hàng bán lẻ tại trang thao tác nhanh.",
+          desc: "Quy trình bắt đầu khi khách hàng chọn mua máy. Nhân viên mở màn hình 'Thao tác nhanh', tìm kiếm khách hàng bằng SĐT (hoặc tạo mới), chọn sản phẩm và điền Giá bán cùng số tiền khách hàng trả thực tế (đã trả).",
+          dataState: "Lưu tạm vào form state, chưa ghi xuống Database.",
+          links: [
+            { filename: "qranty-thao-tac-nhanh.html", desc: "Trang thao tác nhanh của app để tạo phiếu & thanh toán.", path: "./qranty-thao-tac-nhanh.html" }
+          ],
+          next: ["s2"],
+          mockup: `
+            <div class="wf-form">
+              <div class="wf-title">THAO TÁC NHANH - BÁN HÀNG</div>
+              <div class="wf-row">
+                <label>Khách hàng:</label>
+                <div class="wf-input">Nguyễn Văn A (0987.654.321)</div>
+              </div>
+              <div class="wf-row">
+                <label>Sản phẩm:</label>
+                <div class="wf-input-group">
+                  <div class="wf-badge">iPhone 15 Pro Max</div>
+                  <div class="wf-badge">Cáp sạc Type-C K80</div>
+                </div>
+              </div>
+              <div class="wf-row wf-split">
+                <div>
+                  <label>Giá bán:</label>
+                  <div class="wf-input">25.000.000 đ</div>
+                </div>
+                <div>
+                  <label>Khách đã trả:</label>
+                  <div class="wf-input highlight">20.000.000 đ</div>
+                </div>
+              </div>
+              <div class="wf-action">Xác nhận bán hàng</div>
+            </div>
+          `
+        },
+        {
+          id: "s2", x: 38, y: 50,
+          name: "Kích hoạt bảo hành",
+          type: "auto",
+          meta: "2. Kích hoạt bảo hành (Tự động)",
+          snippet: "Sinh mã bảo hành độc bản, ghi nhận Serial & hạn bảo hành.",
+          desc: "Hệ thống tự động kích hoạt bảo hành cho sản phẩm vừa bán: gán số serial của sản phẩm, tính toán ngày kết thúc bảo hành dựa trên số tháng bảo hành đi kèm danh mục sản phẩm, đồng thời ghi nhận hồ sơ bảo hành mới.",
+          dataState: "Đẩy bản ghi mới vào key <code>qranty-warranty-data</code>.",
+          links: [
+            { filename: "qranty-bao-hanh.html", desc: "Màn hình quản lý, tra cứu thông tin bảo hành thiết bị.", path: "./qranty-bao-hanh.html" }
+          ],
+          next: ["s3", "s4"],
+          mockup: `
+            <div class="wf-card">
+              <div class="wf-badge success">KÍCH HOẠT THÀNH CÔNG</div>
+              <div class="wf-text-large" style="margin-top: 4px;">Phiếu BH: #WAR-9824</div>
+              <div style="height:1px; background:var(--border-color); margin:6px 0;"></div>
+              <div class="wf-text-muted">Khách hàng: <b>Nguyễn Văn A</b></div>
+              <div class="wf-text-muted">Thiết bị: <b>iPhone 15 Pro Max</b></div>
+              <div class="wf-text-muted">Số Serial: <code style="background:rgba(255,255,255,0.06); padding:1px 4px; border-radius:3px;">QR-IP15-89472</code></div>
+              <div class="wf-text-muted">Hạn BH: <b>24/06/2027</b></div>
+            </div>
+          `
+        },
+        {
+          id: "s3", x: 66, y: 25,
+          name: "Đồng bộ sổ Thu chi",
+          type: "auto",
+          meta: "3A. Tích hợp Thu chi (Tự động)",
+          snippet: "Ghi nhận dòng tiền thực tế và phần công nợ nợ lại của khách hàng.",
+          desc: "Hệ thống gọi hàm `QrantyThuChi.addEntry('thu', { ... })` để ghi nhận khoản thu. Số tiền khách trả thực tế (Đã trả) đi vào dòng tiền mặt thực tế đã thu hàng ngày. Số tiền còn thiếu (Remain) tự động lưu thành công nợ của khách hàng để đối soát về sau.",
+          dataState: "Thêm khoản nguồn <code>banhang</code> vào key <code>qranty-thuchi-data</code>.",
+          links: [
+            { filename: "thuchi-store.js", desc: "Script quản lý, lưu trữ dữ liệu dòng tiền (Thu/Chi/Công nợ) dùng chung.", path: "./thuchi-store.js" },
+            { filename: "qranty-tai-chinh.html", desc: "Màn hình quản lý Thu chi thực tế và số liệu công nợ khách hàng.", path: "./qranty-tai-chinh.html" }
+          ],
+          next: ["s5"],
+          mockup: `
+            <div class="wf-table-wrap">
+              <div class="wf-title">SỔ THU CHI - TÀI CHÍNH</div>
+              <table class="wf-table">
+                <thead>
+                  <tr><th>Loại</th><th>Nguồn</th><th>Tổng thu</th><th>Đã thu</th><th>Còn nợ</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="wf-row-thu">
+                    <td><span class="wf-tag thu">Thu</span></td>
+                    <td>Bán hàng</td>
+                    <td>25.0M</td>
+                    <td class="wf-txt-success">20.0M</td>
+                    <td class="wf-txt-warn">5.0M</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `
+        },
+        {
+          id: "s4", x: 66, y: 75,
+          name: "In hóa đơn & mã QR",
+          type: "print",
+          meta: "3B. Thiết bị đầu ra (In ấn)",
+          snippet: "In biên nhận K80 hoặc A5 dán kèm QR tra cứu bảo hành.",
+          desc: "Hóa đơn K80 (in nhiệt) được in tự động bao gồm mã QR tra cứu bảo hành. Khách hàng chỉ cần quét mã QR này để tự kiểm tra thời hạn bảo hành của mình trên cổng tra cứu trực tuyến mà không cần lưu giữ hóa đơn giấy.",
+          dataState: "Không ghi dữ liệu, xuất dữ liệu in ấn (Print View).",
+          links: [
+            { filename: "qranty-qr-code.html", desc: "Trang in tem nhãn, in hóa đơn K80 và in mã QR thiết bị.", path: "./qranty-qr-code.html" }
+          ],
+          next: ["s5"],
+          mockup: `
+            <div class="wf-receipt">
+              <div class="wf-receipt-hdr">QRANTY STORE</div>
+              <div class="wf-receipt-sep">-----------------------------</div>
+              <div>Khách: Nguyễn Văn A - 0987.654.321</div>
+              <div>Sản phẩm: iPhone 15 Pro Max</div>
+              <div>Tổng tiền: 25.000.000 đ</div>
+              <div>Đã thanh toán: 20.000.000 đ</div>
+              <div class="wf-receipt-sep">-----------------------------</div>
+              <div class="wf-receipt-qr">
+                <div class="wf-qr-box">QR CODE</div>
+                <div class="wf-qr-sub">Quét tra cứu thời hạn bảo hành</div>
+              </div>
+            </div>
+          `
+        },
+        {
+          id: "s5", x: 88, y: 50,
+          name: "Thông báo qua Zalo OA",
+          type: "notif",
+          meta: "4. Zalo OA Notification (Tự động)",
+          snippet: "Gửi Zalo OA nhắc nhở xác nhận giao dịch & bảo hành thành công.",
+          desc: "Hệ thống tự động đẩy tin nhắn Zalo OA tới số điện thoại của khách hàng vừa giao dịch. Tin nhắn gửi lời cảm ơn khách hàng, thông báo số tiền thanh toán, số tiền còn nợ và thời hạn bảo hành, tạo quy trình chuyên nghiệp khép kín.",
+          dataState: "Không ghi database, kích hoạt gửi tin qua Zalo ZNS Gateway.",
+          links: [
+            { filename: "qranty-thong-bao.html", desc: "Màn hình theo dõi lịch sử gửi tin nhắn và cấu hình kịch bản ZNS.", path: "./qranty-thong-bao.html" },
+            { filename: "qranty-notify.js", desc: "Script tự động hóa các kênh notification và SMS/Zalo gửi khách.", path: "./qranty-notify.js" }
+          ],
+          next: [],
+          mockup: `
+            <div class="wf-phone">
+              <div class="wf-phone-bar">💬 Zalo Chat</div>
+              <div class="wf-phone-chat">
+                <div class="wf-chat-sender">QRANTY OFFICIAL STORE</div>
+                <div class="wf-chat-msg">
+                  Xin chào anh Nguyễn Văn A, cảm ơn anh đã mua sắm tại Qranty! Mã bảo hành của anh là #WAR-9824 (Hạn: 24/06/2027). Cần hỗ trợ xin nhắn tin tại đây.
+                </div>
+              </div>
+            </div>
+          `
+        }
+      ]
+    },
+    suachua: {
+      label: "Luồng Tiếp nhận sửa chữa & bảo hành",
+      nodes: [
+        {
+          id: "r1", x: 12, y: 50,
+          name: "Tra cứu thiết bị",
+          type: "search",
+          meta: "1. Tiếp nhận & Tra cứu",
+          snippet: "Quét mã QR hoặc nhập Serial để xác định tình trạng bảo hành.",
+          desc: "Khi khách hàng mang máy lỗi đến, nhân viên tiến hành quét mã QR trên máy hoặc nhập Serial/SĐT để kiểm tra xem máy còn hạn bảo hành hay không, đồng thời xem lịch sử sửa chữa trước đây để nắm bắt bệnh án.",
+          dataState: "Truy vấn dữ liệu trong key <code>qranty-warranty-data</code>.",
+          links: [
+            { filename: "qranty-bao-hanh.html", desc: "Màn hình tra cứu và lọc nhanh trạng thái bảo hành của các sản phẩm.", path: "./qranty-bao-hanh.html" }
+          ],
+          next: ["r2"],
+          mockup: `
+            <div class="wf-form">
+              <div class="wf-title">TRA CỨU SERIAL BẢO HÀNH</div>
+              <div class="wf-search-wrap">
+                <input class="wf-input" value="QR-IP15-89472" readonly style="flex:1;">
+                <button class="wf-btn">Tra cứu</button>
+              </div>
+              <div class="wf-result active" style="margin-top:6px;">
+                <div class="wf-result-title">
+                  <span>iPhone 15 Pro Max</span>
+                  <span class="wf-tag active" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">Bảo hành</span>
+                </div>
+                <div class="wf-text-muted" style="margin-top:2px;">Hạn BH: 24/06/2027 (Còn 360 ngày)</div>
+              </div>
+            </div>
+          `
+        },
+        {
+          id: "r2", x: 38, y: 50,
+          name: "Tạo phiếu Sửa chữa",
+          type: "manual",
+          meta: "2. Kanban Sửa chữa (Thủ công)",
+          snippet: "Nhập lỗi thiết bị, gán thợ, đặt độ ưu tiên và đưa lên Kanban.",
+          desc: "Nhân viên tạo phiếu tiếp nhận sửa chữa: ghi lại hiện trạng hỏng hóc, lỗi chi tiết, chỉ định kỹ thuật viên phụ trách, đặt mức độ khẩn cấp. Phiếu sẽ tự động xuất hiện trên bảng Kanban Sửa chữa ở cột 'Tiếp nhận'.",
+          dataState: "Thêm phiếu sửa chữa vào key lưu trữ Kanban sửa chữa.",
+          links: [
+            { filename: "qranty-repair-kanban.html", desc: "Bảng Kanban trực quan kéo thả để kiểm soát tiến trình sửa chữa.", path: "./qranty-repair-kanban.html" }
+          ],
+          next: ["r3", "r4"],
+          mockup: `
+            <div class="wf-form">
+              <div class="wf-title">TIẾP NHẬN SỬA CHỮA</div>
+              <div class="wf-row">
+                <label>Hiện trạng lỗi:</label>
+                <div class="wf-input">Sọc màn hình, pin phồng nhẹ</div>
+              </div>
+              <div class="wf-row wf-split">
+                <div>
+                  <label>Giao thợ:</label>
+                  <div class="wf-input">Phan Hoàng Minh</div>
+                </div>
+                <div>
+                  <label>Độ ưu tiên:</label>
+                  <div class="wf-input red-text">Khẩn cấp</div>
+                </div>
+              </div>
+              <div class="wf-action">Đưa lên bảng Kanban</div>
+            </div>
+          `
+        },
+        {
+          id: "r3", x: 66, y: 25,
+          name: "Xuất kho linh kiện",
+          type: "auto",
+          meta: "3A. Liên kết Kho hàng (Tự động)",
+          snippet: "Tự động giảm số lượng tồn kho của linh kiện thay thế.",
+          desc: "Nếu trong ca sửa chữa kỹ thuật viên cần thay thế linh kiện (Màn hình, Pin, Cụm chân sạc...), hệ thống sẽ tự trừ tồn kho tương ứng và cảnh báo nếu linh kiện đó rơi xuống dưới mức an toàn.",
+          dataState: "Cập nhật số lượng tồn trong key lưu trữ sản phẩm/linh kiện của Kho.",
+          links: [
+            { filename: "qranty-kho-hang-v2.html", desc: "Trang quản lý danh mục sản phẩm, linh kiện và số lượng tồn kho.", path: "./qranty-kho-hang-v2.html" }
+          ],
+          next: ["r5"],
+          mockup: `
+            <div class="wf-card">
+              <div class="wf-title">VẬT TƯ & LINH KIỆN THAY THẾ</div>
+              <div class="wf-row wf-split" style="margin-top:4px;">
+                <span class="wf-text-muted">Màn hình OLED IP15</span>
+                <span class="wf-txt-danger">Số lượng: 1 (Trừ kho)</span>
+              </div>
+              <div style="height:1px; background:var(--border-color); margin:6px 0;"></div>
+              <div class="wf-text-muted">Trạng thái kho: <span class="wf-txt-success">Đã tự động xuất kho</span></div>
+            </div>
+          `
+        },
+        {
+          id: "r4", x: 66, y: 75,
+          name: "Tính phí & đồng bộ tài chính",
+          type: "auto",
+          meta: "3B. Tích hợp Thu chi (Tự động)",
+          snippet: "Tính tổng chi phí sửa dịch vụ, tự động sinh phiếu thu.",
+          desc: "Với các trường hợp sửa chữa ngoài bảo hành (tính phí dịch vụ), hệ thống cộng dồn tiền linh kiện thay thế + tiền công thợ. Khi chốt phiếu hoàn thành, hệ thống tự động đẩy dữ liệu để sinh khoản phải thu khách tương ứng trong Thu chi.",
+          dataState: "Gọi <code>QrantyThuChi.addEntry('thu', ...)</code> với nguồn <code>suachua</code>.",
+          links: [
+            { filename: "qranty-tai-chinh.html", desc: "Màn hình quản lý Thu chi dòng tiền thực tế và công nợ sửa chữa.", path: "./qranty-tai-chinh.html" }
+          ],
+          next: ["r5"],
+          mockup: `
+            <div class="wf-card">
+              <div class="wf-title">HÓA ĐƠN DỊCH VỤ SỬA CHỮA</div>
+              <div class="wf-row wf-split"><span>Màn hình thay thế:</span><b>1.800.000 đ</b></div>
+              <div class="wf-row wf-split"><span>Tiền công thợ:</span><b>200.000 đ</b></div>
+              <div class="wf-receipt-sep">-----------------------------</div>
+              <div class="wf-row wf-split"><span>Tổng phí dịch vụ:</span><b class="wf-txt-success">2.000.000 đ</b></div>
+            </div>
+          `
+        },
+        {
+          id: "r5", x: 88, y: 50,
+          name: "Zalo thông báo lấy máy",
+          type: "notif",
+          meta: "4. Zalo OA Notification (Tự động)",
+          snippet: "Gửi Zalo OA nhắc nhở khách thiết bị đã sửa xong.",
+          desc: "Kỹ thuật viên kéo thẻ sang 'Đã sửa xong' hoặc 'Đã bàn giao'. Hệ thống ngay lập tức gửi một tin nhắn Zalo tự động thông báo cho khách hàng đến nhận máy, kèm theo chi tiết hóa đơn dịch vụ.",
+          dataState: "Không ghi database, kích hoạt gửi tin nhắn ZNS.",
+          links: [
+            { filename: "qranty-thong-bao.html", desc: "Quản lý kịch bản gửi tin nhắn tự động thông báo lấy máy.", path: "./qranty-thong-bao.html" }
+          ],
+          next: [],
+          mockup: `
+            <div class="wf-phone">
+              <div class="wf-phone-bar">💬 Zalo Chat</div>
+              <div class="wf-phone-chat">
+                <div class="wf-chat-sender">QRANTY OFFICIAL STORE</div>
+                <div class="wf-chat-msg">
+                  Thiết bị iPhone 15 Pro Max của anh Nguyễn Văn A đã hoàn thành sửa chữa. Chi phí dịch vụ: 2.000.000 đ. Kính mời anh ghé cửa hàng để nhận máy!
+                </div>
+              </div>
+            </div>
+          `
+        }
+      ]
+    },
+    nhapkho: {
+      label: "Luồng Nhập hàng & nhà cung cấp",
+      nodes: [
+        {
+          id: "i1", x: 18, y: 50,
+          name: "Nhập hàng vào kho",
+          type: "manual",
+          meta: "1. Tiếp nhận hàng hóa (Thủ công)",
+          snippet: "Thủ kho tạo phiếu nhập hàng, điền số lượng & nợ NCC.",
+          desc: "Khi có lô hàng mới, thủ kho mở màn hình 'Kho hàng' -> 'Tiếp nhận hàng hóa'. Điền thông tin nhà cung cấp, sản phẩm, số lượng, đơn giá vốn nhập vào, giá niêm yết bán ra và số tiền đã thực tế trả trước cho nhà cung cấp.",
+          dataState: "Cập nhật danh mục sản phẩm, lô hàng và số lượng tồn kho.",
+          links: [
+            { filename: "qranty-kho-hang-v2.html", desc: "Màn hình quản lý kho chính để tiếp nhận lô hàng đơn lẻ/hàng loạt.", path: "./qranty-kho-hang-v2.html" }
+          ],
+          next: ["i2", "i3"],
+          mockup: `
+            <div class="wf-form">
+              <div class="wf-title">TIẾP NHẬN HÀNG HÓA - NHẬP LÔ</div>
+              <div class="wf-row">
+                <label>Nhà cung cấp:</label>
+                <div class="wf-input">Đại lý phân phối Apple VN</div>
+              </div>
+              <div class="wf-row wf-split">
+                <div>
+                  <label>Số lượng:</label>
+                  <div class="wf-input">20 chiếc</div>
+                </div>
+                <div>
+                  <label>Tổng giá trị:</label>
+                  <div class="wf-input">360.000.000 đ</div>
+                </div>
+              </div>
+              <div class="wf-row">
+                <label>Đã trả trước NCC:</label>
+                <div class="wf-input highlight">200.000.000 đ</div>
+              </div>
+              <div class="wf-action">Xác nhận nhập kho lô hàng</div>
+            </div>
+          `
+        },
+        {
+          id: "i2", x: 60, y: 25,
+          name: "Đồng bộ chi nhà cung cấp",
+          type: "auto",
+          meta: "2A. Tích hợp Thu chi (Tự động)",
+          snippet: "Tự sinh phiếu chi nợ nhà cung cấp trên sổ quỹ tài chính.",
+          desc: "Hệ thống tự động đẩy dữ liệu sang Sổ Thu chi. Trực tiếp tạo một phiếu Chi trả nhà cung cấp (nguồn `nhaphang`), tự động tách phần nợ chưa trả NCC thành công nợ phải chi trong tương lai.",
+          dataState: "Gọi <code>QrantyThuChi.addEntry('chi', ...)</code> nguồn <code>nhaphang</code>.",
+          links: [
+            { filename: "thuchi-store.js", desc: "Kho lưu trữ dữ liệu dòng tiền thu chi của hệ thống.", path: "./thuchi-store.js" },
+            { filename: "qranty-tai-chinh.html", desc: "Màn hình theo dõi các khoản phải trả NCC và dòng tiền ra.", path: "./qranty-tai-chinh.html" }
+          ],
+          next: [],
+          mockup: `
+            <div class="wf-table-wrap">
+              <div class="wf-title">SỔ THU CHI - PHẢI CHI ĐỐI TÁC</div>
+              <table class="wf-table">
+                <thead>
+                  <tr><th>Loại</th><th>NCC</th><th>Tổng chi</th><th>Đã trả</th><th>Cần chi</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="wf-row-chi">
+                    <td><span class="wf-tag chi">Chi</span></td>
+                    <td>Apple VN</td>
+                    <td>360.0M</td>
+                    <td class="wf-txt-success">200.0M</td>
+                    <td class="wf-txt-warn">160.0M</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          `
+        },
+        {
+          id: "i3", x: 60, y: 75,
+          name: "Sinh Serial & tem QR",
+          type: "auto",
+          meta: "2B. Quét mã & In ấn (Tự động)",
+          snippet: "Tự sinh dải Serial theo lô, in nhãn QR dán vỏ hộp.",
+          desc: "Sau khi xác nhận nhập kho, hệ thống tự động tạo dải số Serial độc bản cho từng sản phẩm của lô hàng và thiết lập cấu hình in tem nhãn QR. Thủ kho in hàng loạt nhãn dán QR này để dán lên vỏ hộp phục vụ quét xuất hàng.",
+          dataState: "Tạo dải Serial, ghi nhận trạng thái mã QR vào hệ thống.",
+          links: [
+            { filename: "qranty-qr-code.html", desc: "Màn hình in tem nhãn dán QR Code và mã vạch hàng loạt.", path: "./qranty-qr-code.html" }
+          ],
+          next: [],
+          mockup: `
+            <div class="wf-card">
+              <div class="wf-title">TEM IN SERIAL DÁN VỎ HỘP</div>
+              <div class="wf-stickers" style="margin-top:6px;">
+                <div class="wf-sticker">
+                  <div class="wf-sticker-qr">QR</div>
+                  <div>
+                    <div class="wf-sticker-sn" style="font-size:7px;">SN: QR-IP16-001</div>
+                    <div style="font-size:6px; color:#999;">iPhone 16 Pro</div>
+                  </div>
+                </div>
+                <div class="wf-sticker">
+                  <div class="wf-sticker-qr">QR</div>
+                  <div>
+                    <div class="wf-sticker-sn" style="font-size:7px;">SN: QR-IP16-002</div>
+                    <div style="font-size:6px; color:#999;">iPhone 16 Pro</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        }
+      ]
+    }
+  };
+
+  // ── DOM Elements ──
+  const flowSwitcher = document.getElementById("flowSwitcher");
+  const nodesLayout = document.getElementById("nodesLayout");
+  const deckSvg = document.getElementById("deckSvg");
+  const slideCounter = document.getElementById("slideCounter");
+
+  // Panel Fields
+  const panelMeta = document.getElementById("panelMeta");
+  const panelTitle = document.getElementById("panelTitle");
+  const stepDesc = document.getElementById("stepDesc");
+  const stepMockup = document.getElementById("stepMockup");
+  const stepDataBadge = document.getElementById("stepDataBadge");
+  const stepLinkList = document.getElementById("stepLinkList");
+
+  // Real-time Stats
+  const statsRevenue = document.getElementById("statsRevenue");
+  const statsSales = document.getElementById("statsSales");
+  const statsWarranty = document.getElementById("statsWarranty");
+  const syncLabel = document.getElementById("syncLabel");
+
+  let currentFlow = "banhang";
+  let activeNodeIndex = 0;
+
+  // ── Load Real-time Stats from LocalStorage ──
+  function updateLiveStats() {
+    let stats = {
+      revenue: 0,
+      salesCount: 0,
+      warrantyCount: 0,
+      isConnected: false
+    };
+
+    // 1. Read Revenue & Sales count
+    try {
+      const rawThuChi = localStorage.getItem('qranty-thuchi-data');
+      if (rawThuChi) {
+        const data = JSON.parse(rawThuChi);
+        if (data.thu) {
+          const sales = data.thu.filter(e => e.source === 'banhang');
+          stats.salesCount = sales.length;
+          stats.revenue = sales.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+          stats.isConnected = true;
+        }
+      }
+    } catch(e) {
+      console.warn("Failed to load thuchi stats:", e);
+    }
+
+    // 2. Read Warranty count
+    try {
+      const rawWarranty = localStorage.getItem('qranty-warranty-data');
+      if (rawWarranty) {
+        const data = JSON.parse(rawWarranty);
+        if (Array.isArray(data)) {
+          stats.warrantyCount = data.length;
+          stats.isConnected = true;
+        }
+      }
+    } catch(e) {
+      console.warn("Failed to load warranty stats:", e);
+    }
+
+    // 3. Render Stats to Footer
+    if (stats.isConnected) {
+      statsRevenue.textContent = stats.revenue.toLocaleString('vi-VN') + ' đ';
+      statsSales.textContent = stats.salesCount + ' đơn';
+      statsWarranty.textContent = stats.warrantyCount + ' phiếu';
+      syncLabel.textContent = "Đang đồng bộ live với App (Tìm thấy database)";
+      syncLabel.parentElement.style.background = "rgba(16, 185, 129, 0.1)";
+      syncLabel.parentElement.style.borderColor = "rgba(16, 185, 129, 0.2)";
+      syncLabel.parentElement.style.color = "#a7f3d0";
+    } else {
+      // Seed Demo stats if empty
+      statsRevenue.textContent = "38.500.000 đ";
+      statsSales.textContent = "15 đơn";
+      statsWarranty.textContent = "15 phiếu";
+      syncLabel.textContent = "Đang chạy chế độ demo (Chưa phát sinh dữ liệu trong App)";
+      syncLabel.parentElement.style.background = "rgba(245, 158, 11, 0.1)";
+      syncLabel.parentElement.style.borderColor = "rgba(245, 158, 11, 0.2)";
+      syncLabel.parentElement.style.color = "#fde68a";
+    }
+  }
+
+  // ── Render Nodes & Connections ──
+  function renderDeck(flowKey) {
+    const flow = WORKFLOWS[flowKey];
+    nodesLayout.innerHTML = "";
+    
+    // Reset SVG paths
+    const defs = deckSvg.querySelector('defs');
+    deckSvg.innerHTML = "";
+    deckSvg.appendChild(defs);
+
+    // Render nodes
+    flow.nodes.forEach((node, idx) => {
+      const card = document.createElement("div");
+      card.className = `node-card ${idx === activeNodeIndex ? 'active' : ''}`;
+      card.id = `node-${node.id}`;
+      card.style.left = `${node.x}%`;
+      card.style.top = `${node.y}%`;
+      
+      card.innerHTML = `
+        <div class="node-meta">${node.meta}</div>
+        <div class="node-header">
+          <div class="node-icon-box ${node.type}">
+            ${getIconSvg(node.type)}
+          </div>
+          <div class="node-title">${node.name}</div>
+        </div>
+        <div class="node-snippet">${node.snippet}</div>
+      `;
+
+      card.addEventListener("click", () => {
+        activeNodeIndex = idx;
+        selectNode(idx, flowKey);
+      });
+
+      nodesLayout.appendChild(card);
+    });
+
+    // Re-draw SVGs
+    setTimeout(() => {
+      drawConnectionLines(flowKey);
+    }, 100);
+  }
+
+  // ── Select Node & Update Drawer + Nav Controls ──
+  function selectNode(index, flowKey) {
+    activeNodeIndex = index;
+    const flow = WORKFLOWS[flowKey];
+    const node = flow.nodes[index];
+    if (!node) return;
+
+    // Highlight active card
+    document.querySelectorAll(".node-card").forEach(c => c.classList.remove("active"));
+    const activeCard = document.getElementById(`node-${node.id}`);
+    if (activeCard) activeCard.classList.add("active");
+
+    // Update Drawer Elements
+    panelMeta.textContent = node.meta;
+    panelTitle.textContent = node.name;
+    stepDesc.textContent = node.desc;
+    stepMockup.innerHTML = node.mockup || `<div style="text-align:center;color:var(--text-muted);font-size:12px;">Không có wireframe mô phỏng.</div>`;
+    
+    // Update LocalStorage variable details
+    stepDataBadge.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span>${node.dataState}</span>
+    `;
+
+    // Update Code & Screen links
+    stepLinkList.innerHTML = "";
+    node.links.forEach(lnk => {
+      const a = document.createElement("a");
+      a.className = "link-card";
+      a.href = lnk.path;
+      a.innerHTML = `
+        <div class="link-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
+        <div class="link-details">
+          <span class="link-name">${lnk.filename}</span>
+          <span class="link-desc">${lnk.desc}</span>
+        </div>
+      `;
+      stepLinkList.appendChild(a);
+    });
+
+    // Update slide counter text
+    slideCounter.textContent = `Bước ${index + 1} / ${flow.nodes.length}`;
+
+    // Enable/disable next/prev buttons
+    document.getElementById("btnPrev").disabled = index === 0;
+    document.getElementById("btnNext").disabled = index === flow.nodes.length - 1;
+
+    // Highlight connections
+    highlightConnectionPaths(node.id, flowKey);
+  }
+
+  // ── Draw SVG Bezier Curves Between Nodes ──
+  function drawConnectionLines(flowKey) {
+    const flow = WORKFLOWS[flowKey];
+    const canvasContainer = document.querySelector(".deck-canvas-container");
+    const containerRect = canvasContainer.getBoundingClientRect();
+    const defs = deckSvg.querySelector('defs');
+    deckSvg.innerHTML = "";
+    deckSvg.appendChild(defs);
+
+    flow.nodes.forEach(node => {
+      if (!node.next || node.next.length === 0) return;
+
+      const fromCard = document.getElementById(`node-${node.id}`);
+      if (!fromCard) return;
+
+      const fromRect = fromCard.getBoundingClientRect();
+      const fromX = fromRect.right - containerRect.left;
+      const fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
+
+      node.next.forEach(nextId => {
+        const toCard = document.getElementById(`node-${nextId}`);
+        if (!toCard) return;
+
+        const toRect = toCard.getBoundingClientRect();
+        const toX = toRect.left - containerRect.left;
+        const toY = toRect.top + toRect.height / 2 - containerRect.top;
+
+        const dx = Math.abs(toX - fromX) * 0.55;
+        const pathD = `M ${fromX} ${fromY} C ${fromX + dx} ${fromY}, ${toX - dx} ${toY}, ${toX} ${toY}`;
+
+        // Base Line
+        const baseLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        baseLine.setAttribute("d", pathD);
+        baseLine.setAttribute("class", "flow-line");
+        baseLine.setAttribute("id", `line-${node.id}-to-${nextId}`);
+        deckSvg.appendChild(baseLine);
+
+        // Animated Active Line
+        const activeLine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        activeLine.setAttribute("d", pathD);
+        activeLine.setAttribute("class", "flow-line-active");
+        activeLine.setAttribute("id", `line-active-${node.id}-to-${nextId}`);
+        deckSvg.appendChild(activeLine);
+      });
+    });
+  }
+
+  // ── Highlight Active Connection Paths ──
+  function highlightConnectionPaths(nodeId, flowKey) {
+    // Reset all animated connection paths
+    document.querySelectorAll(".flow-line-active").forEach(line => {
+      line.style.opacity = "0.08";
+      line.style.stroke = "rgba(255, 255, 255, 0.08)";
+    });
+
+    const flow = WORKFLOWS[flowKey];
+    const node = flow.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    // Highlight outbound paths
+    if (node.next) {
+      node.next.forEach(nextId => {
+        const line = document.getElementById(`line-active-${nodeId}-to-${nextId}`);
+        if (line) {
+          line.style.opacity = "1";
+          line.style.stroke = "url(#blueGradient)";
+        }
+      });
+    }
+
+    // Highlight inbound paths
+    flow.nodes.forEach(n => {
+      if (n.next && n.next.includes(nodeId)) {
+        const line = document.getElementById(`line-active-${n.id}-to-${nodeId}`);
+        if (line) {
+          line.style.opacity = "1";
+          line.style.stroke = "url(#blueGradient)";
+        }
+      }
+    });
+  }
+
+  // ── Footer Navigation ──
+  function navigateStep(dir) {
+    const flow = WORKFLOWS[currentFlow];
+    const nextIndex = activeNodeIndex + dir;
+    if (nextIndex >= 0 && nextIndex < flow.nodes.length) {
+      activeNodeIndex = nextIndex;
+      selectNode(activeNodeIndex, currentFlow);
+    }
+  }
+
+  // ── Flow Switcher ──
+  flowSwitcher.addEventListener("click", (e) => {
+    const item = e.target.closest(".fs-item");
+    if (!item || item.classList.contains("active")) return;
+
+    document.querySelectorAll(".fs-item").forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+
+    currentFlow = item.getAttribute("data-flow");
+    activeNodeIndex = 0;
+
+    renderDeck(currentFlow);
+    selectNode(activeNodeIndex, currentFlow);
+  });
+
+  // ── SVG Icons ──
+  function getIconSvg(type) {
+    switch (type) {
+      case "manual":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+      case "auto":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>`;
+      case "print":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>`;
+      case "notif":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
+      case "search":
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+      default:
+        return ``;
+    }
+  }
+
+  // ── Keyboard Navigation ──
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") navigateStep(1);
+    if (e.key === "ArrowLeft") navigateStep(-1);
+  });
+
+  // ── Re-draw on Resize ──
+  window.addEventListener("resize", () => {
+    drawConnectionLines(currentFlow);
+    highlightConnectionPaths(WORKFLOWS[currentFlow].nodes[activeNodeIndex].id, currentFlow);
+  });
+
+  // ── Initialization ──
+  updateLiveStats();
+  renderDeck(currentFlow);
+  selectNode(activeNodeIndex, currentFlow);
+  
+  // Listen for storage events (updates in real time if they trigger changes in other windows)
+  window.addEventListener('storage', () => {
+    updateLiveStats();
+  });
+  </script>
+</body>
+</html>

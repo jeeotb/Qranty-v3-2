@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Design System &amp; UI Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Brand palette */
+  --p500: #2563EB; --p600: #1D4ED8; --p700: #1E40AF; --p800: #1E3A8A;
+  --s50: #EFF6FF;  --s100: #DBEAFE; --s200: #BFDBFE; --s300: #93C5FD;
+  --success: #22C55E; --success-bg: #F0FDF4; --success-border: #BBF7D0;
+  --warning: #F59E0B; --warning-bg: #FFFBEB;
+  --error: #EF4444;   --error-bg: #FEF2F2;
+  --info: #8B5CF6;    --info-bg: #F5F3FF;
+  --n50: #F8FAFC; --n100: #F1F5F9; --n200: #E2E8F0; --n300: #CBD5E1;
+  --n400: #94A3B8; --n500: #64748B; --n600: #475569;
+  --n700: #334155; --n800: #1E293B; --n900: #0F172A;
+  --text-1: #0F172A; --text-2: #475569; --text-3: #64748B; --text-4: #94A3B8;
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+  --r: 12px; --r-sm: 8px;
+  --shadow-card: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --shadow-hover: 0 6px 20px rgba(15,23,42,.10);
+  
+  /* Status colors */
+  --c-tiep-nhan: #3B82F6; --c-tiep-nhan-bg: #EFF6FF;
+  --c-kiem-tra: #F59E0B; --c-kiem-tra-bg: #FFFBEB;
+  --c-bao-gia: #A855F7; --c-bao-gia-bg: #F3E8FF;
+  --c-dang-sua: #2563EB; --c-dang-sua-bg: #EFF6FF;
+  --c-hoan-thanh: #10B981; --c-hoan-thanh-bg: #ECFDF5;
+  --c-tra-may: #0D9488; --c-tra-may-bg: #F0FDFA;
+  --c-da-huy: #EF4444; --c-da-huy-bg: #FEF2F2;
+}
+
+body {
+  font-family: 'Nunito', -apple-system, sans-serif;
+  background: var(--n50);
+  color: var(--text-1);
+  display: flex;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--n900);
+  position: fixed; inset: 0 auto 0 0;
+  display: flex; flex-direction: column;
+  z-index: 200; overflow: hidden;
+}
+.sidebar::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 180px;
+  background: radial-gradient(ellipse at 50% -20%, rgba(37,99,235,.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.sb-logo {
+  height: var(--topbar-h);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  position: relative; z-index: 1;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.sb-logo-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(145deg, var(--p500), var(--p800));
+  display: flex; align-items: center; justify-content: center;
+}
+.sb-logo-name { font-size: 14.5px; font-weight: 900; color: #fff; letter-spacing: -.3px; }
+.sb-logo-sub  { font-size: 9px; color: var(--s300); font-weight: 600; }
+
+.sb-nav { padding: 12px; flex: 1; overflow-y: auto; position: relative; z-index: 1; }
+.sb-group { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--n600); padding: 8px 12px 6px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  height: 38px; padding: 0 12px;
+  border-radius: 8px; margin-bottom: 2px;
+  cursor: pointer; color: var(--n400);
+  font-size: 13px; font-weight: 700;
+  transition: all .13s ease;
+  text-decoration: none;
+}
+.nav-item:hover, .nav-item.active { background: rgba(255,255,255,.05); color: #fff; }
+.nav-item.active { color: var(--p500); font-weight: 800; }
+
+/* Main content styles */
+.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  height: var(--topbar-h);
+  background: #fff; border-bottom: 1px solid var(--n200);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+  position: sticky; top: 0; z-index: 100;
+}
+.tb-title { font-size: 15px; font-weight: 900; color: var(--text-1); }
+.tb-breadcrumb { font-size: 12px; color: var(--text-4); font-weight: 600; }
+
+.content { padding: 24px; display: flex; flex-direction: column; gap: 32px; overflow-y: auto; max-width: 1200px; }
+
+.sec-title { font-size: 18px; font-weight: 900; color: var(--text-1); border-bottom: 2px solid var(--n200); padding-bottom: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.sec-title span { font-size: 11px; font-weight: 800; padding: 2px 8px; background: var(--n100); color: var(--text-3); border-radius: 20px; text-transform: uppercase; }
+
+/* Interactive Showcase Styles */
+.showcase-box {
+  background: #fff;
+  border: 1px solid var(--n200);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.showcase-demo {
+  padding: 24px;
+  background: var(--n50);
+  border-bottom: 1px solid var(--n200);
+}
+.showcase-meta {
+  padding: 12px 20px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.showcase-desc {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+/* Color swatches */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.color-card {
+  background: #fff; border: 1px solid var(--n200); border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow-card); cursor: pointer; transition: all .15s;
+}
+.color-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+.color-swatch { height: 72px; width: 100%; position: relative; }
+.color-swatch::after {
+  content: 'Sao chép HEX'; position: absolute; inset: 0; background: rgba(15,23,42,0.85); color: #fff; font-size: 10.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s;
+}
+.color-card:hover .color-swatch::after { opacity: 1; }
+.color-info { padding: 10px 12px; }
+.color-name { font-size: 12px; font-weight: 900; color: var(--text-1); }
+.color-var { font-size: 10px; font-weight: 700; color: var(--p500); font-family: monospace; margin-top: 2px; }
+.color-hex { font-size: 10.5px; font-weight: 600; color: var(--text-3); font-family: monospace; margin-top: 1px; }
+
+/* Code box drawer style */
+.code-drawer {
+  background: #0f172a;
+  color: #f8fafc;
+  display: none;
+  position: relative;
+}
+.code-drawer.active { display: block; }
+.code-drawer pre {
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.code-copy-btn {
+  position: absolute; right: 14px; top: 14px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: inherit; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all 0.12s;
+  z-index: 10;
+}
+.code-copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+.toggle-code-btn {
+  background: var(--n100);
+  color: var(--text-2);
+  border: 1px solid var(--n200);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: inherit; font-size: 12px; font-weight: 800;
+  cursor: pointer; transition: all .12s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.toggle-code-btn:hover { background: var(--n200); color: var(--text-1); }
+
+/* Static KPI elements mirroring main app */
+.kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-card {
+  background: #fff; border: 1px solid var(--n200); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card);
+}
+.stat-card.active { border: 2px solid var(--p500); }
+
+/* Kanban Card copy showcase */
+.kanban-card {
+  background: #fff; border: 1px solid var(--n200); border-radius: 10px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 7px; width: 280px; box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+.card-top-row { display: flex; align-items: center; justify-content: space-between; }
+.card-code { font-size: 13px; font-weight: 800; color: var(--text-1); text-decoration: none; }
+.card-actions { display: flex; align-items: center; gap: 4px; }
+.card-act-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: transparent; color: var(--n400); display: flex; align-items: center; justify-content: center; }
+.card-cust { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.card-phone-date { font-size: 11px; font-weight: 600; color: var(--text-3); display: flex; align-items: center; gap: 10px; }
+.card-info-item { display: flex; align-items: center; gap: 4px; }
+.card-info-item svg { color: var(--n400); width: 11px; height: 11px; }
+.card-dev-box { font-size: 11.5px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; gap: 4px; }
+.card-dev-box svg { color: var(--n400); width: 12px; height: 12px; }
+.card-ftr { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--n100); }
+.card-cost { font-size: 12px; font-weight: 800; color: var(--text-1); }
+
+.card-status-select {
+  border: none; font-size: 10.5px; font-weight: 800; padding: 3px 18px 3px 10px; border-radius: 20px; outline: none; appearance: none; background-repeat: no-repeat; background-position: right 6px center; background-size: 7px;
+}
+.card-status-select.tiep-nhan {
+  background-color: var(--c-tiep-nhan-bg); color: var(--c-tiep-nhan);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%233B82F6' d='M0 2l4 4 4-4z'/%3E%3C/svg%3E");
+}
+
+/* Table Showcase list style */
+.list-table-wrap { background: #fff; border: 1px solid var(--n200); border-radius: 12px; overflow: hidden; width: 100%; }
+.list-table { width: 100%; border-collapse: collapse; text-align: left; }
+.list-table thead { background: #f8fafc; }
+.list-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; font-weight: 500; padding: 10px 16px; }
+.list-table td { padding: 12px 16px; border-top: 1px solid #e2e8f0; font-size: 13.5px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 500; }
+.strong { font-weight: 600; }
+.muted { color: #64748b; }
+.right { text-align: right !important; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.iconbtn { border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; padding: 5px 8px; font-size: 12px; margin-left: 4px; }
+
+/* Form inputs preview */
+.form-preview-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 500px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-label { font-size: 11.5px; font-weight: 800; color: var(--text-2); }
+.form-input {
+  height: 36px; padding: 0 10px; border: 1px solid var(--n200); border-radius: var(--r-sm); font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-1); background: var(--n50); outline: none; transition: border .15s;
+}
+.form-input:focus { border-color: var(--p500); background: #fff; }
+
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+  background: var(--n900); color: #fff; font-size: 12px; font-weight: 700;
+  padding: 9px 18px; border-radius: 20px; opacity: 0; transition: all .18s ease;
+  pointer-events: none; z-index: 9999; box-shadow: 0 10px 24px rgba(15,23,42,0.15);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR MENU (Cosmetic category jumper)
+     ══════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">🔧</div>
+    <div class="sb-logo-text">
+      <div class="sb-logo-name">Qranty</div>
+      <div class="sb-logo-sub">Beyond warranty · Toward loyalty</div>
+    </div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="sb-group">Design Spec</div>
+    <a href="#sec-colors" class="nav-item active"><span class="ni-label">1. Màu sắc chính</span></a>
+    <a href="#sec-typo" class="nav-item"><span class="ni-label">2. Cỡ chữ &amp; Căn lề</span></a>
+    <a href="#sec-kpi" class="nav-item"><span class="ni-label">3. Thẻ Chỉ Số (KPIs)</span></a>
+    <a href="#sec-kanban" class="nav-item"><span class="ni-label">4. Thẻ Kanban (Card)</span></a>
+    <a href="#sec-table" class="nav-item"><span class="ni-label">5. Bảng phẳng (List View)</span></a>
+    <a href="#sec-badge" class="nav-item"><span class="ni-label">6. Nhãn Trạng Thái</span></a>
+    <a href="#sec-form" class="nav-item"><span class="ni-label">7. Ô nhập liệu (Forms)</span></a>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     MAIN SPECIFICATION BOARD
+     ══════════════════════════════════════════ -->
+<main class="main">
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-title">Qranty UI Kit &amp; Design System</span>
+      <div style="width: 1px; height: 16px; background: var(--n200); margin: 0 8px;"></div>
+      <span class="tb-breadcrumb">Bản vẽ trực quan dành cho lập trình viên (Developer Live Spec)</span>
+    </div>
+    <span style="font-size: 11px; font-weight: 800; background: var(--s50); color: var(--p500); padding: 4px 10px; border-radius: 20px;">Phiên bản 2.0</span>
+  </header>
+
+  <div class="content">
+
+    <!-- 1. COLORS -->
+    <section id="sec-colors">
+      <h3 class="sec-title">1. Màu Sắc Chủ Đạo &amp; CSS Variables <span>Colors</span></h3>
+      <p style="font-size: 13.5px; color: var(--text-3); font-weight: 600; margin-bottom: 12px;">Nhấp chuột vào từng thẻ màu dưới đây để tự động sao chép mã HEX vào bộ nhớ tạm thời.</p>
+      
+      <div class="color-grid">
+        <div class="color-card" onclick="copyText('#2563EB')">
+          <div class="color-swatch" style="background: #2563EB"></div>
+          <div class="color-info">
+            <div class="color-name">Brand Primary</div>
+            <div class="color-var">--p500</div>
+            <div class="color-hex">#2563EB</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#1D4ED8')">
+          <div class="color-swatch" style="background: #1D4ED8"></div>
+          <div class="color-info">
+            <div class="color-name">Brand Hover</div>
+            <div class="color-var">--p600</div>
+            <div class="color-hex">#1D4ED8</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#1E3A8A')">
+          <div class="color-swatch" style="background: #1E3A8A"></div>
+          <div class="color-info">
+            <div class="color-name">Brand Dark</div>
+            <div class="color-var">--p800</div>
+            <div class="color-hex">#1E3A8A</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#0F172A')">
+          <div class="color-swatch" style="background: #0F172A"></div>
+          <div class="color-info">
+            <div class="color-name">Sidebar Dark</div>
+            <div class="color-var">--n900</div>
+            <div class="color-hex">#0F172A</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#22C55E')">
+          <div class="color-swatch" style="background: #22C55E"></div>
+          <div class="color-info">
+            <div class="color-name">Success Green</div>
+            <div class="color-var">--success</div>
+            <div class="color-hex">#22C55E</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#F59E0B')">
+          <div class="color-swatch" style="background: #F59E0B"></div>
+          <div class="color-info">
+            <div class="color-name">Warning Orange</div>
+            <div class="color-var">--warning</div>
+            <div class="color-hex">#F59E0B</div>
+          </div>
+        </div>
+        <div class="color-card" onclick="copyText('#EF4444')">
+          <div class="color-swatch" style="background: #EF4444"></div>
+          <div class="color-info">
+            <div class="color-name">Error Red</div>
+            <div class="color-var">--error</div>
+            <div class="color-hex">#EF4444</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TYPOGRAPHY -->
+    <section id="sec-typo">
+      <h3 class="sec-title">2. Cỡ Chữ &amp; Định Hướng Phông Chữ <span>Typography</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo" style="background: #fff;">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <span style="font-size: 11px; font-weight:800; color:var(--p500); font-family:monospace;">Font Weight 900 / 800 (Bold Headers)</span>
+              <h2 style="font-size: 20px; font-weight:900;">Quản lý sửa chữa (Cỡ chữ 20px, Heavy Bold)</h2>
+            </div>
+            <div>
+              <span style="font-size: 11px; font-weight:800; color:var(--p500); font-family:monospace;">Font Weight 700 / 600 (Semibold / Info)</span>
+              <div style="font-size: 13.5px; font-weight:700; color: var(--text-2);">Hưng - 0899991234 (Cỡ chữ 13.5px, Semibold)</div>
+            </div>
+            <div>
+              <span style="font-size: 11px; font-weight:800; color:var(--p500); font-family:monospace;">Font Weight 400 / 500 (Regular / Muted)</span>
+              <div style="font-size: 12.5px; font-weight:500; color: var(--text-3);">Theo dõi toàn bộ phiếu sửa chữa nội bộ và phiếu gửi hãng bảo hành (Cỡ chữ 12.5px, Muted)</div>
+            </div>
+          </div>
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Tích hợp phông chữ Nunito từ Google Fonts để có giao diện bo tròn mềm mại và chuyên nghiệp nhất.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. KPI CARDS -->
+    <section id="sec-kpi">
+      <h3 class="sec-title">3. Thẻ Chỉ Số KPIs <span>KPI Cards</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo">
+          <div class="kpi-row">
+            <!-- Active KPI -->
+            <div class="stat-card active">
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: var(--s50); display: flex; align-items: center; justify-content: center; color: var(--p500); flex-shrink: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              </div>
+              <div>
+                <div style="font-size: 16px; font-weight: 900; color: var(--text-1); line-height: 1.1;">12</div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-3); margin-top: 1px;">Tổng phiếu (Đang chọn)</div>
+              </div>
+            </div>
+            <!-- Standard KPI -->
+            <div class="stat-card">
+              <div style="width: 34px; height: 34px; border-radius: 8px; background: var(--success-bg); display: flex; align-items: center; justify-content: center; color: var(--success); flex-shrink: 0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </div>
+              <div>
+                <div style="font-size: 16px; font-weight: 900; color: var(--text-1); line-height: 1.1;">2</div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--text-3); margin-top: 1px;">Hoàn thành</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Sử dụng viền xanh dương đậm 2px cho thẻ đang được click chọn lọc dữ liệu.</span>
+          <button class="toggle-code-btn" onclick="toggleCode('code-kpi')">Xem mã HTML</button>
+        </div>
+        <div class="code-drawer" id="code-kpi">
+          <button class="code-copy-btn" onclick="copyCode('code-kpi')">Sao chép</button>
+          <pre><code>&lt;!-- Thẻ Chỉ Số Mẫu Hoạt Động (Active) --&gt;
+&lt;div class="stat-card active"&gt;
+  &lt;div style="width: 34px; height: 34px; border-radius: 8px; background: var(--s50); display: flex; align-items: center; justify-content: center; color: var(--p500);"&gt;
+    &lt;svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"&gt;
+      &lt;path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"&gt;&lt;/path&gt;
+      &lt;polyline points="14 2 14 8 20 8"&gt;&lt;/polyline&gt;
+    &lt;/svg&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;div style="font-size: 16px; font-weight: 900; color: var(--text-1); line-height: 1.1;"&gt;12&lt;/div&gt;
+    &lt;div style="font-size: 11px; font-weight: 700; color: var(--text-3); margin-top: 1px;"&gt;Tổng phiếu&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. KANBAN CARD -->
+    <section id="sec-kanban">
+      <h3 class="sec-title">4. Thẻ Sửa Chữa Kanban <span>Kanban Card</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo" style="display:flex; justify-content:center;">
+          
+          <!-- Card Demo -->
+          <div class="kanban-card">
+            <div class="card-top-row">
+              <a href="#" class="card-code">SV-202605-00001</a>
+              <div class="card-actions">
+                <button class="card-act-btn">✏️</button>
+                <button class="card-act-btn">✕</button>
+              </div>
+            </div>
+            
+            <div class="card-cust">Hưng</div>
+
+            <div class="card-phone-date">
+              <div class="card-info-item">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <span>0899991234</span>
+              </div>
+              <div class="card-info-item">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>05/05/2026</span>
+              </div>
+            </div>
+
+            <div class="card-dev-box">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              <span>1 thiết bị (iPhone 14 Pro Max)</span>
+            </div>
+
+            <div class="card-ftr">
+              <span class="card-cost">1.000.000đ</span>
+              
+              <!-- Styled badge select dropdown -->
+              <select class="card-status-select tiep-nhan">
+                <option selected>• Tiếp nhận</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Bố cục thẻ gọn gàng, chứa đầy đủ thông tin sửa chữa và thanh trạng thái nhanh dạng select-badge ở góc phải.</span>
+          <button class="toggle-code-btn" onclick="toggleCode('code-card')">Xem mã HTML</button>
+        </div>
+        <div class="code-drawer" id="code-card">
+          <button class="code-copy-btn" onclick="copyCode('code-card')">Sao chép</button>
+          <pre><code>&lt;!-- Khung Thẻ Sửa Chữa Kanban --&gt;
+&lt;div class="kanban-card" draggable="true"&gt;
+  &lt;div class="card-top-row"&gt;
+    &lt;a href="#" class="card-code"&gt;SV-202605-00001&lt;/a&gt;
+    &lt;div class="card-actions"&gt;
+      &lt;button class="card-act-btn"&gt;✏️&lt;/button&gt;
+      &lt;button class="card-act-btn del"&gt;✕&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card-cust"&gt;Hưng&lt;/div&gt;
+  &lt;div class="card-phone-date"&gt;
+    &lt;div class="card-info-item"&gt;
+      &lt;svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;path d="M22 16.92v3a2 2 0 0 1-2.18 2"&gt;&lt;/path&gt;&lt;/svg&gt;
+      &lt;span&gt;0899991234&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="card-dev-box"&gt;
+    &lt;svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"&gt;&lt;rect x="5" y="2" width="14" height="20" rx="2"&gt;&lt;/rect&gt;&lt;/svg&gt;
+    &lt;span&gt;1 thiết bị&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="card-ftr"&gt;
+    &lt;span class="card-cost"&gt;1.000.000đ&lt;/span&gt;
+    &lt;select class="card-status-select tiep-nhan"&gt;
+      &lt;option value="tiep-nhan" selected&gt;• Tiếp nhận&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. FLAT TABLE -->
+    <section id="sec-table">
+      <h3 class="sec-title">5. Bảng Phẳng Dữ Liệu <span>Flat List Table</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo">
+          <div class="list-table-wrap">
+            <table class="list-table">
+              <thead>
+                <tr>
+                  <th>Mã phiếu</th>
+                  <th>Khách hàng</th>
+                  <th>SĐT</th>
+                  <th>Ngày nhận</th>
+                  <th>Thiết bị</th>
+                  <th class="right">Tổng phí</th>
+                  <th>Trạng thái</th>
+                  <th class="right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">SV-202605-00001</td>
+                  <td class="strong">Hưng</td>
+                  <td class="muted">0899991234</td>
+                  <td class="muted">05/05/2026</td>
+                  <td class="muted">1 thiết bị</td>
+                  <td class="right strong">1.000.000đ</td>
+                  <td>
+                    <span class="badge" style="color:#2563eb; background:#dbeafe">
+                      <span class="dot" style="background:#2563eb"></span>Đang sửa
+                    </span>
+                  </td>
+                  <td class="right">
+                    <button class="iconbtn" title="Xem chi tiết">👁</button>
+                    <button class="iconbtn" title="Sửa">✎</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Sử dụng phông chữ monospace chuyên dụng `.mono` cho mã phiếu và chữ in đậm `.strong` cho tiền tệ/tên.</span>
+          <button class="toggle-code-btn" onclick="toggleCode('code-table')">Xem mã HTML</button>
+        </div>
+        <div class="code-drawer" id="code-table">
+          <button class="code-copy-btn" onclick="copyCode('code-table')">Sao chép</button>
+          <pre><code>&lt;!-- Hàng Bảng Dữ Liệu Flat Chuẩn --&gt;
+&lt;tr&gt;
+  &lt;td class="mono"&gt;SV-202605-00001&lt;/td&gt;
+  &lt;td class="strong"&gt;Hưng&lt;/td&gt;
+  &lt;td class="muted"&gt;0899991234&lt;/td&gt;
+  &lt;td class="muted"&gt;05/05/2026&lt;/td&gt;
+  &lt;td class="muted"&gt;1 thiết bị&lt;/td&gt;
+  &lt;td class="right strong"&gt;1.000.000đ&lt;/td&gt;
+  &lt;td&gt;
+    &lt;span class="badge" style="color:#2563eb; background:#dbeafe"&gt;
+      &lt;span class="dot" style="background:#2563eb"&gt;&lt;/span&gt;Đang sửa
+    &lt;/span&gt;
+  &lt;/td&gt;
+  &lt;td class="right"&gt;
+    &lt;button class="iconbtn" title="Xem chi tiết"&gt;👁&lt;/button&gt;
+    &lt;button class="iconbtn" title="Sửa"&gt;✎&lt;/button&gt;
+  &lt;/td&gt;
+&lt;/tr&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. STATUS BADGES -->
+    <section id="sec-badge">
+      <h3 class="sec-title">6. Nhãn Trạng Thái Chuyên Biệt <span>Status Badges</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo" style="display: flex; flex-wrap: wrap; gap: 8px;">
+          
+          <span class="badge" style="color:#475569; background:#f1f5f9"><span class="dot" style="background:#475569"></span>Tiếp nhận</span>
+          <span class="badge" style="color:#b45309; background:#fef3c7"><span class="dot" style="background:#b45309"></span>Kiểm tra</span>
+          <span class="badge" style="color:#7c3aed; background:#ede9fe"><span class="dot" style="background:#7c3aed"></span>Báo giá</span>
+          <span class="badge" style="color:#2563eb; background:#dbeafe"><span class="dot" style="background:#2563eb"></span>Đang sửa</span>
+          <span class="badge" style="color:#15803d; background:#dcfce7"><span class="dot" style="background:#15803d"></span>Hoàn thành</span>
+          <span class="badge" style="color:#0f766e; background:#ccfbf1"><span class="dot" style="background:#0f766e"></span>Đã trả máy</span>
+          <span class="badge" style="color:#b91c1c; background:#fee2e2"><span class="dot" style="background:#b91c1c"></span>Đã huỷ</span>
+
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Bảng nhãn dạng phẳng kèm chấm tròn chấm màu sắc chuẩn theo bản phân tích trạng thái Qranty.</span>
+          <button class="toggle-code-btn" onclick="toggleCode('code-badge')">Xem mã HTML</button>
+        </div>
+        <div class="code-drawer" id="code-badge">
+          <button class="code-copy-btn" onclick="copyCode('code-badge')">Sao chép</button>
+          <pre><code>&lt;!-- Mẫu nhãn Hoàn thành --&gt;
+&lt;span class="badge" style="color:#15803d; background:#dcfce7"&gt;
+  &lt;span class="dot" style="background:#15803d"&gt;&lt;/span&gt;Hoàn thành
+&lt;/span&gt;
+
+&lt;!-- Mẫu nhãn Đã hủy --&gt;
+&lt;span class="badge" style="color:#b91c1c; background:#fee2e2"&gt;
+  &lt;span class="dot" style="background:#b91c1c"&gt;&lt;/span&gt;Đã huỷ
+&lt;/span&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. FORM FIELDS -->
+    <section id="sec-form">
+      <h3 class="sec-title">7. Ô Nhập Liệu Chuẩn Giao Diện <span>Form Fields</span></h3>
+      <div class="showcase-box">
+        <div class="showcase-demo">
+          <div class="form-preview-row">
+            <div class="form-group">
+              <label class="form-label" for="ex-customer">Tên khách hàng</label>
+              <input type="text" id="ex-customer" class="form-input" placeholder="Ví dụ: Nguyễn Văn An">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="ex-phone">Số điện thoại</label>
+              <input type="text" id="ex-phone" class="form-input" placeholder="Ví dụ: 0963799637">
+            </div>
+          </div>
+        </div>
+        <div class="showcase-meta">
+          <span class="showcase-desc">Đường viền màu xám trung tính, khi focus tự động đổi viền xanh dương `#2563EB` và đổi nền sang màu trắng.</span>
+          <button class="toggle-code-btn" onclick="toggleCode('code-form')">Xem mã HTML</button>
+        </div>
+        <div class="code-drawer" id="code-form">
+          <button class="code-copy-btn" onclick="copyCode('code-form')">Sao chép</button>
+          <pre><code>&lt;!-- Cụm Ô Nhập Liệu Chuẩn --&gt;
+&lt;div class="form-group"&gt;
+  &lt;label class="form-label" for="customer"&gt;Tên khách hàng&lt;/label&gt;
+  &lt;input type="text" id="customer" class="form-input" placeholder="Ví dụ: Nguyễn Văn An"&gt;
+&lt;/div&gt;</code></pre>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<div class="toast" id="toast">✓ Đã sao chép vào bộ nhớ đệm</div>
+
+<script>
+// Toggle code visibility
+function toggleCode(id) {
+  const drawer = document.getElementById(id);
+  drawer.classList.toggle("active");
+}
+
+// Copy code function
+function copyCode(id) {
+  const drawer = document.getElementById(id);
+  const code = drawer.querySelector("code").innerText;
+  copyText(code);
+}
+
+// Global text copy function
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast();
+  }).catch(err => {
+    console.error("Copy failed", err);
+  });
+}
+
+function showToast() {
+  const toast = document.getElementById("toast");
+  toast.classList.add("show");
+  clearTimeout(window._toastTimeout);
+  window._toastTimeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+</script>
+</body>
+</html>

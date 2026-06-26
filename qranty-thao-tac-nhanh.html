@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Thao tác nhanh</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./shared.css">
+<style>
+/* Manage branches link */
+.qr-store-manage { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 6px; cursor: pointer; color: var(--n400); font-size: 12px; font-weight: 700; transition: all .13s ease; }
+.qr-store-manage:hover { background: rgba(255,255,255,.06); color: #fff; }
+
+/* Featured "Thao tác nhanh" nav item */
+.nav-item.quick-action { background: linear-gradient(135deg, var(--brand), #3D7CB8); color: #fff; box-shadow: 0 4px 16px rgba(37,99,235,.5), inset 0 1px 0 rgba(255,255,255,.15); font-weight: 800; }
+.nav-item.quick-action::before { display: none; }
+.nav-item.quick-action .ni-box svg { color: #fff; }
+.nav-item.quick-action:hover { background: linear-gradient(135deg, var(--brand), #3D7CB8); }
+
+/* Outline-active nav item (e.g. Kho hàng & Linh kiện) */
+.nav-item.outline-active { background: rgba(37,99,235,.12); border: 1px solid rgba(59,130,246,.45); color: #fff; }
+.nav-item.outline-active .ni-box svg { color: #fff; }
+
+/* Badge color variants */
+.ni-badge.warn { background: var(--warning); }
+
+/* Section divider */
+.sb-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 9px; }
+
+/* Footer brand logo */
+.qr-footer-icons { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px 8px; position: relative; z-index: 1; }
+.qr-footer-icon-btn { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center; color: var(--n400); cursor: pointer; transition: all .13s ease; }
+.qr-footer-icon-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.qr-footer-brand { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 4px 16px 14px; opacity: .55; position: relative; z-index: 1; }
+.qr-footer-logo { width: 22px; height: 22px; border-radius: 4px; background: linear-gradient(145deg, var(--brand), var(--p800)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.qr-footer-powered { color: var(--n500); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+
+/* Account box (bottom of sidebar, Claude-style account menu) */
+.sb-account { position: relative; padding: 8px 9px 10px; border-top: 1px solid rgba(255,255,255,.05); z-index: 10; }
+.sb-account-trigger { display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 8px; border-radius: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); cursor: pointer; transition: all .13s ease; text-align: left; font-family: inherit; }
+.sb-account-trigger:hover { background: rgba(255,255,255,.08); border-color: rgba(59,130,246,.5); }
+.sb-account-trigger.open { background: #16243f; border-color: rgba(255,255,255,.08); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 1px 0 #16243f; }
+.sb-account-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 8px rgba(37,99,235,.4); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; }
+.sb-account-text { flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.sb-account-name { color: #fff; font-weight: 800; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-account-email { color: var(--n500); font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.sb-account-chevron { flex: 0 0 auto; color: var(--n500); display: flex; transition: transform .16s ease; }
+.sb-account-trigger.open .sb-account-chevron { transform: rotate(180deg); }
+
+.sb-account-menu {
+  position: absolute; left: 9px; right: 9px; bottom: 100%;
+  background: #16243f; border: 1px solid rgba(255,255,255,.08); border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -12px 28px rgba(0,0,0,.35); padding: 6px; z-index: 300;
+  opacity: 0; visibility: hidden; transform: translateY(6px);
+  transition: all .15s ease;
+}
+.sb-account-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.sb-account-item { display: flex; align-items: center; gap: 10px; padding: 8px 9px; border-radius: 6px; cursor: pointer; color: var(--n400); font-size: 12.5px; font-weight: 700; text-decoration: none; transition: all .13s ease; }
+.sb-account-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.sb-account-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.sb-account-divider { height: 1px; background: rgba(255,255,255,.07); margin: 6px 4px; }
+.sb-account-item.logout { color: #f87171; }
+.sb-account-item.logout:hover { background: rgba(248,113,113,.12); color: #f87171; }
+
+/* Mode switcher: Cửa hàng vs Trung tâm bảo hành */
+.sb-mode-switch { padding: 6px 9px 8px; }
+.sb-mode-label { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--n500); margin-bottom: 6px; padding: 0 2px; }
+.sb-mode-options { display: flex; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 3px; gap: 2px; }
+.sb-mode-opt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 7px 4px; border-radius: 6px; border: none; background: transparent; color: var(--n400); font-size: 10px; font-weight: 700; cursor: pointer; transition: all .13s ease; text-align: center; line-height: 1.25; font-family: inherit; }
+.sb-mode-opt svg { width: 16px; height: 16px; }
+.sb-mode-opt:hover { color: #fff; }
+.sb-mode-opt.active { background: #fff; color: var(--p700); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+
+/* Hide finance-only UI unless "Cửa hàng" mode is active */
+body:not(.mode-store) .fin-only { display: none !important; }
+
+/* Collapsed sidebar: account box */
+body.sb-collapsed .sb-account-text,
+body.sb-collapsed .sb-account-chevron { display: none; }
+body.sb-collapsed .sb-account-trigger { justify-content: center; padding: 7px; gap: 0; }
+body.sb-collapsed .sb-account-trigger.open { border-radius: 6px; }
+body.sb-collapsed .sb-account-menu { left: 8px; right: auto; width: 230px; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,.08); bottom: calc(100% + 6px); }
+.ni-box svg { width: 16px; height: 16px; color: var(--n400); transition: color .13s ease; }
+.nav-item.active .ni-box svg { color: #fff; }
+.nav-item:hover .ni-box svg { color: #fff; }
+
+/* Collapsed sidebar (LarkSuite-style icon rail) */
+body.sb-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+body.sb-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+body.sb-collapsed .qr-store-text,
+body.sb-collapsed .qr-store-chevron { display: none; }
+body.sb-collapsed .qr-store-switcher { justify-content: center; padding: 8px; gap: 0; }
+body.sb-collapsed .qr-store-menu { left: 8px; width: 250px; right: auto; border-radius: 8px; border-top: 1px solid rgba(255,255,255,.08); top: calc(100% + 6px); }
+body.sb-collapsed .qr-store-switcher.open { border-radius: 8px; }
+body.sb-collapsed .sb-group { display: none; }
+body.sb-collapsed .sb-divider { margin: 8px 14px; }
+body.sb-collapsed .nav-item { flex-direction: column; height: auto; min-height: 56px; padding: 8px 4px 7px; gap: 4px; justify-content: center; }
+body.sb-collapsed .nav-item.active::before { top: 4px; bottom: 4px; }
+body.sb-collapsed .ni-label { flex: none; font-size: 9.5px; font-weight: 600; text-align: center; line-height: 1.2; white-space: normal; }
+body.sb-collapsed .ni-badge { position: absolute; top: 4px; right: 10px; font-size: 8.5px; padding: 1px 5px; }
+body.sb-collapsed .qr-footer-icons { flex-wrap: wrap; padding: 12px 8px 8px; }
+body.sb-collapsed .qr-footer-powered { display: none; }
+body.sb-collapsed .qr-footer-brand { justify-content: center; padding: 4px 8px 14px; }
+
+/* Top-right user menu */
+.tb-user-wrap { position: relative; margin-left: 4px; }
+.tb-user { display: flex; align-items: center; gap: 9px; padding: 5px 8px 5px 10px; border-radius: 999px; border: 1px solid transparent; background: transparent; cursor: pointer; transition: all .13s; font-family: inherit; }
+.tb-user:hover, .tb-user.open { background: var(--n100); border-color: var(--n200); }
+.tb-user-pro { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; background: linear-gradient(135deg, var(--warning), #fb923c); color: #fff; box-shadow: 0 2px 6px rgba(245,158,11,.35); }
+.tb-user-name { font-size: 12.5px; font-weight: 800; color: var(--text-1); white-space: nowrap; }
+.tb-user-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 8px rgba(37,99,235,.35); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; }
+
+.tb-user-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 290px;
+  background: #fff; border-radius: var(--r); border: 1px solid var(--n200);
+  box-shadow: 0 16px 40px rgba(15,23,42,.18); overflow: hidden; z-index: 400;
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: all .15s ease;
+}
+.tb-user-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.tb-user-menu-hdr { background: var(--n900); background-image: radial-gradient(ellipse at 30% 0%, rgba(37,99,235,.35) 0%, transparent 70%); padding: 18px 18px 16px; display: flex; align-items: center; gap: 12px; }
+.tb-user-menu-avatar { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 10px rgba(37,99,235,.4); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #fff; }
+.tb-user-menu-name { font-size: 14px; font-weight: 800; color: #fff; }
+.tb-user-menu-email { font-size: 11.5px; color: var(--n400); font-weight: 600; margin-top: 2px; }
+.tb-user-menu-plan { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; margin-top: 6px; border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; background: rgba(255,255,255,.1); color: var(--n300); }
+.tb-info-section { padding: 14px 18px 8px; }
+.tb-info-title { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin-bottom: 8px; }
+.tb-info-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; font-size: 12.5px; font-weight: 700; border-bottom: 1px solid var(--n100); }
+.tb-info-row:last-child { border-bottom: none; }
+.tb-info-label { color: var(--text-4); font-weight: 600; }
+.tb-info-value { color: var(--text-1); font-weight: 800; }
+.tb-info-value.link { color: var(--p600); }
+.tb-logout { display: flex; align-items: center; gap: 9px; padding: 12px 18px; border-top: 1px solid var(--n100); color: var(--error); font-size: 12.5px; font-weight: 800; cursor: pointer; transition: background .13s; }
+.tb-logout:hover { background: var(--error-bg); }
+
+/* GRID */
+.qa-grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; align-items: start; }
+
+/* HERO PANEL */
+.hero { background: linear-gradient(135deg, var(--p700) 0%, var(--p500) 60%, #60A5FA 100%); border-radius: var(--r); color: #fff; padding: 16px 20px; margin-bottom: 14px; }
+.hero-title { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 900; }
+.hero-sub { font-size: 11.5px; color: rgba(255,255,255,.8); font-weight: 600; margin-top: 3px; margin-left: 31px; }
+.hero-icon { width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* NOTICE */
+
+/* FORM */
+.field { margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.field-label .req { color: var(--error); }
+.field-label .opt { font-size: 10.5px; font-weight: 700; color: var(--text-4); text-transform: none; }
+.field-hint { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 4px; }
+.input {
+  width: 100%; height: 38px; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  padding: 0 12px; font-size: 13px; font-family: inherit; font-weight: 600; color: var(--text-1);
+  background: #fff; transition: border-color .13s, box-shadow .13s;
+}
+.input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.input::placeholder { color: var(--n400); font-weight: 500; }
+textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family: inherit; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* segmented toggle (serial mode) */
+.seg { display: inline-flex; background: var(--n100); border-radius: 5px; padding: 2px; gap: 2px; margin-left: 4px; }
+.seg-item { padding: 2px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 700; color: var(--text-3); cursor: pointer; transition: all .13s; }
+.seg-item.active { background: var(--p500); color: #fff; box-shadow: 0 1px 3px rgba(37,99,235,.35); }
+
+/* serial + QR row */
+.qa-serial-hdr { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.qa-serial-row { display: flex; align-items: center; gap: 8px; }
+.qa-serial-row .input { flex: 1; min-width: 0; }
+.qa-serial-row .input[readonly] { background: var(--n50); color: var(--text-2); font-weight: 700; letter-spacing: .02em; }
+.qa-serial-regen { flex-shrink: 0; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--n200); border-radius: var(--r-sm); background: #fff; color: var(--p500); cursor: pointer; transition: all .13s; }
+.qa-serial-regen:hover { background: var(--s50); border-color: var(--s200); }
+.qa-serial-regen:active { transform: scale(.94); }
+
+/* duration pills */
+.dur-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dur-pill { padding: 7px 16px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; font-size: 12.5px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all .13s; }
+.dur-pill:hover { border-color: var(--p500); color: var(--p600); }
+.dur-pill.active { background: var(--p500); border-color: var(--p500); color: #fff; box-shadow: 0 3px 8px rgba(37,99,235,.3); }
+.dur-or { font-size: 11px; color: var(--text-4); font-weight: 700; }
+.dur-custom { width: 70px; }
+.dur-unit { font-size: 12px; color: var(--text-3); font-weight: 700; }
+
+/* search input with icon */
+.input-icon-wrap { position: relative; }
+.input-icon-wrap .input { padding-left: 36px; }
+.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--n400); display: flex; }
+
+.input-with-btn { display: flex; gap: 8px; }
+.input-with-btn .input { flex: 1; }
+.icon-btn-sq { width: 38px; height: 38px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--n500); transition: all .13s; flex-shrink: 0; }
+.icon-btn-sq:hover { border-color: var(--brand); color: var(--brand); }
+
+/* action row */
+.action-row { display: flex; gap: 10px; margin-top: 18px; }
+.action-row .btn-primary { flex: 1; }
+
+/* recent activations list */
+.recent-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--n200); }
+.recent-hdr { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); margin-bottom: 10px; }
+.recent-list { display: flex; flex-direction: column; gap: 8px; }
+.recent-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm); border: 1px solid var(--n100); transition: background .13s; }
+.recent-row:hover { background: var(--n50); }
+.recent-ico { width: 32px; height: 32px; border-radius: 6px; background: var(--s50); color: var(--p500); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.recent-info { flex: 1; min-width: 0; }
+.recent-name { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+.recent-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 1px; }
+.recent-badge { font-size: 11px; font-weight: 800; color: var(--p600); background: var(--s50); padding: 3px 10px; border-radius: 10px; flex-shrink: 0; }
+
+/* right column */
+.side-card-hdr { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; }
+.side-card-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-bottom: 12px; }
+.lookup-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 28px 10px; text-align: center; }
+.lookup-empty-ico { width: 46px; height: 46px; border-radius: 50%; background: var(--n100); display: flex; align-items: center; justify-content: center; color: var(--n400); }
+.lookup-empty-title { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.lookup-empty-sub { font-size: 11px; color: var(--text-4); font-weight: 600; }
+
+
+/* AUTOCOMPLETE */
+.ac-wrap { position: relative; }
+.ac-dropdown {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  background: #fff; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  box-shadow: var(--shadow-hover); z-index: 50; overflow: hidden;
+  display: none; max-height: 280px; overflow-y: auto;
+}
+.ac-dropdown.open { display: block; }
+.ac-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--n100); }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.hi { background: var(--s50); }
+.ac-item-ico { width: 28px; height: 28px; border-radius: 6px; background: var(--n100); color: var(--text-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ac-item-text { flex: 1; min-width: 0; }
+.ac-item-name { font-size: 12.5px; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-item-sub { font-size: 10.5px; color: var(--text-4); font-weight: 600; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-item-tag { font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; white-space: nowrap; }
+.ac-item-tag.instock { background: var(--success-bg); color: #15803d; }
+.ac-item-tag.nostock { background: var(--n100); color: var(--text-4); }
+.ac-item.ac-new { color: var(--p600); font-weight: 800; font-size: 12.5px; }
+.ac-item.ac-new .ac-item-ico { background: var(--s50); color: var(--p500); }
+.ac-hint-row { padding: 7px 12px; font-size: 10.5px; color: var(--text-4); font-weight: 600; background: var(--n50); border-top: 1px solid var(--n100); }
+.ac-hint-empty { padding: 16px 12px; text-align: center; font-size: 11.5px; color: var(--text-4); font-weight: 600; }
+
+/* QR RESULT PANEL */
+.qr-result { border-radius: var(--r); border: 1.5px solid var(--success); background: var(--success-bg); padding: 16px; margin-bottom: 16px; display: none; }
+.qr-result.show { display: flex; gap: 16px; align-items: center; }
+.qr-result.existing { border-color: var(--p500); background: var(--s50); }
+.qr-result-img { width: 76px; height: 76px; border-radius: var(--r-sm); background: #fff; border: 1px solid var(--n200); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 8px; }
+.qr-result-body { flex: 1; min-width: 0; }
+.qr-result-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; padding: 2px 9px; border-radius: 10px; margin-bottom: 6px; background: var(--success); color: #fff; }
+.qr-result.existing .qr-result-badge { background: var(--p500); }
+.qr-result-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.qr-result-sub { font-size: 11.5px; color: var(--text-2); font-weight: 600; margin-top: 2px; line-height: 1.5; }
+.qr-result-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.qr-result-btn { height: 34px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; transition: all .13s; }
+.qr-result-btn:hover { border-color: var(--p500); color: var(--p600); }
+
+
+.tasks-card { margin-top: 16px; }
+.task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--n100); }
+.task-row:last-child { border-bottom: none; }
+.task-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--n300); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.task-check.done { background: var(--success); border-color: var(--success); color: #fff; }
+.task-info { flex: 1; min-width: 0; }
+.task-title { font-size: 12.5px; font-weight: 700; color: var(--text-1); line-height: 1.4; }
+.task-row.done .task-title { text-decoration: line-through; color: var(--text-4); }
+.task-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+.task-tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; white-space: nowrap; }
+.tag-gap { background: #fee2e2; color: #b91c1c; }
+.tag-sua { background: #dbeafe; color: #2563eb; }
+.tag-bh { background: #ede9fe; color: #7c3aed; }
+.tag-done { background: #dcfce7; color: #15803d; }
+.count-badge { background: var(--p500); color: #fff; font-size: 10.5px; font-weight: 800; padding: 1px 8px; border-radius: 10px; }
+.add-link { font-size: 11.5px; font-weight: 700; color: var(--p600); cursor: pointer; margin-left: auto; }
+.tasks-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+.mode-status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--s50); color: var(--p700); margin-left: 4px; }
+.mode-status-badge svg { width: 12px; height: 12px; }
+.mode-status-badge.store { background: var(--success-bg); color: #15803d; }
+
+.confirm-code-display { text-align: center; font-family: 'SF Mono', Consolas, monospace; font-size: 32px; font-weight: 900; letter-spacing: .25em; color: var(--p700); background: var(--s50); border-radius: var(--r-sm); padding: 14px 0; margin-bottom: 14px; }
+.confirm-code-input { text-align: center; font-family: 'SF Mono', Consolas, monospace; font-size: 16px; font-weight: 800; letter-spacing: .2em; }
+
+/* ===== Thanh toán bán hàng (chỉ hiện ở chế độ Cửa hàng) — tự sinh "cần thu" sang Thu chi ===== */
+.qa-pay-section { margin-top: 4px; border-top: 1.5px dashed var(--n200); padding-top: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.qa-pay-header { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: .4px; }
+.qa-pay-header svg { color: var(--brand); flex-shrink: 0; }
+.qa-remain-strip { border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--n50); border: 1.5px solid var(--n200); transition: background .2s, border-color .2s; }
+.qa-remain-strip.debt { background: #fff5f5; border-color: #fecaca; }
+.qa-remain-strip.paid { background: #f0fdf4; border-color: #bbf7d0; }
+.qa-remain-strip.partial { background: #fffbeb; border-color: #fde68a; }
+.qa-remain-lbl { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .3px; }
+.qa-remain-val { font-size: 16px; font-weight: 800; color: var(--text-1); }
+.qa-remain-strip.debt .qa-remain-val { color: #dc2626; }
+.qa-remain-strip.paid .qa-remain-val { color: #16a34a; }
+.qa-remain-strip.partial .qa-remain-val { color: #d97706; }
+
+/* ===== Danh sách sản phẩm (nhiều dòng/bời) ===== */
+.qa-items-hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.qa-items-count { font-size: 11px; font-weight: 700; color: var(--text-4); }
+.qa-item-row { border: 1.5px solid var(--n200); border-radius: var(--r-sm); padding: 12px 14px 14px; margin-bottom: 10px; background: var(--n50); }
+.qa-item-row-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.qa-item-num { font-size: 11px; font-weight: 800; color: var(--text-4); text-transform: uppercase; letter-spacing: .04em; }
+.qa-item-remove { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--n200); background: #fff; color: var(--text-3); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; transition: all .13s; }
+.qa-item-remove:hover { border-color: var(--error); color: var(--error); }
+.qa-item-remove:disabled { opacity: .4; cursor: not-allowed; }
+.qa-item-row .field:last-child, .qa-item-row .field-row:last-child { margin-bottom: 0; }
+.qa-item-warranty-toggle { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 4px; cursor: pointer; }
+.qa-item-warranty-toggle input { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+.qa-item-warranty-toggle span { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.qa-item-warranty-fields { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--n200); display: none; }
+.qa-item-warranty-fields.show { display: block; }
+.qa-item-row .dur-row { flex-wrap: wrap; }
+
+/* ===== Xem trước phiếu (thay cho Ghi chú nhanh) — khổ in nhiệt 80mm ===== */
+.receipt-shell { background: var(--n100); border-radius: var(--r-sm); padding: 18px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.receipt-paper {
+  width: 280px; background: #fff; padding: 16px 14px 20px;
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace; font-size: 11.5px; line-height: 1.55; color: #111;
+  box-shadow: 0 2px 10px rgba(15,23,42,.12);
+  transition: width .15s ease;
+  /* mép giấy nhiệt răng cưa, vẽ bằng gradient lặp lại */
+  background-image:
+    linear-gradient(135deg, #fff 50%, transparent 50%), linear-gradient(-135deg, #fff 50%, transparent 50%);
+  background-position: bottom left, bottom right;
+  background-size: 10px 10px;
+  background-repeat: repeat-x;
+}
+/* Hóa đơn nhiều sản phẩm — tự đổi sang khổ A5 cho đỡ dài lê thê trên giấy nhiệt */
+.receipt-paper.a5 {
+  width: 380px; padding: 20px 24px 26px; font-size: 12.5px;
+  background-image: none; border: 1px solid #ddd; border-radius: 4px;
+}
+.receipt-size-note { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--p600); background: var(--s50); padding: 5px 10px; border-radius: 999px; }
+.receipt-size-note svg { flex-shrink: 0; }
+.rcp-center { text-align: center; }
+.rcp-title { font-size: 13.5px; font-weight: 800; letter-spacing: .03em; }
+.rcp-sub { font-size: 10px; color: #555; margin-top: 1px; }
+.rcp-doctype { font-size: 12.5px; font-weight: 800; margin-top: 8px; letter-spacing: .04em; }
+.rcp-divider { border-top: 1px dashed #999; margin: 8px 0; }
+.rcp-row { display: flex; justify-content: space-between; gap: 8px; }
+.rcp-row + .rcp-row { margin-top: 2px; }
+.rcp-label { color: #444; }
+.rcp-val { font-weight: 700; text-align: right; word-break: break-word; }
+.rcp-item-name { font-weight: 700; }
+.rcp-item-sub { display: flex; justify-content: space-between; color: #444; margin-top: 1px; }
+.rcp-total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 12.5px; margin-top: 4px; }
+.rcp-remain-row { display: flex; justify-content: space-between; font-weight: 800; color: #b91c1c; margin-top: 2px; }
+.rcp-qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 10px 0 2px; }
+.rcp-qr-wrap canvas { image-rendering: pixelated; }
+.rcp-qr-code { font-size: 10px; letter-spacing: .04em; color: #444; }
+.rcp-foot { text-align: center; font-size: 10.5px; color: #444; margin-top: 6px; }
+.rcp-thanks { text-align: center; font-weight: 800; margin-top: 6px; }
+
+/* In phiếu: chỉ in đúng phần receipt-paper, khổ giấy nhiệt 80mm */
+@media print {
+  body * { visibility: hidden; }
+  #receiptPaper, #receiptPaper * { visibility: visible; }
+  #receiptPaper { position: absolute; left: 0; top: 0; width: 80mm; box-shadow: none; background-image: none; padding: 4mm 3mm; }
+  @page { size: 80mm auto; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<script src="./sidebar.js"></script>
+<script src="./thuchi-store.js"></script>
+<script src="./order-store.js"></script>
+<script src="./kho-store.js"></script>
+<script src="./customer-store.js"></script>
+<script src="./warranty-store.js"></script>
+<script src="./qr-draw.js"></script>
+
+<!-- MAIN -->
+<main class="main">
+
+  <script>
+  window.TOPBAR_CONFIG = {
+    title: (function () { try { return localStorage.getItem('qranty-mode') === 'store' ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành'; } catch (e) { return 'Thao tác nhanh'; } })(),
+    breadcrumb: "Thao tác nhanh",
+    notifs: [
+      { color: "amber", icon: "warning", title: "3 phiếu kích hoạt chưa xác nhận", sub: "", time: "30p", unread: true },
+      { color: "green", icon: "check", title: "18 sản phẩm kích hoạt hôm nay", sub: "", time: "2h", unread: false }
+    ]
+  };
+  </script>
+  <script src="./topbar.js"></script>
+
+  <div class="content">
+    <div class="qa-grid">
+
+      <!-- LEFT: ACTIVATION FORM -->
+      <div>
+<div class="qr-result" id="qaResult">
+          <div class="qr-result-img">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3)"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+          </div>
+          <div class="qr-result-body">
+            <span class="qr-result-badge" id="qaResultBadge">QR mới tạo</span>
+            <div class="qr-result-title" id="qaResultTitle">Đã lưu phiếu &amp; kích hoạt bảo hành</div>
+            <div class="qr-result-sub" id="qaResultSub">Sản phẩm mới — mã QR vừa được tạo, dán lên sản phẩm để khách tra cứu bảo hành.</div>
+          </div>
+          <div class="qr-result-actions">
+            <button class="qr-result-btn">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V3.5A1.5 1.5 0 0 1 3.5 2H6M12 2h2.5A1.5 1.5 0 0 1 16 3.5V6M16 12v2.5a1.5 1.5 0 0 1-1.5 1.5H12M6 16H3.5A1.5 1.5 0 0 1 2 14.5V12"/><line x1="2.5" y1="9" x2="15.5" y2="9"/></svg>
+              In QR
+            </button>
+            <button class="qr-result-btn">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12V3M5 8l4 4 4-4M3 15h12"/></svg>
+              Tải QR
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+
+<div class="side-card-hdr">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="var(--p500)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5 3 10h5l-.5 6.5L15 8h-5z"/></svg>
+              Thông tin kích hoạt
+            </div>
+            <div class="side-card-sub">Điền thông tin khách hàng &amp; sản phẩm để kích hoạt bảo hành</div>
+
+<div class="field-row">
+              <div class="field ac-wrap">
+                <div class="field-label">Số điện thoại KH <span class="opt">(tuỳ chọn)</span></div>
+                <input class="input" id="qaPhone" placeholder="0901234567" autocomplete="off">
+                <div class="ac-dropdown" id="acPhone"></div>
+              </div>
+              <div class="field ac-wrap">
+                <div class="field-label">Tên khách hàng <span class="opt">(tuỳ chọn)</span></div>
+                <input class="input" id="qaName" placeholder="VD: Nguyễn Văn A" autocomplete="off">
+                <div class="ac-dropdown" id="acName"></div>
+              </div>
+            </div>
+
+            <div class="qa-items-hdr">
+              <span class="field-label" style="margin:0">Sản phẩm <span class="req">*</span></span>
+              <span class="qa-items-count" id="qaItemsCount">1 sản phẩm</span>
+            </div>
+            <div id="qaItemsList"></div>
+            <button type="button" class="btn-outline" style="width:100%;margin-bottom:18px" onclick="qaAddItem()">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M3 9h12"/></svg>
+              Thêm sản phẩm
+            </button>
+
+            <div class="fin-only">
+              <div class="qa-pay-section">
+                <div class="qa-pay-header">
+                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="11" rx="1.5"/><path d="M2 7.5h14"/><circle cx="6" cy="11" r="1"/></svg>
+                  Thanh toán bán hàng
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <div class="field-label">Tổng tiền</div>
+                    <input class="input apm-calc-field" id="qaTotal" value="0 đ" readonly>
+                  </div>
+                  <div class="field">
+                    <div class="field-label">Khách đã trả</div>
+                    <input class="input" id="qaPaid" placeholder="0" type="number" min="0" oninput="qaCalcRemain(); qaRenderReceipt();">
+                  </div>
+                </div>
+                <div class="qa-remain-strip" id="qaRemainStrip">
+                  <span class="qa-remain-lbl">Khách còn cần thanh toán</span>
+                  <span class="qa-remain-val" id="qaRemainVal">—</span>
+                </div>
+                <div class="field-hint">Để trống nếu chưa thu tiền lúc này — vẫn kích hoạt bảo hành bình thường, không tạo khoản cần thu.</div>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:4px">
+              <div class="field-label">Ghi chú <span class="opt">(tuỳ chọn)</span></div>
+              <textarea class="input" id="qaNote" placeholder="Ghi chú thêm về tình trạng sản phẩm, phụ kiện kèm theo..." oninput="qaRenderReceipt()"></textarea>
+            </div>
+
+            <div class="action-row">
+              <button class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V3.5A1.5 1.5 0 0 1 3.5 2H6M12 2h2.5A1.5 1.5 0 0 1 16 3.5V6M16 12v2.5a1.5 1.5 0 0 1-1.5 1.5H12M6 16H3.5A1.5 1.5 0 0 1 2 14.5V12"/><line x1="2.5" y1="9" x2="15.5" y2="9"/></svg>
+                Quét QR có sẵn
+              </button>
+              <button class="btn-primary" id="qaSubmit">
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5 3 10h5l-.5 6.5L15 8h-5z"/></svg>
+                <span id="submitLabel">Xác nhận kích hoạt bảo hành</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: XEM TRƯỚC PHIẾU (thay cho Ghi chú nhanh) -->
+      <div>
+        <div class="card">
+          <div class="card-body">
+            <div class="side-card-hdr">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="var(--p500)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h10v14.4l-2-1.3-1.5 1.3-1.5-1.3-1.5 1.3-1.5-1.3-2 1.3z"/><path d="M6.5 6h5M6.5 9h5M6.5 12h3"/></svg>
+              <span id="receiptHdrTitle">Xem trước phiếu bảo hành</span>
+            </div>
+            <div class="side-card-sub" id="receiptHdrSub">Tự cập nhật theo thông tin đang nhập bên trái — khổ in nhiệt 80mm.</div>
+
+            <div class="receipt-shell">
+              <div class="receipt-size-note" id="receiptSizeNote" style="display:none">
+                <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M9 8v4.5M9 5.5v.01"/></svg>
+                Hóa đơn nhiều sản phẩm — đã tự đổi sang khổ A5
+              </div>
+              <div class="receipt-paper" id="receiptPaper"></div>
+            </div>
+
+            <button class="btn-secondary" style="width:100%;margin-top:14px" onclick="qaPrintReceipt()">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V3.5A1.5 1.5 0 0 1 3.5 2H6M12 2h2.5A1.5 1.5 0 0 1 16 3.5V6M16 12v2.5a1.5 1.5 0 0 1-1.5 1.5H12M6 16H3.5A1.5 1.5 0 0 1 2 14.5V12"/><line x1="2.5" y1="9" x2="15.5" y2="9"/></svg>
+              In phiếu
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+}
+// Đổi tiêu đề trang + nhãn nút theo chế độ: Cửa hàng → phiếu bán hàng, Trung tâm BH → phiếu bảo hành
+function applyModeLabels() {
+  var isStore = document.body.classList.contains('mode-store');
+  var t = document.querySelector('.tb-title'); if (t) t.textContent = isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành';
+  var s = document.getElementById('submitLabel'); if (s) s.textContent = isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành';
+  if (document.title) document.title = 'Qranty — ' + (isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành');
+}
+function setAppMode(mode, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('mode-store', mode === 'store');
+  document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  localStorage.setItem('qranty-mode', mode);
+  updateModeStatusBadge();
+  applyModeLabels();
+  if (typeof qaRenderReceipt === 'function') qaRenderReceipt();
+}
+(function initAppMode() {
+  var saved = localStorage.getItem('qranty-mode') || 'bh';
+  document.body.classList.toggle('mode-store', saved === 'store');
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.mode === saved);
+    });
+    applyModeLabels();
+  });
+})();
+function toggleAccountMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('accountMenu').classList.toggle('open');
+  document.getElementById('accountTrigger').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.sb-account');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+function toggleStoreMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('storeMenu').classList.toggle('open');
+  document.getElementById('storeSwitcher').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.qr-store-wrap');
+  if (!wrap.contains(e.target)) {
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  }
+});
+document.querySelectorAll('.qr-store-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.qr-store-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const check = '<div class="qr-store-item-check"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 7 13 14.5 4.5"/></svg></div>';
+    document.querySelectorAll('.qr-store-item-check').forEach(c => c.remove());
+    item.insertAdjacentHTML('beforeend', check);
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  });
+});
+
+/* ===== AUTOCOMPLETE: "+ Thêm mới" cho sản phẩm & khách hàng ===== */
+// Mock data — thực tế sẽ là API search có LIMIT, debounce phía server
+const CUSTOMERS_DB = [
+  { name: 'Nguyễn Văn A', phone: '0901234567', sub: '0901234567 · 2 đơn trước' },
+  { name: 'Trần Thị B', phone: '0912345678', sub: '0912345678 · 1 đơn trước' },
+  { name: 'Lê Văn C', phone: '0987654321', sub: '0987654321 · 3 đơn trước' },
+  { name: 'Phạm Thị D', phone: '0978123456', sub: '0978123456 · KH mới' },
+  { name: 'Hoàng Văn E', phone: '0966112233', sub: '0966112233 · 1 đơn trước' },
+  { name: 'Ngô Thị F', phone: '0909887766', sub: '0909887766 · 4 đơn trước' },
+  { name: 'Đặng Văn G', phone: '0938123123', sub: '0938123123 · KH mới' },
+  { name: 'Bùi Thị H', phone: '0944556677', sub: '0944556677 · 2 đơn trước' },
+  { name: 'Vũ Văn I', phone: '0977889900', sub: '0977889900 · 1 đơn trước' },
+  { name: 'Đỗ Thị K', phone: '0918223344', sub: '0918223344 · KH mới' },
+  { name: 'Phan Văn L', phone: '0925667788', sub: '0925667788 · 5 đơn trước' },
+];
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+const ICO_PRODUCT = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="14" height="9.5" rx="1.2"/><path d="M1 14.5h16"/></svg>';
+const ICO_USER = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6.5" r="3.2"/><path d="M2.5 16c0-3 2.9-5 6.5-5s6.5 2 6.5 5"/></svg>';
+const ICO_PLUS = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M3 9h12"/></svg>';
+
+function setupAutocomplete({ inputId, dropdownId, data, minChars, maxResults, matchFn, renderItem, onSelect, newLabel }) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  let items = [];
+  let hi = -1;
+
+  function close() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; items = []; hi = -1; }
+
+  function render(q) {
+    // data may be a function (dynamic) or a static array
+    const pool = typeof data === 'function' ? data(q) : data.filter(d => matchFn(d, q));
+    const matches = pool.slice(0, maxResults);
+    let html = '';
+    matches.forEach((m, i) => { html += renderItem(m, i); });
+    const exact = pool.some(d => d.name.toLowerCase() === q.toLowerCase());
+    if (!exact) {
+      html += `<div class="ac-item ac-new" data-new="1"><div class="ac-item-ico">${ICO_PLUS}</div><div class="ac-item-text"><div class="ac-item-name">+ Thêm mới: "<strong>${q}</strong>"</div></div></div>`;
+    }
+    if (!matches.length && exact) html = `<div class="ac-hint-empty">Không có gợi ý khác</div>`;
+    dropdown.innerHTML = html + `<div class="ac-hint-row">Hiển thị tối đa ${maxResults} kết quả — gõ thêm để thu hẹp</div>`;
+    items = matches;
+    hi = -1;
+    dropdown.classList.add('open');
+    dropdown.querySelectorAll('.ac-item').forEach((el, idx) => {
+      el.addEventListener('click', () => {
+        if (el.dataset.new) {
+          input.value = q;
+          onSelect(null, q);
+        } else {
+          onSelect(matches[idx], q);
+        }
+        close();
+      });
+    });
+  }
+
+  const trigger = debounce(() => {
+    const q = input.value.trim();
+    if (q.length < minChars) { close(); return; }
+    render(q);
+  }, 280);
+
+  input.addEventListener('input', trigger);
+  input.addEventListener('focus', () => { if (input.value.trim().length >= minChars) render(input.value.trim()); });
+  input.addEventListener('keydown', (e) => {
+    const opts = dropdown.querySelectorAll('.ac-item');
+    if (!opts.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(hi + 1, opts.length - 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(hi - 1, 0); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (hi >= 0) opts[hi].click(); return; }
+    else return;
+    opts.forEach((o, i) => o.classList.toggle('hi', i === hi));
+  });
+  document.addEventListener('click', (e) => { if (!input.parentElement.contains(e.target)) close(); });
+}
+
+// Nguồn gợi ý khách hàng: đọc từ kho Khách hàng thật (customer-store.js),
+// fallback về danh sách tĩnh nếu store chưa nạp.
+function khCustomerPool() {
+  if (window.QrantyKhach) {
+    return QrantyKhach.getAll().map(function (c) {
+      var n = QrantyKhach.stats(c.phone).orders;
+      return { name: c.name, phone: c.phone, sub: c.phone + ' · ' + (n ? n + ' đơn trước' : 'KH mới') };
+    });
+  }
+  return CUSTOMERS_DB;
+}
+
+// SĐT khách: tối thiểu 4 số cuối, tối đa 6 dòng
+setupAutocomplete({
+  inputId: 'qaPhone', dropdownId: 'acPhone', data: khCustomerPool(),
+  minChars: 4, maxResults: 6,
+  matchFn: (d, q) => d.phone.includes(q),
+  renderItem: (m) => `<div class="ac-item"><div class="ac-item-ico">${ICO_USER}</div><div class="ac-item-text"><div class="ac-item-name">${m.name}</div><div class="ac-item-sub">${m.sub}</div></div></div>`,
+  onSelect: (m, q) => {
+    if (m) { document.getElementById('qaPhone').value = m.phone; document.getElementById('qaName').value = m.name; QA_STATE.customer = m; }
+    else { document.getElementById('qaPhone').value = q; QA_STATE.customer = { phone: q, isNew: true }; }
+    qaRenderReceipt();
+  },
+  newLabel: 'Tạo khách hàng mới trong CRM'
+});
+
+// Tên khách: tối thiểu 2 ký tự, tối đa 6 dòng
+setupAutocomplete({
+  inputId: 'qaName', dropdownId: 'acName', data: khCustomerPool(),
+  minChars: 2, maxResults: 6,
+  matchFn: (d, q) => d.name.toLowerCase().includes(q.toLowerCase()),
+  renderItem: (m) => `<div class="ac-item"><div class="ac-item-ico">${ICO_USER}</div><div class="ac-item-text"><div class="ac-item-name">${m.name}</div><div class="ac-item-sub">${m.sub}</div></div></div>`,
+  onSelect: (m, q) => {
+    if (m) { document.getElementById('qaName').value = m.name; document.getElementById('qaPhone').value = m.phone; QA_STATE.customer = m; }
+    else { document.getElementById('qaName').value = q; QA_STATE.customer = { name: q, isNew: true }; }
+    qaRenderReceipt();
+  },
+  newLabel: 'Tạo khách hàng mới trong CRM'
+});
+
+/* ===== KẾT QUẢ SAU KHI XÁC NHẬN: QR mới vs QR đã có ===== */
+const QA_STATE = { customer: null };
+
+/* ===== DANH SÁCH SẢN PHẨM (nhiều dòng/bời) =====
+   Mỗi dòng tự quyết có áp dụng bảo hành hay không (tick riêng) —
+   sản phẩm như ốp lưng/màn hình thường không cần. Field tái dùng
+   đúng những gì form đơn-sản-phẩm cũ đã có (tên SP, serial, thời
+   hạn, giá), chỉ lặp lại theo từng dòng thay vì 1 bộ field cố định. */
+var qaItemSeq = 0;
+var QA_ITEMS = [];
+var QA_BILL_SEED = Math.floor(Math.random() * 900000000) + 100000000;
+
+function qaItemRowTemplate(id, checked) {
+  var checkedAttr = checked ? 'checked' : '';
+  var fieldsClass = checked ? 'qa-item-warranty-fields show' : 'qa-item-warranty-fields';
+  return '' +
+    '<div class="qa-item-row" data-item-id="' + id + '">' +
+      '<div class="qa-item-row-hdr">' +
+        '<span class="qa-item-num">Sản phẩm #' + id + '</span>' +
+        '<button type="button" class="qa-item-remove" onclick="qaRemoveItem(' + id + ')" title="Xoá sản phẩm này">&times;</button>' +
+      '</div>' +
+      '<div class="field ac-wrap" style="margin-bottom:10px">' +
+        '<input class="input" id="qaItemName_' + id + '" placeholder="VD: Samsung Galaxy S24 Ultra 256GB..." autocomplete="off" oninput="qaItemChanged(' + id + ')">' +
+        '<div class="ac-dropdown" id="acItemName_' + id + '"></div>' +
+      '</div>' +
+      '<div class="field-row" style="margin-bottom:0">' +
+        '<div class="field" style="margin-bottom:0">' +
+          '<div class="field-label">Giá bán</div>' +
+          '<input class="input" id="qaItemPrice_' + id + '" type="number" min="0" placeholder="0" oninput="qaItemChanged(' + id + ')">' +
+        '</div>' +
+        '<div class="field" style="margin-bottom:0;display:flex;align-items:flex-end">' +
+          '<label class="qa-item-warranty-toggle">' +
+            '<input type="checkbox" id="qaItemWarranty_' + id + '" ' + checkedAttr + ' onchange="qaToggleItemWarranty(' + id + ')">' +
+            '<span>Áp dụng bảo hành</span>' +
+          '</label>' +
+        '</div>' +
+      '</div>' +
+      '<div class="' + fieldsClass + '" id="qaItemWarrantyFields_' + id + '">' +
+        '<div class="field">' +
+          '<div class="qa-serial-hdr">' +
+            '<div class="field-label" style="margin:0">Số serial bảo hành</div>' +
+            '<div class="seg" id="qaItemSerialSeg_' + id + '">' +
+              '<div class="seg-item active" onclick="qaItemSetSerialMode(' + id + ',\'auto\')">Tự động</div>' +
+              '<div class="seg-item" onclick="qaItemSetSerialMode(' + id + ',\'manual\')">Thủ công</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="qa-serial-row">' +
+            '<input class="input" id="qaItemSerial_' + id + '" placeholder="VD: SN20240601-001" oninput="qaItemChanged(' + id + ')" readonly>' +
+            '<button type="button" class="qa-serial-regen" id="qaItemRegen_' + id + '" onclick="qaItemGenSerial(' + id + ')" title="Tạo lại serial">' +
+              '<svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 9A6 6 0 0 1 3.3 11.5"/><path d="M3 9A6 6 0 0 1 14.7 6.5"/><path d="M14.7 3.2v3.3h-3.3"/><path d="M3.3 14.8v-3.3h3.3"/></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="field" style="margin-bottom:0">' +
+          '<div class="field-label">Thời hạn bảo hành</div>' +
+          '<div class="dur-row">' +
+            '<div class="dur-pill" onclick="qaItemSelectDur(' + id + ',this,90)">3 tháng</div>' +
+            '<div class="dur-pill" onclick="qaItemSelectDur(' + id + ',this,180)">6 tháng</div>' +
+            '<div class="dur-pill active" onclick="qaItemSelectDur(' + id + ',this,365)">12 tháng</div>' +
+            '<div class="dur-pill" onclick="qaItemSelectDur(' + id + ',this,730)">24 tháng</div>' +
+            '<span class="dur-or">hoặc</span>' +
+            '<input class="input dur-custom" id="qaItemDur_' + id + '" value="365" oninput="qaItemChanged(' + id + ')">' +
+            '<span class="dur-unit">ngày</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function qaAddItem(defaultWarranty) {
+  qaItemSeq++;
+  var id = qaItemSeq;
+  QA_ITEMS.push({ id: id, name: '', price: 0, hasWarranty: !!defaultWarranty, serial: '', durDays: 365, serialMode: 'auto', productMeta: null });
+  document.getElementById('qaItemsList').insertAdjacentHTML('beforeend', qaItemRowTemplate(id, !!defaultWarranty));
+  qaSetupItemAutocomplete(id);
+  // Mặc định chế độ Tự động: nếu dòng có bảo hành thì sinh serial + QR ngay
+  if (defaultWarranty) qaItemGenSerial(id);
+  qaUpdateItemsCount();
+  qaUpdateRemoveButtons();
+  qaUpdateTotal();
+  qaRenderReceipt();
+}
+
+/* ── Serial + QR theo từng dòng: Tự động (tự sinh) hoặc Thủ công ── */
+function qaItemGenSerial(id) {
+  var item = QA_ITEMS.find(function (it) { return it.id === id; });
+  if (!item) return;
+  var serial = 'SN' + Date.now().toString().slice(-6) + '-' + String(id).padStart(3, '0');
+  var el = document.getElementById('qaItemSerial_' + id);
+  if (el) el.value = serial;
+  item.serial = serial;
+  qaItemChanged(id); // cập nhật state + render phiếu (QR vẽ ở phiếu bên phải)
+}
+function qaItemSetSerialMode(id, mode) {
+  var item = QA_ITEMS.find(function (it) { return it.id === id; });
+  if (!item) return;
+  item.serialMode = mode;
+  var seg = document.getElementById('qaItemSerialSeg_' + id);
+  if (seg) seg.querySelectorAll('.seg-item').forEach(function (s, i) {
+    s.classList.toggle('active', mode === 'auto' ? i === 0 : i === 1);
+  });
+  var el    = document.getElementById('qaItemSerial_' + id);
+  var regen = document.getElementById('qaItemRegen_' + id);
+  if (mode === 'auto') {
+    if (el) el.readOnly = true;
+    if (regen) regen.style.display = '';
+    qaItemGenSerial(id); // bấm Tự động → sinh serial + QR ngay
+  } else {
+    if (el) { el.readOnly = false; el.value = ''; el.focus(); }
+    if (regen) regen.style.display = 'none';
+    item.serial = '';
+    qaItemChanged(id);
+  }
+}
+function qaRemoveItem(id) {
+  if (QA_ITEMS.length <= 1) return; // luôn giữ tối thiểu 1 sản phẩm trong phiếu
+  QA_ITEMS = QA_ITEMS.filter(function (it) { return it.id !== id; });
+  var row = document.querySelector('.qa-item-row[data-item-id="' + id + '"]');
+  if (row) row.remove();
+  qaUpdateItemsCount();
+  qaUpdateRemoveButtons();
+  qaUpdateTotal();
+  qaRenderReceipt();
+}
+function qaUpdateRemoveButtons() {
+  var disable = QA_ITEMS.length <= 1;
+  document.querySelectorAll('.qa-item-remove').forEach(function (btn) { btn.disabled = disable; });
+}
+function qaUpdateItemsCount() {
+  var el = document.getElementById('qaItemsCount');
+  if (el) el.textContent = QA_ITEMS.length + ' sản phẩm';
+}
+function qaItemChanged(id) {
+  var item = QA_ITEMS.find(function (it) { return it.id === id; });
+  if (!item) return;
+  var nameEl = document.getElementById('qaItemName_' + id);
+  var priceEl = document.getElementById('qaItemPrice_' + id);
+  var serialEl = document.getElementById('qaItemSerial_' + id);
+  var durEl = document.getElementById('qaItemDur_' + id);
+  if (nameEl) item.name = nameEl.value.trim();
+  if (priceEl) item.price = parseFloat(priceEl.value) || 0;
+  if (serialEl) item.serial = serialEl.value.trim();
+  if (durEl) item.durDays = parseInt(durEl.value, 10) || 0;
+  qaUpdateTotal();
+  qaRenderReceipt();
+}
+function qaToggleItemWarranty(id) {
+  var item = QA_ITEMS.find(function (it) { return it.id === id; });
+  if (!item) return;
+  var checked = document.getElementById('qaItemWarranty_' + id).checked;
+  item.hasWarranty = checked;
+  document.getElementById('qaItemWarrantyFields_' + id).classList.toggle('show', checked);
+  // Bật bảo hành ở chế độ Tự động mà chưa có serial → sinh serial ngay
+  if (checked && item.serialMode !== 'manual' && !item.serial) qaItemGenSerial(id);
+  qaRenderReceipt();
+}
+function qaItemSelectDur(id, el, days) {
+  el.parentElement.querySelectorAll('.dur-pill').forEach(function (p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('qaItemDur_' + id).value = days;
+  qaItemChanged(id);
+}
+function qaItemDurationLabel(days) {
+  var map = { 90: '3 tháng', 180: '6 tháng', 365: '12 tháng', 730: '24 tháng' };
+  return map[days] || (days ? (days + ' ngày') : '—');
+}
+function qaSetupItemAutocomplete(id) {
+  setupAutocomplete({
+    inputId: 'qaItemName_' + id,
+    dropdownId: 'acItemName_' + id,
+    // Dynamic: search kho-store on every keystroke (not a static array)
+    data: (q) => {
+      if (typeof QrantyKho === 'undefined') return [];
+      return QrantyKho.searchProducts(q).map(p => ({
+        name:       p.name,
+        sub:        'SKU: ' + p.sku + ' · Tồn: ' + p.qty + ' · ' + QrantyKho.fmtVND(p.salePrice),
+        stock:      p.qty > 0,
+        sku:        p.sku,
+        salePrice:  p.salePrice,
+        warrantyDays: p.warrantyDays,
+      }));
+    },
+    minChars: 1, maxResults: 10,
+    matchFn: null, // unused when data is a function
+    renderItem: (m) => `<div class="ac-item"><div class="ac-item-ico">${ICO_PRODUCT}</div><div class="ac-item-text"><div class="ac-item-name">${m.name}</div><div class="ac-item-sub">${m.sub}</div></div><span class="ac-item-tag ${m.stock ? 'instock' : 'nostock'}">${m.stock ? 'Còn hàng' : 'Hết hàng'}</span></div>`,
+    onSelect: (m, q) => {
+      var item = QA_ITEMS.find(function (it) { return it.id === id; });
+      var input = document.getElementById('qaItemName_' + id);
+      var priceEl = document.getElementById('qaItemPrice_' + id);
+      if (m) {
+        input.value = m.name;
+        if (priceEl && m.salePrice) priceEl.value = m.salePrice;
+        // Auto-set warranty days if product has a known warranty
+        if (m.warrantyDays && item) {
+          var durEl = document.getElementById('qaItemDur_' + id);
+          if (durEl) { durEl.value = m.warrantyDays; }
+          // Highlight the matching pill if standard value
+          var pills = document.querySelectorAll('#qaItemWarrantyFields_' + id + ' .dur-pill');
+          pills.forEach(function (p) { p.classList.toggle('active', parseInt(p.textContent) === m.warrantyDays || (m.warrantyDays === 90 && p.textContent.includes('3')) || (m.warrantyDays === 180 && p.textContent.includes('6')) || (m.warrantyDays === 365 && p.textContent.includes('12')) || (m.warrantyDays === 730 && p.textContent.includes('24'))); });
+        }
+        if (item) item.productMeta = m; // stores sku, salePrice, etc.
+      } else {
+        // "Tạo mới" path — will be normalized:false in kho if not found
+        if (item) item.productMeta = { name: q, stock: false, isNew: true, sku: null };
+      }
+      qaItemChanged(id);
+    },
+    newLabel: 'Tạo sản phẩm mới + QR bảo hành mới'
+  });
+}
+
+/* ── Thanh toán bán hàng: tổng tiền tự cộng từ danh sách sản phẩm ── */
+function qaUpdateTotal() {
+  var total = QA_ITEMS.reduce(function (s, it) { return s + (Number(it.price) || 0); }, 0);
+  var totalEl = document.getElementById('qaTotal');
+  if (totalEl) totalEl.value = total.toLocaleString('vi-VN') + ' đ';
+  qaCalcRemain();
+}
+function qaCalcRemain() {
+  var total = QA_ITEMS.reduce(function (s, it) { return s + (Number(it.price) || 0); }, 0);
+  var paid  = parseFloat(document.getElementById('qaPaid').value) || 0;
+  var strip = document.getElementById('qaRemainStrip');
+  var valEl = document.getElementById('qaRemainVal');
+  strip.classList.remove('debt', 'paid', 'partial');
+  if (total === 0 && paid === 0) { valEl.textContent = '—'; return; }
+  var remain = total - paid;
+  var fmt = function (n) { return n.toLocaleString('vi-VN') + ' đ'; };
+  if (remain <= 0) { strip.classList.add('paid'); valEl.textContent = fmt(0); }
+  else if (paid > 0) { strip.classList.add('partial'); valEl.textContent = fmt(remain); }
+  else { strip.classList.add('debt'); valEl.textContent = fmt(remain); }
+}
+
+/* ── Xem trước phiếu (thay cho Ghi chú nhanh): dùng đúng field đã có sẵn ở
+   form bên trái, không thêm field nghiệp vụ mới. Chế độ Trung tâm bảo hành
+   → chỉ in Phiếu bảo hành (không có tiền). Chế độ Cửa hàng → in Phiếu bán
+   hàng kèm QR bảo hành. Hóa đơn nhiều sản phẩm (>4 dòng) tự đổi sang khổ
+   A5 cho đỡ dài lê thê trên giấy nhiệt 80mm. ── */
+function qaRenderReceipt() {
+  var paper = document.getElementById('receiptPaper');
+  if (!paper) return;
+  var isStore = document.body.classList.contains('mode-store');
+
+  var phone = (document.getElementById('qaPhone').value || '').trim();
+  var name  = (document.getElementById('qaName').value || '').trim() || 'Khách lẻ';
+  var noteEl = document.getElementById('qaNote');
+  var note  = noteEl ? noteEl.value.trim() : '';
+  var now   = new Date();
+  var dateStr = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  var billCode = String(QA_BILL_SEED).slice(0, 8);
+  var fmt = function (n) { return (Number(n) || 0).toLocaleString('vi-VN') + 'đ'; };
+
+  document.getElementById('receiptHdrTitle').textContent = isStore ? 'Xem trước phiếu bán hàng' : 'Xem trước phiếu bảo hành';
+  document.getElementById('receiptHdrSub').textContent = isStore
+    ? 'Phiếu bán hàng kèm mã QR bảo hành — tự cập nhật theo form bên trái.'
+    : 'Chỉ in phiếu bảo hành, không có thông tin tiền — tự cập nhật theo form bên trái.';
+
+  var warrantyItems = QA_ITEMS.filter(function (it) { return it.hasWarranty; });
+  var isLong = QA_ITEMS.length > 4;
+
+  var html = '';
+  html += '<div class="rcp-center"><div class="rcp-title">QRANTY</div><div class="rcp-sub">Cửa hàng demo · 0900 000 000</div></div>';
+  html += '<div class="rcp-center rcp-doctype">' + (isStore ? 'PHIẾU BÁN HÀNG' : 'PHIẾU BẢO HÀNH') + '</div>';
+  html += '<div class="rcp-divider"></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Mã phiếu</span><span class="rcp-val">' + (isStore ? 'HD-' : 'BH-') + billCode + '</span></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Ngày</span><span class="rcp-val">' + dateStr + '</span></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Khách hàng</span><span class="rcp-val">' + name + '</span></div>';
+  if (phone) html += '<div class="rcp-row"><span class="rcp-label">SĐT</span><span class="rcp-val">' + phone + '</span></div>';
+  html += '<div class="rcp-divider"></div>';
+
+  var total = 0;
+  QA_ITEMS.forEach(function (it) {
+    var pname = it.name || 'Sản phẩm chưa đặt tên';
+    if (isStore) {
+      total += Number(it.price) || 0;
+      html += '<div class="rcp-item-name">' + pname + (it.hasWarranty ? ' <span style="color:#0369a1">(có BH)</span>' : '') + '</div>';
+      html += '<div class="rcp-item-sub"><span>SL: 1</span><span>' + fmt(it.price) + '</span></div>';
+    } else {
+      html += '<div class="rcp-row"><span class="rcp-label">Sản phẩm</span><span class="rcp-val">' + pname + '</span></div>';
+    }
+    if (it.hasWarranty) {
+      if (it.serial) html += '<div class="rcp-row"><span class="rcp-label">Serial</span><span class="rcp-val">' + it.serial + '</span></div>';
+      html += '<div class="rcp-row"><span class="rcp-label">Thời hạn BH</span><span class="rcp-val">' + qaItemDurationLabel(it.durDays) + '</span></div>';
+    }
+    html += '<div class="rcp-divider"></div>';
+  });
+
+  if (isStore) {
+    var paid = Math.min(parseFloat(document.getElementById('qaPaid').value) || 0, total);
+    var remain = Math.max(total - paid, 0);
+    html += '<div class="rcp-total-row"><span>Tổng tiền</span><span>' + fmt(total) + '</span></div>';
+    html += '<div class="rcp-row"><span class="rcp-label">Đã thu</span><span class="rcp-val">' + fmt(paid) + '</span></div>';
+    if (remain > 0) html += '<div class="rcp-remain-row"><span>Còn lại</span><span>' + fmt(remain) + '</span></div>';
+    html += '<div class="rcp-divider"></div>';
+  }
+
+  if (warrantyItems.length) {
+    html += '<div class="rcp-center" style="font-weight:800;font-size:11px;letter-spacing:.03em">' + (isStore ? 'BẢO HÀNH ĐI KÈM' : 'TRA CỨU BẢO HÀNH') + '</div>';
+    warrantyItems.forEach(function (it) {
+      var seed = QrantyQR.hash((it.name || '') + '|' + (it.serial || '') + '|' + phone + '|' + it.id);
+      var code = String(seed).slice(0, 8);
+      html += '<div class="rcp-qr-wrap"><canvas class="rcp-qr-canvas" data-seed="' + seed + '" width="90" height="90"></canvas><div class="rcp-qr-code">' + (it.name || 'SP') + ' · ' + code + '</div></div>';
+    });
+    html += '<div class="rcp-foot">Quét mã QR để tra cứu bảo hành</div>';
+  }
+
+  if (!isStore && note) {
+    html += '<div class="rcp-divider"></div><div class="rcp-row"><span class="rcp-label">Ghi chú</span></div><div style="margin-top:2px">' + note + '</div>';
+  }
+
+  html += '<div class="rcp-divider"></div><div class="rcp-thanks">Cảm ơn quý khách!</div>';
+
+  paper.classList.toggle('a5', isLong);
+  paper.innerHTML = html;
+  paper.querySelectorAll('.rcp-qr-canvas').forEach(function (c) {
+    QrantyQR.draw(c, Number(c.dataset.seed), 90);
+  });
+
+  var sizeNote = document.getElementById('receiptSizeNote');
+  if (sizeNote) sizeNote.style.display = isLong ? 'flex' : 'none';
+}
+function qaPrintReceipt() {
+  window.print();
+}
+qaAddItem(true); // sản phẩm đầu tiên trong phiếu, mặc định có bảo hành
+
+document.getElementById('qaSubmit').addEventListener('click', () => {
+  const result = document.getElementById('qaResult');
+  const badge = document.getElementById('qaResultBadge');
+  const title = document.getElementById('qaResultTitle');
+  const sub = document.getElementById('qaResultSub');
+  const isStore = document.body.classList.contains('mode-store');
+
+  const warrantyItems = QA_ITEMS.filter(it => it.hasWarranty);
+  const newQrCount = warrantyItems.filter(it => !(it.productMeta && it.productMeta.stock)).length;
+  const existingQrCount = warrantyItems.length - newQrCount;
+  const itemNames = QA_ITEMS.map(it => it.name || 'sản phẩm').join(', ');
+
+  result.className = (warrantyItems.length && existingQrCount === warrantyItems.length) ? 'qr-result show existing' : 'qr-result show';
+  badge.textContent = existingQrCount === warrantyItems.length && warrantyItems.length
+    ? 'QR đã có — đã kích hoạt'
+    : (newQrCount ? 'QR mới tạo' : (warrantyItems.length ? 'Đã kích hoạt' : 'Đã lưu phiếu'));
+  title.textContent = isStore ? 'Đã lưu phiếu bán hàng' : 'Đã lưu phiếu & kích hoạt bảo hành';
+
+  let subMsg = QA_ITEMS.length + ' sản phẩm trong phiếu';
+  if (warrantyItems.length) {
+    subMsg += ', ' + warrantyItems.length + ' sản phẩm được kích hoạt bảo hành';
+    const parts = [];
+    if (newQrCount) parts.push(newQrCount + ' QR mới');
+    if (existingQrCount) parts.push(existingQrCount + ' QR có sẵn');
+    if (parts.length) subMsg += ' (' + parts.join(', ') + ')';
+  }
+  subMsg += '.';
+  sub.innerHTML = subMsg;
+
+  /* Chế độ Cửa hàng: kích hoạt này đồng thời là 1 phiếu bán hàng —
+     nếu có giá bán, tự sinh khoản "cần thu" sang Thu chi (không cần
+     vào tay Thu chi bấm "+ Thêm" nữa). */
+  if (isStore) {
+    const total = QA_ITEMS.reduce((s, it) => s + (Number(it.price) || 0), 0);
+    if (total > 0) {
+      const paid = Math.min(parseFloat(document.getElementById('qaPaid').value) || 0, total);
+      const remain = total - paid;
+      const custName  = document.getElementById('qaName').value.trim() || 'Khách lẻ';
+      const custPhone = document.getElementById('qaPhone').value.trim();
+      var _thuEntry = QrantyThuChi.addEntry('thu', {
+        name: custName, code: custPhone, amount: total, paid: paid, remain: remain,
+        ref: 'Phiếu bán hàng — ' + itemNames, source: 'banhang'
+      });
+      // Lưu phiếu bán (giữ line items) để Lịch sử bán hàng bung chi tiết + in lại đúng dòng
+      if (window.QrantyOrders) {
+        QrantyOrders.addOrder({
+          customerName: custName, customerPhone: custPhone,
+          items: QA_ITEMS.map(function (it) {
+            return {
+              name: it.name || 'Sản phẩm', sku: (it.productMeta && it.productMeta.sku) || '',
+              qty: 1, price: Number(it.price) || 0, serial: it.serial || '',
+              hasWarranty: !!it.hasWarranty,
+              warranty: it.hasWarranty ? ((it.durDays || 365) + ' ngày') : ''
+            };
+          }),
+          total: total, paid: paid, remain: remain,
+          thuChiId: _thuEntry && _thuEntry.id
+        });
+      }
+      if (remain > 0) {
+        sub.innerHTML += '<br><span style="color:var(--p600);font-weight:700">Khách còn cần thanh toán ' +
+          remain.toLocaleString('vi-VN') + ' đ — đã tự đồng bộ sang <a href="./qranty-tai-chinh.html" style="color:var(--p600)">Thu chi</a>.</span>';
+      }
+    }
+
+    // Trừ tồn kho — mỗi sản phẩm CÓ SKU (đã có trong kho) bị trừ 1 đơn vị khi bán
+    if (typeof QrantyKho !== 'undefined') {
+      QA_ITEMS.forEach(function (it) {
+        if (it.productMeta && it.productMeta.sku) {
+          QrantyKho.updateStock(it.productMeta.sku, -1);
+        }
+      });
+    }
+  }
+
+  // Sản phẩm gõ tay / tạo mới (chưa khớp SKU nào trong kho) → LUÔN thêm vào Danh mục
+  // với normalized:false (kể cả chế độ Trung tâm bảo hành, và kể cả khi chỉ gõ tên mà
+  // không bấm "+ Thêm mới") để có hồ sơ "chờ chuẩn hóa".
+  if (typeof QrantyKho !== 'undefined') {
+    QA_ITEMS.forEach(function (it) {
+      if (it.name && !(it.productMeta && it.productMeta.sku)) {
+        QrantyKho.addProduct({
+          name: it.name, qty: 0, costPrice: 0,
+          salePrice: Number(it.price) || 0, normalized: false
+        });
+      }
+    });
+  }
+
+  var nName  = (document.getElementById('qaName').value || '').trim() || 'Khách lẻ';
+  var nPhone = (document.getElementById('qaPhone').value || '').trim();
+  
+  var now = new Date();
+  var todayStr = [
+    String(now.getDate()).padStart(2, '0'),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    now.getFullYear()
+  ].join('/');
+
+  /* ── Khách hàng: upsert vào kho thật theo SĐT (tạo mới / gắn khách cũ) ── */
+  if (window.QrantyKhach && nPhone) {
+    QrantyKhach.upsert({ name: nName, phone: nPhone });
+  }
+
+  /* ── Bảo hành: Lưu phiếu bảo hành thật vào database ── */
+  if (window.QrantyWarranty) {
+    QA_ITEMS.forEach(function (it) {
+      if (it.hasWarranty) {
+        var sku = (it.productMeta && it.productMeta.sku) || '';
+        var serialStr = it.serial || ('SN' + Date.now().toString().slice(-6) + '-' + String(it.id).padStart(3, '0'));
+        var expDate = new Date();
+        expDate.setDate(expDate.getDate() + Number(it.durDays || 365));
+        var expiresAtStr = [
+          String(expDate.getDate()).padStart(2, '0'),
+          String(expDate.getMonth() + 1).padStart(2, '0'),
+          expDate.getFullYear()
+        ].join('/');
+
+        QrantyWarranty.addWarranty({
+          serial: serialStr,
+          productSku: sku,
+          productName: it.name || 'Sản phẩm',
+          customerName: nName,
+          customerPhone: nPhone,
+          activatedAt: todayStr,
+          expiresAt: expiresAtStr,
+          status: 'active'
+        });
+      }
+    });
+  }
+
+  /* ── Thông báo dữ liệu mới: đẩy badge + dòng "chờ kiểm tra" sang
+     Kho hàng / Bảo hành (qranty-notify.js). Khách hàng đã có store riêng
+     nên không đẩy qua notify nữa. ── */
+  if (window.Qranty) {
+    var tgs = [];
+    QA_ITEMS.forEach(function (it) {
+      var sku = (it.productMeta && it.productMeta.sku) || '';
+      // Sản phẩm gõ tay / chưa có trong kho → cần kiểm tra & chuẩn hóa ở Kho hàng
+      if (!sku) {
+        tgs.push({ page: 'kho-hang', kind: 'product',
+          data: { name: it.name, sku: '', type: 'Điện thoại',
+            price: it.price ? (Number(it.price).toLocaleString('vi-VN') + 'đ') : '',
+            cost: '', qty: 0 } });
+      }
+      if (it.hasWarranty) {
+        tgs.push({ page: 'bao-hanh', kind: 'warranty',
+          data: { sku: sku, product: it.name, customer: nName, phone: nPhone,
+            start: todayStr, end: '' } });
+      }
+    });
+    Qranty.push({ source: 'Đơn hàng mới của ' + nName, targets: tgs });
+  }
+
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+function updateModeStatusBadge() {
+  var badge = document.getElementById('modeStatusBadge');
+  if (!badge) return;
+  var isStore = document.body.classList.contains('mode-store');
+  badge.classList.toggle('store', isStore);
+  if (isStore) {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 3.3 2.8h11.4l.8 3.7"/><path d="M2.5 6.5h13v8a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.5 15.3v-4h5v4"/></svg> Cửa hàng';
+  } else {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/><path d="M6.5 9.5L8.2 11.3L11.5 7.3"/></svg> Trung tâm bảo hành';
+  }
+}
+
+
+// ── Sync ──// ── Notification panel ──</script>
+
+<script src="./qranty-notify.js"></script>
+</body>
+</html>

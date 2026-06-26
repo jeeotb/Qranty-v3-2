@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Bắt đầu</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand: #2563EB;
+  --n50:  #F8FAFC; --n100: #F1F5F9; --n200: #E2E8F0; --n300: #CBD5E1;
+  --n400: #94A3B8; --n500: #64748B; --n700: #334155; --n900: #0F172A;
+  --text-1: #0F172A; --text-2: #334155; --text-3: #64748B; --text-4: #94A3B8;
+  --bh-color: #7C3AED; --bh-light: #EDE9FE; --bh-border: #C4B5FD;
+  --st-color: #059669; --st-light: #ECFDF5; --st-border: #6EE7B7;
+  --r: 16px; --r-sm: 10px;
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.05);
+  --shadow-md: 0 4px 16px rgba(15,23,42,.10), 0 0 0 1px rgba(15,23,42,.06);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,.14), 0 0 0 1px rgba(15,23,42,.06);
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--n50);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-1);
+  background-image: radial-gradient(var(--n200) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ─── Brand ─── */
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 52px; }
+.brand-logo {
+  width: 36px; height: 36px; background: var(--brand);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(37,99,235,.3);
+}
+.brand-logo svg { color: #fff; }
+.brand-name { font-size: 20px; font-weight: 800; color: var(--text-1); letter-spacing: -.04em; }
+
+.heading { font-size: 24px; font-weight: 800; color: var(--text-1); letter-spacing: -.035em; text-align: center; margin-bottom: 8px; }
+.sub { font-size: 13.5px; color: var(--text-3); text-align: center; margin-bottom: 44px; line-height: 1.65; }
+
+/* ─── Mode cards ─── */
+.cards { display: flex; gap: 16px; width: 100%; max-width: 700px; }
+
+.card {
+  flex: 1; background: #fff;
+  border: 1.5px solid var(--n200);
+  border-radius: 18px; padding: 28px 24px 24px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color .18s, box-shadow .18s, transform .18s;
+  box-shadow: var(--shadow-sm);
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: 18px 18px 0 0; opacity: 0; transition: opacity .2s;
+}
+.card:hover::before { opacity: 1; }
+.card-bh::before   { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+.card-store::before { background: linear-gradient(90deg, #059669, #34D399); }
+
+.card-bh:hover   { border-color: var(--bh-border); }
+.card-store:hover { border-color: var(--st-border); }
+
+.card.sel-bh    { border-color: #A78BFA; box-shadow: 0 0 0 3px rgba(124,58,237,.1), var(--shadow-md); }
+.card.sel-store { border-color: #34D399; box-shadow: 0 0 0 3px rgba(5,150,105,.1), var(--shadow-md); }
+
+.card-icon {
+  width: 48px; height: 48px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+}
+.card-icon svg { width: 24px; height: 24px; }
+.card-bh   .card-icon { background: var(--bh-light); color: var(--bh-color); }
+.card-store .card-icon { background: var(--st-light); color: var(--st-color); }
+
+.card-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; margin-bottom: 10px; border: 1px solid;
+}
+.card-bh   .card-badge { background: var(--bh-light); color: var(--bh-color); border-color: var(--bh-border); }
+.card-store .card-badge { background: var(--st-light); color: var(--st-color); border-color: var(--st-border); }
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.card-name { font-size: 18px; font-weight: 800; color: var(--text-1); letter-spacing: -.025em; margin-bottom: 8px; }
+.card-desc { font-size: 12.5px; color: var(--text-3); line-height: 1.65; margin-bottom: 22px; }
+
+.card-feats { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.feat { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: var(--text-2); font-weight: 500; }
+.feat-check {
+  width: 17px; height: 17px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.feat-check svg { width: 9px; height: 9px; }
+.card-bh   .feat-check { background: var(--bh-light); color: var(--bh-color); }
+.card-store .feat-check { background: var(--st-light); color: var(--st-color); }
+
+.card-divider { height: 1px; background: var(--n100); margin-bottom: 20px; }
+
+.card-cta {
+  width: 100%; padding: 12px;
+  border-radius: 10px; border: 1.5px solid;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: inherit; letter-spacing: -.01em;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s, transform .1s;
+}
+.card-cta:active { transform: scale(.98); }
+.card-bh   .card-cta { background: var(--bh-light); color: var(--bh-color); border-color: var(--bh-border); }
+.card-store .card-cta { background: var(--st-light); color: var(--st-color); border-color: var(--st-border); }
+.card-bh:hover   .card-cta { background: #DDD6FE; }
+.card-store:hover .card-cta { background: #A7F3D0; }
+.cta-arrow { font-size: 15px; transition: transform .15s; }
+.card:hover .cta-arrow { transform: translateX(3px); }
+
+.footer-note { margin-top: 28px; font-size: 11.5px; color: var(--text-4); text-align: center; }
+.footer-note strong { color: var(--text-3); }
+
+/* ══════════════════════════════════════════
+   TUTORIAL OVERLAY
+══════════════════════════════════════════ */
+.tut-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(15,23,42,.5);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.tut-overlay.open { opacity: 1; pointer-events: all; }
+
+.tut-modal {
+  background: #fff; border-radius: 20px;
+  width: 100%; max-width: 1040px;
+  max-height: 92vh;
+  box-shadow: 0 24px 80px rgba(15,23,42,.2), 0 0 0 1px rgba(15,23,42,.07);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform: translateY(20px) scale(.97);
+  transition: transform .28s cubic-bezier(.22,.68,0,1.2);
+}
+.tut-overlay.open .tut-modal { transform: translateY(0) scale(1); }
+
+/* Header */
+.tut-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--n100);
+  flex-shrink: 0; gap: 12px;
+}
+.tut-head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tut-mode-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px; border: 1px solid; white-space: nowrap; flex-shrink: 0;
+}
+.mode-bh   .tut-mode-badge { background: var(--bh-light); color: var(--bh-color); border-color: var(--bh-border); }
+.mode-store .tut-mode-badge { background: var(--st-light); color: var(--st-color); border-color: var(--st-border); }
+.tut-head-title { font-size: 13.5px; font-weight: 700; color: var(--text-1); white-space: nowrap; }
+.tut-head-sub   { font-size: 11.5px; color: var(--text-4); }
+.tut-close {
+  width: 30px; height: 30px; border-radius: 8px; background: var(--n100);
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); transition: background .13s; flex-shrink: 0;
+}
+.tut-close:hover { background: var(--n200); color: var(--text-1); }
+
+/* Step pills */
+.tut-steps {
+  display: flex; align-items: center; gap: 5px; padding: 10px 20px;
+  border-bottom: 1px solid var(--n100); flex-shrink: 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tut-steps::-webkit-scrollbar { display: none; }
+.tut-step-btn {
+  display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1.5px solid var(--n200); background: #fff;
+  font-size: 11.5px; font-weight: 600; color: var(--text-3);
+  cursor: pointer; transition: all .13s; font-family: inherit;
+}
+.tut-step-btn .sn {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--n100); color: var(--text-4);
+  font-size: 9px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tut-step-btn:hover { border-color: var(--n300); color: var(--text-2); }
+.tut-step-btn.active { border-color: var(--brand); color: var(--brand); background: #EFF6FF; }
+.tut-step-btn.active .sn { background: var(--brand); color: #fff; }
+
+/* Body: iframe preview + info panel */
+.tut-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+/* Iframe preview */
+.tut-preview {
+  flex: 1; min-width: 0; background: var(--n100);
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.tut-iframe-wrap {
+  position: absolute; inset: 0;
+  overflow: hidden;
+}
+.tut-iframe {
+  position: absolute; top: 0; left: 0;
+  border: none;
+  pointer-events: none;
+  transform-origin: top left;
+  transition: opacity .22s;
+  width: 1366px; height: 900px;
+}
+.tut-iframe.loading { opacity: 0; }
+
+/* Loading spinner */
+.tut-loading {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--text-4); font-size: 12.5px; font-weight: 600;
+  transition: opacity .2s;
+}
+.tut-loading.hidden { opacity: 0; pointer-events: none; }
+.tut-spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid var(--n200); border-top-color: var(--brand);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Slide highlight overlay — dim chrome UI, focus on content */
+.tut-iframe-mask {
+  position: absolute; top: 0; left: 0; right: 0; height: 0;
+  background: linear-gradient(to bottom, rgba(15,23,42,.45) 0%, transparent 100%);
+  pointer-events: none; z-index: 2;
+}
+
+/* Info panel */
+.tut-info {
+  width: 270px; flex-shrink: 0;
+  border-left: 1px solid var(--n100);
+  padding: 22px 20px; display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto;
+}
+.tut-slide-num { font-size: 11px; font-weight: 700; color: var(--text-4); letter-spacing: .04em; }
+.tut-slide-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.tut-slide-icon svg { width: 22px; height: 22px; }
+.tut-slide-name { font-size: 17px; font-weight: 800; color: var(--text-1); letter-spacing: -.025em; line-height: 1.25; }
+.tut-slide-desc { font-size: 12.5px; color: var(--text-3); line-height: 1.7; }
+.tut-tips-label { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-4); }
+.tut-tips { display: flex; flex-direction: column; gap: 9px; }
+.tut-tip {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--text-2); line-height: 1.6;
+}
+.tut-tip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); flex-shrink: 0; margin-top: 5px; }
+
+/* Footer */
+.tut-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-top: 1px solid var(--n100); flex-shrink: 0;
+}
+.tut-progress { display: flex; gap: 5px; align-items: center; }
+.tut-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--n200);
+  cursor: pointer; transition: all .15s;
+}
+.tut-dot.active { background: var(--brand); width: 18px; border-radius: 3px; }
+.tut-nav { display: flex; gap: 8px; }
+.tut-btn {
+  padding: 8px 16px; border-radius: 9px; border: 1.5px solid var(--n200);
+  background: #fff; font-size: 12.5px; font-weight: 700; color: var(--text-2);
+  cursor: pointer; font-family: inherit; transition: all .13s;
+  display: flex; align-items: center; gap: 5px;
+}
+.tut-btn:hover:not(:disabled) { border-color: var(--n300); background: var(--n50); }
+.tut-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.tut-btn.primary:hover { background: #1D4ED8; border-color: #1D4ED8; }
+.tut-btn:disabled { opacity: .3; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<!-- ══════ MODE SELECT ══════ -->
+<div class="brand">
+  <div class="brand-logo">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/>
+      <rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/>
+    </svg>
+  </div>
+  <span class="brand-name">Qranty</span>
+</div>
+
+<div class="heading">Chào mừng bạn đến với Qranty</div>
+<div class="sub">Xem nhanh các màn hình chính trước khi bắt đầu sử dụng.</div>
+
+<div class="cards" style="max-width:420px">
+  <div class="card card-bh" onclick="openTutorial()">
+    <div class="card-icon">
+      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/>
+        <path d="M6.5 9.5L8.2 11.3L11.5 7.3"/>
+      </svg>
+    </div>
+    <div class="card-name">Bắt đầu nhanh</div>
+    <div class="card-desc">Xem qua các màn hình chính: tổng quan, thao tác nhanh, kho hàng, bảo hành, sửa chữa, khách hàng và thông báo.</div>
+    <div class="card-feats">
+      <div class="feat"><span class="feat-check"><svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5L3.5 6.5L7.5 2.5"/></svg></span>Quản lý phiếu bảo hành &amp; sửa chữa</div>
+      <div class="feat"><span class="feat-check"><svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5L3.5 6.5L7.5 2.5"/></svg></span>Kho hàng, sản phẩm &amp; khách hàng</div>
+      <div class="feat"><span class="feat-check"><svg viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5L3.5 6.5L7.5 2.5"/></svg></span>Chăm sóc khách hàng qua Zalo</div>
+    </div>
+    <div class="card-divider"></div>
+    <button class="card-cta">Xem hướng dẫn &amp; bắt đầu <span class="cta-arrow">→</span></button>
+  </div>
+</div>
+
+<div class="footer-note">Có thể bật <strong>Chế độ bán hàng</strong> (công nợ, doanh thu, giá nhập/bán) bất kỳ lúc nào trong <strong>Cài đặt → Chế độ vận hành</strong></div>
+
+<!-- ══════ TUTORIAL OVERLAY ══════ -->
+<div class="tut-overlay" id="tutOverlay">
+  <div class="tut-modal" id="tutModal">
+
+    <div class="tut-head">
+      <div class="tut-head-left">
+        <span class="tut-head-title">Hướng dẫn sử dụng</span>
+        <span class="tut-head-sub" id="tutHeadSub"></span>
+      </div>
+      <button class="tut-close" onclick="closeTutorial()" title="Đóng (Esc)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+      </button>
+    </div>
+
+    <div class="tut-steps" id="tutSteps"></div>
+
+    <div class="tut-body">
+      <!-- Live iframe preview -->
+      <div class="tut-preview" id="tutPreview">
+        <div class="tut-iframe-wrap" id="tutIframeWrap">
+          <!-- iframe injected dynamically -->
+        </div>
+        <div class="tut-loading" id="tutLoading">
+          <div class="tut-spinner"></div>
+          <span>Đang tải giao diện…</span>
+        </div>
+      </div>
+
+      <!-- Info panel -->
+      <div class="tut-info">
+        <div class="tut-slide-num" id="tutSlideNum"></div>
+        <div class="tut-slide-icon" id="tutSlideIcon"></div>
+        <div class="tut-slide-name" id="tutSlideName"></div>
+        <div class="tut-slide-desc" id="tutSlideDesc"></div>
+        <div class="tut-tips-label">Điểm nổi bật</div>
+        <div class="tut-tips" id="tutSlideTips"></div>
+      </div>
+    </div>
+
+    <div class="tut-foot">
+      <div class="tut-progress" id="tutProgress"></div>
+      <div class="tut-nav">
+        <button class="tut-btn" id="tutPrev" onclick="moveSlide(-1)">← Trước</button>
+        <button class="tut-btn" id="tutNext" onclick="moveSlide(1)">Tiếp theo →</button>
+        <button class="tut-btn primary" id="tutConfirm" onclick="confirmMode()" style="display:none">Bắt đầu dùng →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Slide data ──
+var SLIDES = {
+  bh: [
+    {
+      name: 'Tổng quan',
+      file: './qranty-dashboard.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="9.5" width="3.6" height="6.5" rx="1"/><rect x="7.2" y="5.5" width="3.6" height="10.5" rx="1"/><rect x="12.4" y="2" width="3.6" height="14" rx="1"/></svg>',
+      iconBg: '#EDE9FE', iconColor: '#7C3AED',
+      desc: 'Dashboard tổng hợp các chỉ số vận hành: phiếu đang xử lý, doanh thu, khách hàng và tồn kho.',
+      tips: ['Xem nhanh số phiếu bảo hành đang mở và doanh thu tháng.', 'Checklist onboarding hướng dẫn thiết lập cửa hàng lần đầu.', 'Biểu đồ xu hướng 12 tháng giúp so sánh tăng trưởng.']
+    },
+    {
+      name: 'Thao tác nhanh',
+      file: './qranty-thao-tac-nhanh.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.2 1.5 3.5 9.8h4.3l-.8 6.7 6.7-8.3H9.4z"/></svg>',
+      iconBg: '#EFF6FF', iconColor: '#2563EB',
+      desc: 'Trung tâm lệnh nhanh: tạo phiếu mới, tra cứu khách hàng và kiểm tra serial trong một màn hình.',
+      tips: ['Nhập tên, SĐT hoặc mã serial để tra cứu tức thì.', '"Tạo phiếu mới" mở form đầy đủ với trường gợi ý tự động.', 'Lịch sử thao tác gần nhất hiển thị ngay bên dưới.']
+    },
+    {
+      name: 'Kho hàng',
+      file: './qranty-kho-hang-v2.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="14" height="8" rx="1.5"/><path d="M5 8V5.5a4 4 0 0 1 8 0V8"/></svg>',
+      iconBg: '#FFF7ED', iconColor: '#EA580C',
+      desc: 'Quản lý sản phẩm, linh kiện và lô hàng với bộ lọc cột linh hoạt và tìm kiếm nhanh.',
+      tips: ['Bộ lọc cột ẩn/hiện theo nhu cầu của từng nhân viên.', 'Tồn kho tự cập nhật khi phiếu bảo hành sử dụng linh kiện.', 'Cảnh báo đỏ khi số lượng tồn dưới mức tối thiểu.']
+    },
+    {
+      name: 'Bảo hành',
+      file: './qranty-bao-hanh.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/><path d="M6.5 9.5L8.2 11.3L11.5 7.3"/></svg>',
+      iconBg: '#F0FDF4', iconColor: '#16A34A',
+      desc: 'Danh sách phiếu bảo hành với trạng thái đầy đủ: Tiếp nhận, Đang sửa, Chờ linh kiện, Hoàn thành.',
+      tips: ['Mỗi phiếu có QR code để khách hàng tra cứu tự động.', 'Lọc nhanh theo trạng thái, thợ hoặc thương hiệu thiết bị.', 'Lịch sử chỉnh sửa lưu đầy đủ để đối chiếu.']
+    },
+    {
+      name: 'Sửa chữa',
+      file: './qranty-repair-kanban.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.3 2.7a3 3 0 0 0-4.1 4.1l-5 5v2.5h2.5l5-5a3 3 0 0 0 4.1-4.1l-2 2-1.9-1.9z"/></svg>',
+      iconBg: '#FFFBEB', iconColor: '#D97706',
+      desc: 'Bảng Kanban trực quan: kéo thả thẻ phiếu qua từng cột tiến trình sửa chữa.',
+      tips: ['Kéo thả thẻ để cập nhật tiến độ — không cần mở từng phiếu.', 'Màu card phân biệt mức ưu tiên: đỏ = khẩn, vàng = thường.', 'Bộ lọc theo thợ phụ trách giúp phân công nhanh.']
+    },
+    {
+      name: 'Khách hàng',
+      file: './qranty-khach-hang.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="2.6"/><path d="M2 15.5c0-3 2.2-5 5-5s5 2 5 5"/><circle cx="13.2" cy="6.5" r="1.9"/><path d="M11.8 10.7c2 .2 3.7 1.8 3.7 4.8"/></svg>',
+      iconBg: '#F0FDFA', iconColor: '#0D9488',
+      desc: 'Danh sách khách hàng với thông tin liên hệ đầy đủ và toàn bộ lịch sử giao dịch.',
+      tips: ['Tìm theo tên, SĐT hoặc mã khách hàng.', 'Click vào tên để xem toàn bộ lịch sử phiếu bảo hành.', 'Ghi chú nội bộ giúp nhân viên nắm bắt thông tin đặc biệt.']
+    },
+    {
+      name: 'Thông báo',
+      file: './qranty-thong-bao.html',
+      mode: 'bh',
+      icon: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.5C6 1.5 4.5 3.5 4.5 6.5V9.5L2.5 12.5H15.5L13.5 9.5V6.5C13.5 3.5 12 1.5 9 1.5Z"/><path d="M7 14.5C7 15.6 7.9 16.5 9 16.5C10.1 16.5 11 15.6 11 14.5"/></svg>',
+      iconBg: '#FDF2F8', iconColor: '#DB2777',
+      desc: 'Xem và quản lý các thông báo từ hệ thống: đơn hàng mới, phiếu sửa chữa mới, linh kiện sắp hết hàng, cảnh báo quá hạn...',
+      tips: ['Lọc thông báo theo trạng thái Chưa đọc hoặc Hệ thống.', 'Đọc hoặc xóa từng thông báo một cách nhanh chóng.', 'Chuyển hướng xem chi tiết trực tiếp đến module tương ứng.']
+    }
+  ]
+};
+
+// ── State ──
+var curMode  = 'bh'; // chế độ vận hành mặc định — đổi sau trong Cài đặt → Chế độ vận hành
+var curSlide = 0;
+var iframeCache = {};
+
+function openTutorial() {
+  curSlide = 0;
+
+  var overlay = document.getElementById('tutOverlay');
+  var modal   = document.getElementById('tutModal');
+  overlay.className = 'tut-overlay mode-' + curMode;
+  modal.className   = 'tut-modal mode-' + curMode;
+
+  buildSteps();
+  showSlide(0);
+
+  requestAnimationFrame(function() { overlay.classList.add('open'); });
+}
+
+function closeTutorial() {
+  document.getElementById('tutOverlay').classList.remove('open');
+}
+
+function buildSteps() {
+  var slides = SLIDES[curMode];
+  document.getElementById('tutSteps').innerHTML = slides.map(function(s, i) {
+    return '<button class="tut-step-btn' + (i === 0 ? ' active' : '') +
+      '" onclick="goTo(' + i + ')"><span class="sn">' + (i+1) + '</span>' + s.name + '</button>';
+  }).join('');
+}
+
+function showSlide(idx) {
+  var slides = SLIDES[curMode];
+  var s = slides[idx];
+  var total = slides.length;
+
+  // Step buttons
+  document.querySelectorAll('.tut-step-btn').forEach(function(b, i) {
+    b.classList.toggle('active', i === idx);
+  });
+  // Scroll active step into view
+  var activeBtn = document.querySelector('.tut-step-btn.active');
+  if (activeBtn) activeBtn.scrollIntoView({ inline: 'nearest', behavior: 'smooth' });
+
+  // Info
+  document.getElementById('tutSlideNum').textContent = 'Màn hình ' + (idx+1) + ' / ' + total;
+  var iconEl = document.getElementById('tutSlideIcon');
+  iconEl.innerHTML = s.icon;
+  iconEl.style.background = s.iconBg;
+  iconEl.style.color = s.iconColor;
+  document.getElementById('tutSlideName').textContent = s.name;
+  document.getElementById('tutSlideDesc').textContent = s.desc;
+  document.getElementById('tutSlideTips').innerHTML = s.tips.map(function(t) {
+    return '<div class="tut-tip"><span class="tut-tip-dot"></span>' + t + '</div>';
+  }).join('');
+  document.getElementById('tutHeadSub').textContent = '→ ' + s.name;
+
+  // Progress dots
+  document.getElementById('tutProgress').innerHTML = slides.map(function(_, i) {
+    return '<div class="tut-dot' + (i === idx ? ' active' : '') +
+      '" onclick="goTo(' + i + ')"></div>';
+  }).join('');
+
+  // Nav
+  document.getElementById('tutPrev').disabled = idx === 0;
+  var last = idx === total - 1;
+  document.getElementById('tutNext').style.display  = last ? 'none' : '';
+  document.getElementById('tutConfirm').style.display = last ? '' : 'none';
+
+  // Iframe — load with mode set in URL hash
+  loadIframe(s, idx);
+}
+
+function loadIframe(slide, idx) {
+  var wrap    = document.getElementById('tutIframeWrap');
+  var loading = document.getElementById('tutLoading');
+  var preview = document.getElementById('tutPreview');
+  var cacheKey = slide.file + '#' + slide.mode;
+
+  // Show loading
+  loading.classList.remove('hidden');
+
+  // Remove old iframe
+  var old = wrap.querySelector('iframe');
+  if (old) { old.style.opacity = '0'; setTimeout(function() { if (old.parentNode) old.parentNode.removeChild(old); }, 180); }
+
+  // Create new iframe
+  var iframe = document.createElement('iframe');
+  iframe.className = 'tut-iframe loading';
+  iframe.src = slide.file;
+  iframe.title = slide.name;
+
+  // Scale to fit preview area
+  function scaleIframe() {
+    var pw = preview.clientWidth;
+    var ph = preview.clientHeight;
+    var scaleX = pw / 1366;
+    var scaleY = ph / 900;
+    var scale  = Math.min(scaleX, scaleY);
+    iframe.style.transform = 'scale(' + scale + ')';
+    // Center
+    var scaledW = 1366 * scale;
+    var scaledH = 900  * scale;
+    iframe.style.left = ((pw - scaledW) / 2) + 'px';
+    iframe.style.top  = Math.max(0, (ph - scaledH) / 2) + 'px';
+  }
+
+  iframe.onload = function() {
+    // Inject the mode into the iframe
+    try {
+      iframe.contentWindow.localStorage.setItem('qranty-mode', slide.mode);
+    } catch(e) {}
+    scaleIframe();
+    setTimeout(function() {
+      iframe.classList.remove('loading');
+      loading.classList.add('hidden');
+    }, 300);
+  };
+
+  wrap.appendChild(iframe);
+  scaleIframe();
+
+  // Re-scale on resize
+  var resizeObs = new ResizeObserver(scaleIframe);
+  resizeObs.observe(preview);
+}
+
+function goTo(idx) {
+  curSlide = idx;
+  showSlide(idx);
+}
+
+function moveSlide(dir) {
+  var slides = SLIDES[curMode];
+  goTo(Math.max(0, Math.min(slides.length - 1, curSlide + dir)));
+}
+
+function confirmMode() {
+  // Không set qranty-mode ở đây nữa — chế độ vận hành được chọn/đổi
+  // trong Cài đặt → Chế độ vận hành. Mặc định giữ nguyên (hoặc 'bh' nếu chưa từng chọn).
+  closeTutorial();
+  setTimeout(function() { window.location.href = './qranty-dashboard.html'; }, 220);
+}
+
+// Backdrop click
+document.getElementById('tutOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeTutorial();
+});
+
+// Keyboard
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('tutOverlay').classList.contains('open')) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  moveSlide(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    moveSlide(-1);
+  if (e.key === 'Escape') closeTutorial();
+});
+
+</script>
+</body>
+</html>

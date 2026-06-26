@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Spec — Stat Card Component</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 32px; }
+h2 { font-size: 13px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
+pre { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 10px; font-size: 12px; line-height: 1.6; overflow-x: auto; margin-top: 24px; }
+
+/* ── Component CSS ── */
+.stats-row { display: flex; gap: 12px; }
+.stat-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 20px; flex: 1; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+.stat-lbl  { font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #94A3B8; margin-bottom: 8px; }
+.stat-val  { font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.stat-val.navy   { color: #0F2D4E; }
+.stat-val.orange { color: #C2410C; }
+.stat-val.blue   { color: #163E66; }
+.stat-sub  { font-size: 12px; font-weight: 500; color: #64748B; }
+</style>
+</head>
+<body>
+
+<h2>Stat Card — Preview</h2>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-lbl">Tổng SKU đang quản lý</div>
+    <div class="stat-val navy">188</div>
+    <div class="stat-sub">60 sản phẩm · 128 linh kiện</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-lbl">Sắp hết / hết hàng</div>
+    <div class="stat-val orange">9</div>
+    <div class="stat-sub">Cần nhập thêm</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-lbl">Đang bảo hành</div>
+    <div class="stat-val blue">142</div>
+    <div class="stat-sub">Sản phẩm còn hạn BH</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-lbl">Sắp hết hạn BH (30 ngày)</div>
+    <div class="stat-val orange">7</div>
+    <div class="stat-sub">Cần lưu ý chăm sóc khách</div>
+  </div>
+</div>
+
+<pre>
+/* ── CSS (copy vào shared.css hoặc page style) ── */
+.stats-row { display: flex; gap: 12px; }
+.stat-card { background: #fff; border: 1px solid var(--n200); border-radius: 12px; padding: 16px 20px; flex: 1; box-shadow: var(--shadow-card); }
+.stat-lbl  { font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--text-4); margin-bottom: 8px; }
+.stat-val  { font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.stat-val.navy   { color: #0F2D4E; }
+.stat-val.orange { color: #C2410C; }
+.stat-val.blue   { color: #163E66; }
+.stat-sub  { font-size: 12px; font-weight: 500; color: var(--text-3); }
+
+&lt;!-- HTML template --&gt;
+&lt;div class="stats-row"&gt;
+  &lt;div class="stat-card"&gt;
+    &lt;div class="stat-lbl"&gt;LABEL&lt;/div&gt;
+    &lt;div class="stat-val navy|orange|blue"&gt;0&lt;/div&gt;
+    &lt;div class="stat-sub"&gt;Sub text&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+/* Màu số:
+   .navy   → #0F2D4E  — chỉ số chính / tổng
+   .blue   → #163E66  — chỉ số thứ cấp / trung tính
+   .orange → #C2410C  — cảnh báo / cần chú ý
+*/
+</pre>
+
+</body>
+</html>

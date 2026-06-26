@@ -1,0 +1,40 @@
+<script>
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+}
+function toggleAccountMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('accountMenu').classList.toggle('open');
+  document.getElementById('accountTrigger').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.sb-account');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+function toggleStoreMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('storeMenu').classList.toggle('open');
+  document.getElementById('storeSwitcher').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.qr-store-wrap');
+  if (!wrap.contains(e.target)) {
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  }
+});
+document.querySelectorAll('.qr-store-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.qr-store-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const check = '<div class="qr-store-item-check"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 7 13 14.5 4.5"/></svg></div>';
+    document.querySelectorAll('.qr-store-item-check').forEach(c => c.remove());
+    item.insertAdjacentHTML('beforeend', check);
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  });
+});
+</script>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Demo: Bán hàng & Nhập hàng (Công nợ)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --p500: #1F5C99; --p600: #194E80;
+  --brand: #2563EB; --brand-600: #1D4ED8;
+  --s50: #EEF3F8; --s100: #DCE6EF;
+  --success: #22C55E; --success-bg: #F0FDF4;
+  --error: #EF4444; --error-bg: #FEF2F2;
+  --warning: #F59E0B; --warning-bg: #FFFBEB;
+  --n50: #F8FAFC; --n100: #F1F5F9; --n200: #E2E8F0; --n300: #CBD5E1;
+  --n400: #94A3B8; --n500: #64748B;
+  --text-1: #0F172A; --text-2: #475569; --text-3: #64748B; --text-4: #94A3B8;
+  --r: 14px; --r-sm: 8px;
+  --shadow-card: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--n50);
+  color: var(--text-1);
+  padding: 32px;
+  -webkit-font-smoothing: antialiased;
+}
+.page-title { font-size: 18px; font-weight: 900; margin-bottom: 4px; }
+.page-sub { font-size: 12.5px; color: var(--text-4); font-weight: 600; margin-bottom: 24px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 980px; }
+@media (max-width: 880px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.card { background: #fff; border: 1px solid var(--n200); border-radius: var(--r); box-shadow: var(--shadow-card); padding: 20px; }
+.card-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.card-ico { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card-ico.sell { background: var(--success-bg); color: #15803d; }
+.card-ico.buy { background: var(--s50); color: var(--p500); }
+.card-title { font-size: 15px; font-weight: 800; }
+.card-sub { font-size: 11.5px; color: var(--text-4); font-weight: 600; margin-top: 1px; }
+
+.field { margin-bottom: 14px; }
+.field-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.input, select.input {
+  width: 100%; height: 38px; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  padding: 0 12px; font-size: 13px; font-family: inherit; font-weight: 600; color: var(--text-1);
+  background: #fff; transition: border-color .13s, box-shadow .13s;
+}
+.input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.input::placeholder { color: var(--n400); font-weight: 500; }
+select.input { appearance: none; -webkit-appearance: none; padding-right: 30px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M4 5.5L7 8.5L10 5.5' stroke='%2394A3B8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.divider { height: 1px; background: var(--n200); margin: 16px 0; }
+
+.debt-box { border-radius: var(--r-sm); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; transition: background .15s, border-color .15s; }
+.debt-box.none { background: var(--success-bg); border: 1px solid var(--success); }
+.debt-box.has { background: var(--error-bg); border: 1px solid var(--error); }
+.debt-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.debt-value { font-size: 17px; font-weight: 900; }
+.debt-value.none { color: #15803d; }
+.debt-value.has { color: var(--error); }
+.debt-hint { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+
+.btn-primary { width: 100%; height: 40px; border-radius: var(--r-sm); border: none; background: linear-gradient(135deg, var(--brand-600), var(--brand)); color: #fff; font-size: 13px; font-weight: 800; cursor: pointer; transition: all .15s; box-shadow: 0 4px 12px rgba(37,99,235,.3); font-family: inherit; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,.38); }
+.btn-primary.buy { background: linear-gradient(135deg, var(--p600), var(--p500)); box-shadow: 0 4px 12px rgba(31,92,153,.3); }
+
+.note { max-width: 980px; margin-top: 20px; font-size: 12px; color: var(--text-3); font-weight: 600; line-height: 1.6; background: #fff; border: 1px solid var(--n200); border-radius: var(--r-sm); padding: 14px 16px; }
+.note b { color: var(--text-1); }
+</style>
+</head>
+<body>
+
+<div class="page-title">Demo nhập liệu: Bán hàng & Nhập hàng</div>
+<div class="page-sub">Công nợ là trường tự tính (Tổng tiền − Đã thanh toán), không nhập tay</div>
+
+<div class="grid-2">
+
+  <!-- BÁN HÀNG -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ico sell">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h14l-1.5 8.5a1.5 1.5 0 0 1-1.5 1.3H5a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M5.5 5 7 1.8h4L12.5 5"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Tạo đơn bán hàng</div>
+        <div class="card-sub">Trừ tồn kho · kích hoạt bảo hành</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Khách hàng</label>
+      <select class="input">
+        <option>Tìm hoặc chọn khách hàng...</option>
+        <option>Phạm Việt Hưng — 0888 444 415</option>
+        <option>Linh — 0911 312 223</option>
+        <option>+ Thêm khách hàng mới</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Sản phẩm (serial)</label>
+      <select class="input">
+        <option>Tìm theo tên, serial...</option>
+        <option>iPhone 15 — RHM1K7O7PQNI</option>
+        <option>Bếp Điện — XOF7P4TZM1BU</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row-2">
+      <div class="field">
+        <label class="field-label">Tổng tiền đơn</label>
+        <input class="input" id="sellTotal" type="text" inputmode="numeric" placeholder="0" value="15.000.000">
+      </div>
+      <div class="field">
+        <label class="field-label">Khách đã trả</label>
+        <input class="input" id="sellPaid" type="text" inputmode="numeric" placeholder="0" value="10.000.000">
+      </div>
+    </div>
+
+    <div class="debt-box has" id="sellDebtBox">
+      <div>
+        <div class="debt-label">Còn nợ khách hàng</div>
+        <div class="debt-hint">Tự cập nhật vào Công nợ &amp; trang Khách hàng</div>
+      </div>
+      <div class="debt-value has" id="sellDebtValue">5.000.000đ</div>
+    </div>
+
+    <button class="btn-primary">Tạo đơn bán hàng</button>
+  </div>
+
+  <!-- NHẬP HÀNG -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-ico buy">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="5" rx="1.2"/><rect x="2" y="9" width="14" height="7" rx="1.2"/><path d="M6 12.5h6"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Tạo lô nhập hàng</div>
+        <div class="card-sub">Cộng tồn kho · áp bảo hành theo lô</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Nhà cung cấp</label>
+      <select class="input">
+        <option>Tìm hoặc chọn nhà cung cấp...</option>
+        <option>Apple Authorized Distributor VN</option>
+        <option>Mobile World Distribution</option>
+        <option>+ Thêm nhà cung cấp mới</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Sản phẩm / linh kiện nhập</label>
+      <select class="input">
+        <option>Chọn sản phẩm hoặc linh kiện...</option>
+        <option>iPhone 16 — 10 sản phẩm</option>
+        <option>Pin iPhone 15 — 50 linh kiện</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row-2">
+      <div class="field">
+        <label class="field-label">Tổng giá trị lô</label>
+        <input class="input" id="buyTotal" type="text" inputmode="numeric" placeholder="0" value="125.000.000">
+      </div>
+      <div class="field">
+        <label class="field-label">Đã trả NCC</label>
+        <input class="input" id="buyPaid" type="text" inputmode="numeric" placeholder="0" value="125.000.000">
+      </div>
+    </div>
+
+    <div class="debt-box none" id="buyDebtBox">
+      <div>
+        <div class="debt-label">Còn nợ nhà cung cấp</div>
+        <div class="debt-hint">Tự cập nhật vào Công nợ phải trả</div>
+      </div>
+      <div class="debt-value none" id="buyDebtValue">Đã thanh toán đủ</div>
+    </div>
+
+    <button class="btn-primary buy">Tạo lô nhập hàng</button>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>Logic công nợ:</b> "Còn nợ" = Tổng tiền − Đã thanh toán, tính tự động khi nhập 2 ô trên — không có ô nhập công nợ riêng. Nếu &gt; 0 → khối hiển thị màu đỏ và dòng này sẽ xuất hiện trong module Công nợ (tab Phải thu nếu là đơn bán, Phải trả nếu là lô nhập), kèm liên kết quay lại đơn/lô gốc. Nếu = 0 → hiển thị "Đã thanh toán đủ", không tạo dòng công nợ.
+</div>
+
+<script>
+function parseNum(v) {
+  return parseInt(v.replace(/[^\d]/g, ''), 10) || 0;
+}
+function formatNum(n) {
+  return n.toLocaleString('vi-VN');
+}
+function bindDebt(totalId, paidId, boxId, valueId, labelDebt) {
+  const totalEl = document.getElementById(totalId);
+  const paidEl = document.getElementById(paidId);
+  const box = document.getElementById(boxId);
+  const valueEl = document.getElementById(valueId);
+
+  function update() {
+    const total = parseNum(totalEl.value);
+    const paid = parseNum(paidEl.value);
+    const debt = total - paid;
+    if (debt > 0) {
+      box.classList.remove('none'); box.classList.add('has');
+      valueEl.classList.remove('none'); valueEl.classList.add('has');
+      valueEl.textContent = formatNum(debt) + 'đ';
+    } else {
+      box.classList.remove('has'); box.classList.add('none');
+      valueEl.classList.remove('has'); valueEl.classList.add('none');
+      valueEl.textContent = 'Đã thanh toán đủ';
+    }
+  }
+  [totalEl, paidEl].forEach(el => {
+    el.addEventListener('input', () => {
+      // reformat as number on the fly
+      const raw = parseNum(el.value);
+      el.value = raw ? formatNum(raw) : '';
+      update();
+    });
+  });
+  update();
+}
+bindDebt('sellTotal', 'sellPaid', 'sellDebtBox', 'sellDebtValue');
+bindDebt('buyTotal', 'buyPaid', 'buyDebtBox', 'buyDebtValue');
+</script>
+</body>
+</html>

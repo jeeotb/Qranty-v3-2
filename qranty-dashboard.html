@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Tổng quan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="./shared.css">
+<style>
+
+/* ══ Layout ══ */
+.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; transition: margin-left .28s cubic-bezier(.4,0,.2,1); }
+body.sb-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+.content { padding: 20px 24px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+/* ══ Time filter bar ══ */
+.dash-toolbar { display: flex; align-items: center; justify-content: space-between; }
+.live-indicator { display: flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--n100); border-radius: 10px; font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 2px rgba(34,197,94,.2); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+/* ══ Section headers ══ */
+.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.sec-title { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-4); }
+.sec-action { font-size: 12px; font-weight: 700; color: var(--brand); text-decoration: none; cursor: pointer; }
+.sec-action:hover { text-decoration: underline; }
+
+/* ══ Stat cards (theo spec) ══ */
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.stat-card { background: #fff; border: 1px solid var(--n200); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow-card); position: relative; overflow: hidden; transition: box-shadow .15s, transform .15s; }
+.stat-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+.stat-lbl { font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--text-4); margin-bottom: 10px; }
+.stat-val { font-size: 30px; font-weight: 900; line-height: 1; margin-bottom: 4px; color: #0F2D4E; }
+.stat-val.orange { color: #C2410C; }
+.stat-val.green  { color: #15803D; }
+.stat-sub { font-size: 12px; font-weight: 500; color: var(--text-3); }
+.stat-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 10px; margin-bottom: 6px; }
+.stat-badge.up   { background: #dcfce7; color: #15803D; }
+.stat-badge.down { background: #fee2e2; color: #b91c1c; }
+.stat-badge.flat { background: var(--n100); color: var(--text-4); }
+
+/* Revenue card — hero gradient */
+.stat-card.hero { background: linear-gradient(135deg, #0F2D4E 0%, #1F5C99 55%, #60A5FA 100%); border-color: transparent; }
+.stat-card.hero .stat-lbl  { color: rgba(255,255,255,.6); }
+.stat-card.hero .stat-val  { color: #fff; }
+.stat-card.hero .stat-sub  { color: rgba(255,255,255,.65); }
+.stat-card.hero .stat-badge { background: rgba(255,255,255,.2); color: #fff; }
+
+/* ══ Charts grid ══ */
+.charts-grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 12px; }
+.chart-wrap { position: relative; height: 200px; }
+
+/* ══ Analysis grid ══ */
+.analysis-grid { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 12px; }
+
+/* Donut */
+.donut-outer { display: flex; justify-content: center; margin-bottom: 14px; }
+.donut-wrap  { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; }
+.donut-center { position: absolute; text-align: center; pointer-events: none; }
+.donut-num   { font-size: 26px; font-weight: 900; color: var(--text-1); line-height: 1; }
+.donut-lbl   { font-size: 10px; font-weight: 700; color: var(--text-4); }
+.legend-list { display: flex; flex-direction: column; gap: 8px; }
+.legend-row  { display: flex; align-items: center; gap: 8px; }
+.legend-pip  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+.legend-val  { font-size: 13px; font-weight: 900; color: var(--text-1); }
+
+/* Rank list */
+.rank-list { display: flex; flex-direction: column; gap: 10px; }
+.rank-row  { display: flex; align-items: center; gap: 10px; }
+.rank-pos  { width: 18px; font-size: 11.5px; font-weight: 900; text-align: center; flex-shrink: 0; color: var(--text-4); }
+.rank-pos.g { color: #D97706; } .rank-pos.s { color: #94A3B8; } .rank-pos.b { color: #CD7F32; }
+.rank-name { flex: 1; font-size: 13px; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-track { flex: 0 0 80px; height: 5px; background: var(--n100); border-radius: 99px; overflow: hidden; }
+.rank-fill  { height: 100%; border-radius: 99px; }
+.rank-val   { width: 44px; text-align: right; font-size: 12.5px; font-weight: 800; color: var(--text-1); }
+
+/* Product list */
+.prod-list { display: flex; flex-direction: column; gap: 8px; }
+.prod-row  { display: flex; align-items: center; gap: 8px; }
+.prod-num  { width: 22px; height: 22px; border-radius: 5px; font-size: 10.5px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.prod-num.r1 { background: #FEF3C7; color: #D97706; }
+.prod-num.r2 { background: var(--n100); color: var(--n500); }
+.prod-num.r3 { background: #FEF0E6; color: #C2622A; }
+.prod-num.rn { background: var(--n100); color: var(--text-4); }
+.prod-name   { flex: 1; font-size: 13px; font-weight: 700; color: var(--text-1); }
+.prod-pill   { font-size: 10.5px; font-weight: 800; padding: 2px 9px; border-radius: 10px; }
+.prod-pill.hot { background: var(--s100); color: var(--p700); }
+.prod-pill.low { background: #FEE2E2; color: #B91C1C; }
+.mini-sep { height: 1px; background: var(--n100); margin: 12px 0; }
+.sub-hdr  { font-size: 11px; font-weight: 800; color: var(--text-3); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .06em; }
+
+/* ══ Alert cards ══ */
+.alerts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.alert-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  border-radius: 10px; padding: 13px 16px;
+}
+.alert-card.warn { background: #FFFBEB; border: 1px solid #FDE68A; }
+.alert-card.ok   { background: #F0FDF4; border: 1px solid #BBF7D0; }
+.alert-icon { width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.alert-icon.warn { background: linear-gradient(145deg, #FBBF24, #D97706); box-shadow: 0 3px 8px rgba(245,158,11,.3); }
+.alert-icon.ok   { background: linear-gradient(145deg, #4ADE80, #15803D); box-shadow: 0 3px 8px rgba(34,197,94,.3); }
+.alert-body { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 800; }
+.alert-title.warn { color: #92400E; }
+.alert-title.ok   { color: #15803D; }
+.alert-desc  { font-size: 11.5px; font-weight: 500; margin-top: 3px; line-height: 1.5; }
+.alert-desc.warn { color: #B45309; }
+.alert-desc.ok   { color: #16A34A; }
+
+/* Forecast bar */
+.chart-sm { position: relative; height: 130px; }
+
+/* Card inner */
+.card-body { padding: 18px 20px; }
+.card-hdr  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: var(--text-1); }
+.card-meta { font-size: 11.5px; font-weight: 600; color: var(--text-4); }
+.ci { width: 26px; height: 26px; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ci.green  { background: linear-gradient(145deg, #4ADE80, #15803D); box-shadow: 0 3px 8px rgba(34,197,94,.35); }
+.ci.blue   { background: linear-gradient(145deg, #3D7CB8, #194E80); box-shadow: 0 3px 8px rgba(37,99,235,.35); }
+.ci.purple { background: linear-gradient(145deg, #A78BFA, #6D28D9); box-shadow: 0 3px 8px rgba(139,92,246,.35); }
+.ci.amber  { background: linear-gradient(145deg, #FCD34D, #D97706); box-shadow: 0 3px 8px rgba(245,158,11,.35); }
+.ci.red    { background: linear-gradient(145deg, #F87171, #DC2626); box-shadow: 0 3px 8px rgba(239,68,68,.35); }
+.ci svg *  { fill: #fff; }
+
+</style>
+</head>
+<body>
+
+<script src="./sidebar.js"></script>
+<script src="./thuchi-store.js"></script>
+<script src="./order-store.js"></script>
+<script src="./kho-store.js"></script>
+<script src="./customer-store.js"></script>
+<script src="./supplier-store.js"></script>
+<script src="./warranty-store.js"></script>
+
+<main class="main">
+
+  <script>
+  window.TOPBAR_CONFIG = {
+    title: "Tổng quan",
+    breadcrumb: "Dữ liệu kinh doanh",
+    notifs: [
+      { color: "amber", icon: "warning", title: "5 bảo hành sắp hết hạn", sub: "Hết hạn trong vòng 7 ngày", time: "1h", unread: true },
+      { color: "blue",  icon: "info",    title: "Doanh thu tháng 6 tăng 12%", sub: "So với tháng trước", time: "3h", unread: true },
+      { color: "green", icon: "check",   title: "Đồng bộ dữ liệu thành công", sub: "1,240 bản ghi đã cập nhật", time: "Hôm qua", unread: false }
+    ]
+  };
+  </script>
+  <script src="./topbar.js"></script>
+
+  <div class="content">
+
+    <!-- Bộ lọc thời gian -->
+    <div class="dash-toolbar">
+      <div class="tab-pill">
+        <div class="tp-item">Hôm nay</div>
+        <div class="tp-item">7 ngày</div>
+        <div class="tp-item active">30 ngày</div>
+        <div class="tp-item">Tuỳ chỉnh</div>
+      </div>
+      <div class="live-indicator"><span class="live-dot"></span> Live</div>
+    </div>
+
+    <!-- ── ZONE 1: KPI Stats ── -->
+    <div>
+      <div class="sec-hdr">
+        <span class="sec-title">Chỉ số chính</span>
+      </div>
+      <div class="stats-row">
+
+        <div class="stat-card">
+          <div class="stat-lbl">Đã kích hoạt</div>
+          <div class="stat-badge up" id="statActivatedBadge">—</div>
+          <div class="stat-val" id="statActivatedVal">0</div>
+          <div class="stat-sub" id="statActivatedSub">vs tháng trước</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Khách hàng</div>
+          <div class="stat-badge up" id="statCustomersBadge">—</div>
+          <div class="stat-val" id="statCustomersVal">0</div>
+          <div class="stat-sub" id="statCustomersSub">0 tháng này</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Đang bảo hành</div>
+          <div class="stat-badge flat" id="statActiveWarrantyBadge">—</div>
+          <div class="stat-val" id="statActiveWarrantyVal">0</div>
+          <div class="stat-sub" id="statActiveWarrantySub">0 sắp hết hạn</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Tồn kho</div>
+          <div class="stat-badge flat" id="statStockBadge">—</div>
+          <div class="stat-val orange" id="statStockVal">0</div>
+          <div class="stat-sub" id="statStockSub">0 tr giá bán</div>
+        </div>
+
+        <div class="stat-card hero">
+          <div class="stat-lbl">Doanh thu tháng này</div>
+          <div class="stat-badge up" id="statDoanhThuBadge">—</div>
+          <div class="stat-val" id="statDoanhThuVal">0 tr</div>
+          <div class="stat-sub"><span id="statDoanhThuOrders">0 đơn</span> · <span id="statStockCostPrice">Giá kho: 0 tr</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ZONE 1b: Tài chính & Vận hành ── -->
+    <div>
+      <div class="sec-hdr">
+        <span class="sec-title">Tài chính &amp; Vận hành</span>
+      </div>
+      <div class="stats-row">
+
+        <div class="stat-card">
+          <div class="stat-lbl">Công nợ phải thu</div>
+          <div class="stat-val orange" id="statRecvVal">0 đ</div>
+          <div class="stat-sub" id="statRecvSub">0 khách còn nợ</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Công nợ phải trả</div>
+          <div class="stat-val orange" id="statPayVal">0 đ</div>
+          <div class="stat-sub" id="statPaySub">Nợ nhà cung cấp</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Doanh thu sửa chữa</div>
+          <div class="stat-val green" id="statRepairRevVal">0 đ</div>
+          <div class="stat-sub" id="statRepairRevSub">0 phiếu tháng này</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">Phiếu sửa đang xử lý</div>
+          <div class="stat-val" id="statRepairWipVal">0</div>
+          <div class="stat-sub" id="statRepairWipSub">Tổng 0 phiếu</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-lbl">QR chờ kích hoạt</div>
+          <div class="stat-val" id="statPendingQrVal">0</div>
+          <div class="stat-sub" id="statPendingQrSub">Serial từ nhập kho</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ZONE 2: Charts ── -->
+    <div>
+      <div class="sec-hdr">
+        <span class="sec-title">Xu hướng</span>
+      </div>
+      <div class="charts-grid">
+
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci green">
+                <svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1,11 4,7 7,8.5 12,2" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              Doanh thu
+            </div>
+            <span class="card-meta">12 tháng gần nhất</span>
+          </div>
+          <div class="chart-wrap"><canvas id="cRevenue"></canvas></div>
+        </div>
+
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci blue">
+                <svg width="13" height="13" viewBox="0 0 13 13"><rect x="1" y="7" width="3" height="5" rx="1" fill="white"/><rect x="5" y="4" width="3" height="8" rx="1" fill="rgba(255,255,255,.75)"/><rect x="9" y="1.5" width="3" height="10.5" rx="1" fill="rgba(255,255,255,.55)"/></svg>
+              </div>
+              Khách hàng mới
+            </div>
+            <span class="card-meta">30 ngày qua</span>
+          </div>
+          <div class="chart-wrap"><canvas id="cCustomer"></canvas></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ZONE 3: Analysis ── -->
+    <div>
+      <div class="sec-hdr">
+        <span class="sec-title">Phân tích</span>
+      </div>
+      <div class="analysis-grid">
+
+        <!-- Donut BH -->
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci purple">
+                <svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 1.2L12 3.5V8C12 10.8 9.5 13 6.5 13.5C3.5 13 1 10.8 1 8V3.5Z" fill="rgba(255,255,255,.4)"/><path d="M6.5 3L10.5 5V8C10.5 10 8.7 11.7 6.5 12.2C4.3 11.7 2.5 10 2.5 8V5Z" fill="rgba(255,255,255,.7)"/><path d="M4.5 8L5.8 9.5L9 6" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              Tình trạng BH
+            </div>
+          </div>
+          <div class="donut-outer">
+            <div class="donut-wrap">
+              <canvas id="cDonut" width="140" height="140"></canvas>
+              <div class="donut-center">
+                <div class="donut-num">15</div>
+                <div class="donut-lbl">tổng SP</div>
+              </div>
+            </div>
+          </div>
+          <div class="legend-list">
+            <div class="legend-row"><div class="legend-pip" style="background:#22C55E"></div><span class="legend-name">Đang BH</span><span class="legend-val">15</span></div>
+            <div class="legend-row"><div class="legend-pip" style="background:#F59E0B"></div><span class="legend-name">Sắp hết</span><span class="legend-val">0</span></div>
+            <div class="legend-row"><div class="legend-pip" style="background:#EF4444"></div><span class="legend-name">Hết hạn</span><span class="legend-val">0</span></div>
+          </div>
+        </div>
+
+        <!-- Top buyers -->
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci amber">
+                <svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 1L8.2 4.5L12 5.1L9.2 7.8L9.9 11.5L6.5 9.7L3.1 11.5L3.8 7.8L1 5.1L4.8 4.5Z" fill="white"/></svg>
+              </div>
+              Khách hàng mua nhiều nhất
+            </div>
+            <span class="card-meta">Tháng này</span>
+          </div>
+          <div class="rank-list" id="topBuyersList">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Best/Least sellers -->
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci red">
+                <svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 1C6.5 1 3 3.5 3 7a3.5 3.5 0 0 0 7 0c0-3.5-3.5-6-3.5-6Z" fill="rgba(255,255,255,.8)"/></svg>
+              </div>
+              Bán chạy nhất
+            </div>
+            <span class="card-meta">30 ngày</span>
+          </div>
+          <div class="prod-list" id="bestSellers"></div>
+          <div class="mini-sep"></div>
+          <div class="sub-hdr">Bán ít nhất</div>
+          <div class="prod-list" id="leastSellers"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ZONE 4: Alerts ── -->
+    <div>
+      <div class="sec-hdr">
+        <span class="sec-title">Cảnh báo &amp; Dự báo</span>
+      </div>
+      <div class="alerts-grid">
+
+        <div class="card card-body">
+          <div class="card-hdr">
+            <div class="card-title-row">
+              <div class="ci red">
+                <svg width="13" height="13" viewBox="0 0 13 13"><rect x="1" y="1" width="11" height="9" rx="1.5" fill="rgba(255,255,255,.3)"/><rect x="3" y="3.5" width="2" height="4.5" rx=".7" fill="rgba(255,255,255,.7)"/><rect x="6" y="5" width="2" height="3" rx=".7" fill="rgba(255,255,255,.5)"/><rect x="9" y="2.5" width="2" height="5.5" rx=".7" fill="rgba(255,255,255,.9)"/></svg>
+              </div>
+              Dự báo hết bảo hành (6 tháng)
+            </div>
+            <span class="card-meta">6 SP sắp hết BH</span>
+          </div>
+          <div class="chart-sm"><canvas id="cForecast"></canvas></div>
+        </div>
+
+        <div class="card card-body" style="display:flex;flex-direction:column;justify-content:center;gap:10px;">
+          <div class="alert-card warn">
+            <div class="alert-icon warn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2.2L14.6 13.5H1.4Z" fill="rgba(255,255,255,.92)"/>
+                <line x1="8" y1="6.5" x2="8" y2="10" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="8" cy="11.8" r=".8" fill="#D97706"/>
+              </svg>
+            </div>
+            <div class="alert-body">
+              <div class="alert-title warn">Dự báo: 6 SP hết BH trong 6 tháng</div>
+              <div class="alert-desc warn">Tháng 9–10/2026 có 3 SP/tháng sắp hết hạn</div>
+            </div>
+          </div>
+          <div class="alert-card ok">
+            <div class="alert-icon ok">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" fill="rgba(255,255,255,.25)"/>
+                <path d="M5 8.5l2.2 2.2L11 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="alert-body">
+              <div class="alert-title ok">Kho hàng đầy đủ</div>
+              <div class="alert-desc ok">Tất cả sản phẩm đủ tồn kho · Cảnh báo dưới 3 chiếc</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+/* ── Sidebar toggle ── */
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+  localStorage.setItem('qranty-sb', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+}
+(function() {
+  if (localStorage.getItem('qranty-sb') === '1') document.body.classList.add('sb-collapsed');
+})();
+
+/* ── Account menu toggle (required on every page — sidebar.js injects the trigger but not this fn) ── */
+function toggleAccountMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('accountMenu').classList.toggle('open');
+  document.getElementById('accountTrigger').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.sb-account');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+
+/* ── Doanh thu: đọc thật từ thuchi-store.js (mọi khoản "thu" có
+   source = banhang), không còn số mock cứng. Vì đây là dữ liệu
+   localStorage của trình duyệt demo, các tháng chưa có giao dịch
+   nào sẽ hiện 0 — không phải lỗi, chỉ là chưa có lịch sử nhiều
+   tháng thật. ── */
+function qrParseVNDate(s) {
+  if (!s) return null;
+  var parts = String(s).split('/');
+  if (parts.length !== 3) return null;
+  var d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
+  if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+  return new Date(y, m, d);
+}
+function qrComputeRevenueMonths() {
+  var data = (window.QrantyThuChi ? QrantyThuChi.getData() : { thu: [] });
+  var sales = data.thu.filter(function (e) { return e.source === 'banhang'; });
+  var now = new Date();
+  var months = [];
+  for (var i = 11; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ y: d.getFullYear(), m: d.getMonth(), total: 0, count: 0 });
+  }
+  sales.forEach(function (e) {
+    var d = qrParseVNDate(e.date);
+    if (!d) return;
+    for (var i = 0; i < months.length; i++) {
+      if (months[i].y === d.getFullYear() && months[i].m === d.getMonth()) {
+        months[i].total += Number(e.amount) || 0;
+        months[i].count++;
+        break;
+      }
+    }
+  });
+  return months;
+}
+function qrFmtTr(n) {
+  return (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+}
+
+var REVENUE_MONTHS = qrComputeRevenueMonths();
+var REVENUE_LABELS = REVENUE_MONTHS.map(function (mo) { return 'T' + (mo.m + 1); });
+var REVENUE_DATA = REVENUE_MONTHS.map(function (mo) { return Math.round((mo.total / 1e6) * 10) / 10; });
+
+function formatTrVND(n) {
+  if (n >= 1e6) {
+    return (n / 1e6).toFixed(1).replace('.', ',') + ' tr';
+  }
+  return n.toLocaleString('vi-VN') + ' đ';
+}
+
+function updateStatCards() {
+  var now = new Date();
+  
+  // 1. Đã kích hoạt (warranties)
+  var warranties = window.QrantyWarranty ? QrantyWarranty.getData() : [];
+  var thisMonthWarranties = warranties.filter(function(w) {
+    var d = qrParseVNDate(w.activatedAt);
+    return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  var lastMonthWarranties = warranties.filter(function(w) {
+    var d = qrParseVNDate(w.activatedAt);
+    var lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d && d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
+  });
+  
+  var actValEl = document.getElementById('statActivatedVal');
+  var actBadgeEl = document.getElementById('statActivatedBadge');
+  var actSubEl = document.getElementById('statActivatedSub');
+  if (actValEl) {
+    actValEl.textContent = warranties.length;
+    if (lastMonthWarranties.length > 0) {
+      var pct = ((thisMonthWarranties.length - lastMonthWarranties.length) / lastMonthWarranties.length) * 100;
+      actBadgeEl.textContent = (pct >= 0 ? '↑ ' : '↓ ') + Math.abs(pct).toFixed(0) + '%';
+      actBadgeEl.className = 'stat-badge ' + (pct >= 0 ? 'up' : 'down');
+    } else {
+      actBadgeEl.textContent = 'Mới';
+      actBadgeEl.className = 'stat-badge up';
+    }
+    actSubEl.textContent = '+' + thisMonthWarranties.length + ' tháng này';
+  }
+
+  // 2. Khách hàng
+  var customers = window.QrantyKhach ? QrantyKhach.getAll() : [];
+  var thisMonthCustomers = customers.filter(function(c) {
+    var d = qrParseVNDate(c.createdAt);
+    return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  var lastMonthCustomers = customers.filter(function(c) {
+    var d = qrParseVNDate(c.createdAt);
+    var lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d && d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
+  });
+  var custValEl = document.getElementById('statCustomersVal');
+  var custBadgeEl = document.getElementById('statCustomersBadge');
+  var custSubEl = document.getElementById('statCustomersSub');
+  if (custValEl) {
+    custValEl.textContent = customers.length;
+    if (lastMonthCustomers.length > 0) {
+      var pct = ((thisMonthCustomers.length - lastMonthCustomers.length) / lastMonthCustomers.length) * 100;
+      custBadgeEl.textContent = (pct >= 0 ? '↑ ' : '↓ ') + Math.abs(pct).toFixed(0) + '%';
+      custBadgeEl.className = 'stat-badge ' + (pct >= 0 ? 'up' : 'down');
+    } else {
+      custBadgeEl.textContent = 'Mới';
+      custBadgeEl.className = 'stat-badge up';
+    }
+    custSubEl.textContent = '+' + thisMonthCustomers.length + ' tháng này';
+  }
+
+  // 3. Đang bảo hành
+  var activeW = warranties.filter(function(w) { return w.resolvedStatus === 'dang-bao-hanh' || w.resolvedStatus === 'sap-het-han'; }).length;
+  var expiringW = warranties.filter(function(w) { return w.resolvedStatus === 'sap-het-han'; }).length;
+  var actWValEl = document.getElementById('statActiveWarrantyVal');
+  var actWSubEl = document.getElementById('statActiveWarrantySub');
+  if (actWValEl) {
+    actWValEl.textContent = activeW;
+    actWSubEl.textContent = expiringW + ' sắp hết hạn';
+  }
+
+  // 4. Tồn kho
+  var products = (typeof QrantyKho !== 'undefined') ? QrantyKho.getData() : [];
+  var totalQty = products.reduce(function(sum, p) { return sum + (p.qty || 0); }, 0);
+  var totalSaleVal = products.reduce(function(sum, p) { return sum + ((p.qty || 0) * (p.salePrice || 0)); }, 0);
+  var totalCostVal = products.reduce(function(sum, p) { return sum + ((p.qty || 0) * (p.costPrice || 0)); }, 0);
+  
+  var stockValEl = document.getElementById('statStockVal');
+  var stockSubEl = document.getElementById('statStockSub');
+  var stockCostEl = document.getElementById('statStockCostPrice');
+  if (stockValEl) {
+    stockValEl.textContent = totalQty;
+    stockSubEl.textContent = formatTrVND(totalSaleVal) + ' giá bán';
+  }
+  if (stockCostEl) {
+    stockCostEl.textContent = 'Giá kho: ' + formatTrVND(totalCostVal);
+  }
+
+  // 5. Doanh thu tháng này (đã cập nhật từ hàm gốc)
+  var thisMonth = REVENUE_MONTHS[REVENUE_MONTHS.length - 1];
+  var lastMonth = REVENUE_MONTHS[REVENUE_MONTHS.length - 2];
+  var valEl = document.getElementById('statDoanhThuVal');
+  var ordersEl = document.getElementById('statDoanhThuOrders');
+  var badgeEl = document.getElementById('statDoanhThuBadge');
+  if (thisMonth && valEl) {
+    valEl.textContent = qrFmtTr(thisMonth.total) + ' tr';
+    ordersEl.textContent = thisMonth.count + ' đơn';
+    if (lastMonth && lastMonth.total > 0) {
+      var pct = ((thisMonth.total - lastMonth.total) / lastMonth.total) * 100;
+      badgeEl.textContent = (pct >= 0 ? '↑ ' : '↓ ') + Math.abs(pct).toFixed(2).replace('.', ',') + '%';
+      badgeEl.className = 'stat-badge ' + (pct >= 0 ? 'up' : 'down');
+    } else if (thisMonth.total > 0) {
+      badgeEl.textContent = 'Mới';
+      badgeEl.className = 'stat-badge up';
+    } else {
+      badgeEl.textContent = '—';
+      badgeEl.className = 'stat-badge flat';
+    }
+  }
+
+  // 6. Top Buyers
+  var topList = document.getElementById('topBuyersList');
+  if (topList && window.QrantyKhach) {
+    var ranked = customers.map(function(c) {
+      var s = QrantyKhach.stats(c.phone);
+      return { name: c.name, spent: s.totalSpent };
+    }).filter(function(x) { return x.spent > 0; });
+    
+    ranked.sort(function(a, b) { return b.spent - a.spent; });
+    ranked = ranked.slice(0, 5);
+    
+    if (ranked.length === 0) {
+      topList.innerHTML = '<div style="text-align:center;padding:18px;color:var(--text-4);font-size:12.5px;font-weight:600;">Chưa có dữ liệu mua hàng</div>';
+    } else {
+      var maxSpent = ranked[0].spent || 1;
+      var gradients = [
+        'linear-gradient(90deg,#1F5C99,#60A5FA)',
+        'linear-gradient(90deg,#6D28D9,#A78BFA)',
+        'linear-gradient(90deg,#15803D,#4ADE80)',
+        'linear-gradient(90deg,#D97706,#FCD34D)',
+        'linear-gradient(90deg,#0284C7,#38BDF8)'
+      ];
+      var posClasses = ['g', 's', 'b', '', ''];
+      
+      topList.innerHTML = '';
+      ranked.forEach(function(x, idx) {
+        var pos = idx + 1;
+        var pct = (x.spent / maxSpent) * 100;
+        var row = document.createElement('div');
+        row.className = 'rank-row';
+        var posSpan = document.createElement('span');
+        posSpan.className = 'rank-pos' + (posClasses[idx] ? ' ' + posClasses[idx] : '');
+        posSpan.textContent = pos;
+        
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'rank-name';
+        nameSpan.textContent = x.name;
+        
+        var trackDiv = document.createElement('div');
+        trackDiv.className = 'rank-track';
+        var fillDiv = document.createElement('div');
+        fillDiv.className = 'rank-fill';
+        fillDiv.style.width = pct + '%';
+        fillDiv.style.background = gradients[idx % gradients.length];
+        trackDiv.appendChild(fillDiv);
+        
+        var valSpan = document.createElement('span');
+        valSpan.className = 'rank-val';
+        valSpan.textContent = formatTrVND(x.spent);
+        
+        row.appendChild(posSpan);
+        row.appendChild(nameSpan);
+        row.appendChild(trackDiv);
+        row.appendChild(valSpan);
+        topList.appendChild(row);
+      });
+    }
+  }
+}
+
+function _dashKho() { return (typeof QrantyKho !== 'undefined') ? QrantyKho : null; }
+function setTxt(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+function _dashEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+/* ── Tài chính & Vận hành: công nợ, doanh thu sửa, phiếu sửa, QR chờ kích hoạt ── */
+function updateFinanceOps() {
+  var now = new Date();
+  var tc = (typeof QrantyThuChi !== 'undefined') ? QrantyThuChi.getData() : { thu: [], chi: [] };
+  var fmt = formatTrVND;
+
+  var recv = 0, recvCust = {};
+  (tc.thu || []).forEach(function (e) { var r = Number(e.remain) || 0; if (r > 0) { recv += r; if (e.code) recvCust[e.code] = true; } });
+  setTxt('statRecvVal', fmt(recv));
+  setTxt('statRecvSub', Object.keys(recvCust).length + ' khách còn nợ');
+
+  var pay = (typeof QrantySupplier !== 'undefined') ? QrantySupplier.totalPayable()
+    : (tc.chi || []).reduce(function (s, e) { return s + (e.source === 'nhaphang' ? (Number(e.remain) || 0) : 0); }, 0);
+  setTxt('statPayVal', fmt(pay));
+
+  var repairRev = 0, repairCount = 0;
+  (tc.thu || []).forEach(function (e) {
+    if (e.source !== 'suachua') return;
+    var d = qrParseVNDate(e.date);
+    if (d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()) { repairRev += Number(e.amount) || 0; repairCount++; }
+  });
+  setTxt('statRepairRevVal', fmt(repairRev));
+  setTxt('statRepairRevSub', repairCount + ' phiếu tháng này');
+
+  var tickets = [];
+  try { tickets = JSON.parse(localStorage.getItem('qranty-tickets-v2') || '[]'); } catch (e) {}
+  var wip = tickets.filter(function (t) { return t.status !== 'tra-may' && t.status !== 'hoan-thanh'; }).length;
+  setTxt('statRepairWipVal', wip);
+  setTxt('statRepairWipSub', 'Tổng ' + tickets.length + ' phiếu');
+
+  var k = _dashKho(), pending = 0;
+  if (k && k.getPNKList) k.getPNKList().forEach(function (p) { (p.items || []).forEach(function (it) { (it.serials || []).forEach(function (s) { if (s && s.status !== 'active') pending++; }); }); });
+  setTxt('statPendingQrVal', pending);
+}
+
+/* ── Bán chạy / bán ít nhất: tổng hợp từ phiếu bán (QrantyOrders) ── */
+function updateSellers() {
+  var box1 = document.getElementById('bestSellers');
+  if (typeof QrantyOrders === 'undefined') return;
+  var qtyByName = {};
+  QrantyOrders.getAll().forEach(function (o) {
+    (o.items || []).forEach(function (it) { var n = it.name || 'Sản phẩm'; qtyByName[n] = (qtyByName[n] || 0) + (Number(it.qty) || 1); });
+  });
+  var arr = Object.keys(qtyByName).map(function (n) { return { name: n, qty: qtyByName[n] }; });
+  arr.sort(function (a, b) { return b.qty - a.qty; });
+  renderProdList('bestSellers', arr.slice(0, 4), 'hot');
+  renderProdList('leastSellers', arr.slice().sort(function (a, b) { return a.qty - b.qty; }).slice(0, 3), 'low');
+}
+function renderProdList(id, items, pillCls) {
+  var box = document.getElementById(id); if (!box) return;
+  if (!items.length) { box.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text-4);font-size:12px;font-weight:600">Chưa có dữ liệu bán hàng</div>'; return; }
+  box.innerHTML = items.map(function (x, i) {
+    var nc = pillCls === 'low' ? 'rn' : (i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : 'rn');
+    return '<div class="prod-row"><div class="prod-num ' + nc + '">' + (i + 1) + '</div><span class="prod-name">' + _dashEsc(x.name) + '</span><span class="prod-pill ' + pillCls + '">' + x.qty + ' chiếc</span></div>';
+  }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  updateStatCards();
+  updateFinanceOps();
+  updateSellers();
+});
+
+/* ── Charts ── */
+Chart.defaults.font.family = 'Inter, sans-serif';
+Chart.defaults.color = '#94A3B8';
+
+/* Revenue line */
+new Chart(document.getElementById('cRevenue'), {
+  type: 'line',
+  data: {
+    labels: REVENUE_LABELS,
+    datasets: [{
+      data: REVENUE_DATA,
+      borderColor: '#2563EB',
+      backgroundColor: 'rgba(37,99,235,.08)',
+      borderWidth: 2.5,
+      fill: true,
+      tension: .45,
+      pointRadius: 3,
+      pointBackgroundColor: '#2563EB',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8',
+      padding: 10, cornerRadius: 8,
+      callbacks: { label: ctx => ' ' + ctx.parsed.y + ' tr' }
+    }},
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#F1F5F9' }, border: { display: false }, ticks: { font: { size: 11 }, callback: v => v + ' tr' } }
+    }
+  }
+});
+
+/* Customers bar */
+var cStats30 = qrComputeCustomerStats30Days();
+new Chart(document.getElementById('cCustomer'), {
+  type: 'bar',
+  data: {
+    labels: cStats30.labels,
+    datasets: [{
+      data: cStats30.data,
+      backgroundColor: 'rgba(37,99,235,.7)',
+      hoverBackgroundColor: 'rgba(37,99,235,1)',
+      borderRadius: 2,
+      borderSkipped: false,
+      categoryPercentage: 0.85,
+      barPercentage: 0.9,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8',
+      padding: 10, cornerRadius: 8,
+      callbacks: {
+        title: ctx => 'Ngày ' + ctx[0].label,
+        label: ctx => ' ' + ctx.parsed.y + ' khách mới'
+      }
+    }},
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: {
+          font: { size: 10 },
+          color: '#94A3B8',
+          maxRotation: 0,
+          callback: (val, i) => (i % 5 === 0 || i === 29) ? String(cStats30.labels[i]) : ''
+        }
+      },
+      y: { grid: { color: '#F1F5F9' }, border: { display: false }, ticks: { font: { size: 11 }, stepSize: 1 } }
+    }
+  }
+});
+
+function qrComputeCustomerStats30Days() {
+  var customers = window.QrantyKhach ? QrantyKhach.getAll() : [];
+  var counts = [];
+  var labels = [];
+  var now = new Date();
+  for (var i = 29; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    labels.push(d.getDate());
+    
+    var dateStr = [
+      String(d.getDate()).padStart(2, '0'),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      d.getFullYear()
+    ].join('/');
+    
+    var matchCount = customers.filter(function(c) { return c.createdAt === dateStr; }).length;
+    counts.push(matchCount);
+  }
+  return { labels: labels, data: counts };
+}
+
+/* Donut */
+var warrantiesList = window.QrantyWarranty ? QrantyWarranty.getData() : [];
+var dangBhCount = warrantiesList.filter(function(w) { return w.resolvedStatus === 'dang-bao-hanh'; }).length;
+var sapHetCount = warrantiesList.filter(function(w) { return w.resolvedStatus === 'sap-het-han'; }).length;
+var hetHanCount = warrantiesList.filter(function(w) { return w.resolvedStatus === 'het-han'; }).length;
+var totalDonut = dangBhCount + sapHetCount + hetHanCount;
+
+// update Donut UI text
+document.querySelector('.donut-center .donut-num').textContent = totalDonut;
+document.querySelector('.legend-list').innerHTML = '\
+  <div class="legend-row"><div class="legend-pip" style="background:#22C55E"></div><span class="legend-name">Đang BH</span><span class="legend-val">' + dangBhCount + '</span></div>\
+  <div class="legend-row"><div class="legend-pip" style="background:#F59E0B"></div><span class="legend-name">Sắp hết</span><span class="legend-val">' + sapHetCount + '</span></div>\
+  <div class="legend-row"><div class="legend-pip" style="background:#EF4444"></div><span class="legend-name">Hết hạn</span><span class="legend-val">' + hetHanCount + '</span></div>\
+';
+
+new Chart(document.getElementById('cDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Đang BH','Sắp hết','Hết hạn'],
+    datasets: [{ data: [dangBhCount || 0.001, sapHetCount || 0.001, hetHanCount || 0.001], backgroundColor: ['#22C55E','#F59E0B','#EF4444'], borderWidth: 0, cutout: '72%' }]
+  },
+  options: {
+    responsive: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8',
+        padding: 10, cornerRadius: 8,
+        callbacks: { label: ctx => ' ' + ctx.label + ': ' + Math.round(ctx.parsed) }
+      }
+    }
+  }
+});
+
+/* Forecast */
+var forecastStats = qrComputeForecastMonths();
+new Chart(document.getElementById('cForecast'), {
+  type: 'bar',
+  data: {
+    labels: forecastStats.labels,
+    datasets: [{
+      label: 'SP hết BH',
+      data: forecastStats.data,
+      backgroundColor: ['#BBF7D0','#FDE68A','#FCA5A5','#FCA5A5','#FDE68A','#BBF7D0'],
+      borderRadius: 5, borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#0F172A', titleColor: '#fff', bodyColor: '#94A3B8',
+      padding: 10, cornerRadius: 8,
+    }},
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
+      y: { grid: { color: '#F1F5F9' }, border: { display: false }, ticks: { font: { size: 11 }, stepSize: 1 } }
+    }
+  }
+});
+
+function qrComputeForecastMonths() {
+  var warranties = window.QrantyWarranty ? QrantyWarranty.getData() : [];
+  var now = new Date();
+  var counts = [];
+  var labels = [];
+  for (var i = 0; i < 6; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    var label = 'T' + (d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(-2);
+    labels.push(label);
+    
+    var matchCount = warranties.filter(function(w) {
+      var exp = qrParseVNDate(w.expiresAt);
+      return exp && exp.getFullYear() === d.getFullYear() && exp.getMonth() === d.getMonth();
+    }).length;
+    counts.push(matchCount);
+  }
+  return { labels: labels, data: counts };
+}
+</script>
+<script src="./qranty-notify.js"></script>
+</body>
+</html>

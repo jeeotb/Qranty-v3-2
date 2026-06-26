@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Thu chi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./shared.css">
+
+<style>
+/* ===== TABS ===== */
+.tc-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--n200); margin-bottom: 16px; }
+.tc-tab { display: flex; align-items: center; gap: 7px; padding: 11px 16px; border-radius: var(--r-sm) var(--r-sm) 0 0; font-size: 13px; font-weight: 700; color: var(--text-2); cursor: pointer; border-bottom: 2.5px solid transparent; transition: all .13s ease; user-select: none; }
+.tc-tab:hover { color: var(--p600); background: var(--n50); }
+.tc-tab.active { color: var(--p600); border-bottom-color: var(--brand); background: var(--s50); }
+.tc-tab.active:hover { background: var(--s50); }
+.tc-tab .tc-tab-count { background: var(--n100); color: var(--text-2); font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 10px; }
+.tc-tab.active .tc-tab-count { background: #fff; color: var(--p600); }
+.tc-tab-panel { display: none; }
+.tc-tab-panel.active { display: block; }
+
+/* ===== TOOLBAR ===== */
+.tc-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.tc-search { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+.tc-search .input { padding-left: 36px; }
+.tc-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--n400); display: flex; }
+.input { width: 100%; height: 38px; border: 1px solid var(--n200); border-radius: var(--r-sm); padding: 0 12px; font-size: 13px; font-family: inherit; font-weight: 600; color: var(--text-1); background: #fff; transition: border-color .13s, box-shadow .13s; }
+.input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.input::placeholder { color: var(--n400); font-weight: 500; }
+textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family: inherit; }
+
+/* ===== STAT ROW ===== */
+.tc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.tc-daybox { background: #fff; border: 1px solid var(--n200); border-radius: var(--r-sm); padding: 12px 14px; box-shadow: var(--shadow-card); }
+.tc-daybox-lbl { font-size: 10px; font-weight: 800; letter-spacing: .07em; color: var(--text-4); margin-bottom: 6px; }
+.tc-daybox-val { font-size: 18px; font-weight: 900; color: var(--p700); }
+.tc-caret svg { transition: transform .15s ease; }
+.tc-det-wrap { padding: 12px 16px 14px; }
+.tc-det-hd { font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-4); margin-bottom: 8px; }
+.tc-det-item { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--n200); font-size: 12.5px; }
+.tc-det-item:last-child { border-bottom: none; }
+.tc-det-nm { flex: 1; font-weight: 700; color: var(--text-1); }
+.tc-det-sku { font-family: 'SF Mono', Menlo, monospace; font-size: 11px; color: var(--text-4); font-weight: 600; }
+.tc-det-mid { flex: 0 0 auto; }
+.tc-det-wty { font-size: 11px; font-weight: 700; color: var(--p600); background: var(--s50); padding: 2px 8px; border-radius: 12px; }
+.tc-det-nowty { font-size: 11px; font-weight: 600; color: var(--text-4); }
+.tc-det-price { flex: 0 0 auto; min-width: 90px; text-align: right; font-weight: 800; color: var(--text-1); }
+/* Stat card chuẩn (design system): nền trắng, viền, nhãn HOA → số lớn → sub */
+.stat-card { background: #fff; border: 1px solid var(--n200); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow-card); }
+.stat-lbl  { font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--text-4); margin-bottom: 10px; }
+.stat-val  { font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; color: #0F2D4E; }
+.stat-val.blue   { color: #163E66; }
+.stat-val.orange { color: #C2410C; }
+.stat-val.green  { color: #15803D; }
+.stat-val.red    { color: var(--error); }
+.stat-sub  { font-size: 12px; font-weight: 500; color: var(--text-3); }
+
+/* ===== TABLE ===== */
+.tc-table-wrap { background: #fff; border: 1px solid var(--n200); border-radius: var(--r); overflow: hidden; }
+.tc-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tc-table th { text-align: left; padding: 11px 14px; background: var(--n50); color: var(--text-4); font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1px solid var(--n200); white-space: nowrap; }
+.tc-table td { padding: 12px 14px; border-bottom: 1px solid var(--n100); color: var(--text-1); font-weight: 600; vertical-align: middle; }
+.tc-table tbody tr:last-child td { border-bottom: none; }
+.tc-table tbody tr:hover { background: var(--n50); }
+
+/* Badge nguồn (status bar) */
+.tc-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap; letter-spacing: .01em; }
+.tc-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.tc-badge.banhang  { background: #EFF6FF; color: #1D4ED8; }
+.tc-badge.suachua  { background: #F5F3FF; color: #7C3AED; }
+.tc-badge.nhaphang { background: #FFFBEB; color: #B45309; }
+.tc-badge.le       { background: var(--n100); color: var(--n600); }
+.tc-badge.manual   { background: var(--n100); color: var(--n600); }
+
+/* Dropdown lọc nguồn */
+.tc-filter-select { height: 38px; border: 1px solid var(--n200); border-radius: var(--r-sm); padding: 0 12px; font-size: 13px; font-weight: 700; color: var(--text-2); background: #fff; cursor: pointer; font-family: inherit; min-width: 160px; }
+.tc-filter-select:focus { outline: none; border-color: var(--brand); }
+.tc-obj-name { font-weight: 800; color: var(--text-1); }
+.tc-amt-pos { color: #C2410C; font-weight: 800; }
+.tc-amt-rem { color: var(--error); font-weight: 800; }
+.tc-act-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--n200); background: #fff; color: var(--text-3); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all .13s; }
+.tc-act-btn:hover { border-color: var(--p500); color: var(--p600); }
+.tc-src-tag { display: block; font-size: 10px; font-weight: 700; color: var(--text-4); margin-top: 2px; }
+
+/* ===== EMPTY STATE ===== */
+.tc-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 56px 10px; text-align: center; }
+.tc-empty-ico { width: 46px; height: 46px; border-radius: 50%; background: var(--n100); display: flex; align-items: center; justify-content: center; color: var(--n400); }
+.tc-empty-title { font-size: 13px; font-weight: 700; color: var(--text-2); }
+
+/* ===== PAGINATION ===== */
+.tc-pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-top: 1px solid var(--n200); }
+.tc-pagination-info { font-size: 12px; color: var(--text-4); font-weight: 600; }
+.tc-page-btn { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; color: var(--text-2); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.tc-page-btn.active { background: var(--p500); border-color: var(--p500); color: #fff; }
+
+/* ===== MODAL (centered, same family as Thêm khách hàng) ===== */
+.tcm-backdrop { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(3px); z-index: 500; align-items: center; justify-content: center; }
+.tcm-backdrop.open { display: flex; }
+.tcm-box { background: #fff; border-radius: 16px; width: 480px; max-width: 96vw; max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,.2); overflow: hidden; }
+.tcm-hdr { display: flex; align-items: center; gap: 12px; padding: 20px 24px 16px; border-bottom: 1px solid var(--n100); flex-shrink: 0; }
+.tcm-hdr-ico { width: 36px; height: 36px; border-radius: 9px; background: var(--s50); color: var(--brand); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tcm-hdr-title { font-size: 15px; font-weight: 800; color: var(--text-1); flex: 1; }
+.tcm-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--n100); color: var(--text-3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s; }
+.tcm-close:hover { background: var(--n200); }
+.tcm-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.tcm-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.tcm-field-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.tcm-field-label .req { color: #ef4444; margin-left: 2px; }
+.tcm-field-hint { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+.tcm-input { width: 100%; height: 38px; border: 1.5px solid var(--n200); border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: inherit; font-weight: 600; color: var(--text-1); background: #fff; transition: border-color .13s, box-shadow .13s; }
+.tcm-input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+textarea.tcm-input { height: 70px; padding: 10px 12px; resize: vertical; line-height: 1.5; }
+.tcm-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--n100); flex-shrink: 0; background: #fafafa; }
+
+/* type pill: Thu vào / Chi ra */
+.tcm-type-row { display: flex; gap: 8px; }
+.tcm-type-pill { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 8px; border: 1.5px solid var(--n200); background: #fff; font-size: 12.5px; font-weight: 700; color: var(--text-3); cursor: pointer; transition: all .13s; }
+.tcm-type-pill.in.active { border-color: var(--success); background: var(--success-bg); color: #15803d; }
+.tcm-type-pill.out.active { border-color: var(--error); background: var(--error-bg); color: #b91c1c; }
+
+/* ===== In lại phiếu bán hàng (khổ nhiệt 80mm, cùng kiểu với Thao tác nhanh) ===== */
+.receipt-paper {
+  width: 280px; background: #fff; padding: 16px 14px 20px; margin: 0 auto;
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace; font-size: 11.5px; line-height: 1.55; color: #111;
+  background-image: linear-gradient(135deg, #fff 50%, transparent 50%), linear-gradient(-135deg, #fff 50%, transparent 50%);
+  background-position: bottom left, bottom right; background-size: 10px 10px; background-repeat: repeat-x;
+}
+.rcp-center { text-align: center; }
+.rcp-title { font-size: 13.5px; font-weight: 800; letter-spacing: .03em; }
+.rcp-sub { font-size: 10px; color: #555; margin-top: 1px; }
+.rcp-doctype { font-size: 12.5px; font-weight: 800; margin-top: 8px; letter-spacing: .04em; }
+.rcp-divider { border-top: 1px dashed #999; margin: 8px 0; }
+.rcp-row { display: flex; justify-content: space-between; gap: 8px; }
+.rcp-row + .rcp-row { margin-top: 2px; }
+.rcp-label { color: #444; }
+.rcp-val { font-weight: 700; text-align: right; word-break: break-word; }
+.rcp-item-name { font-weight: 700; }
+.rcp-total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 12.5px; margin-top: 4px; }
+.rcp-remain-row { display: flex; justify-content: space-between; font-weight: 800; color: #b91c1c; margin-top: 2px; }
+.rcp-qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 10px 0 2px; }
+.rcp-qr-code { font-size: 10px; letter-spacing: .04em; color: #444; }
+.rcp-foot { text-align: center; font-size: 10.5px; color: #444; margin-top: 6px; }
+.rcp-thanks { text-align: center; font-weight: 800; margin-top: 6px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #reprintPaper, #reprintPaper * { visibility: visible; }
+  #reprintPaper { position: absolute; left: 0; top: 0; width: 80mm; background-image: none; padding: 4mm 3mm; margin: 0; }
+  @page { size: 80mm auto; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<script src="./sidebar.js"></script>
+<script src="./thuchi-store.js"></script>
+<script src="./order-store.js"></script>
+<script src="./qr-draw.js"></script>
+
+<main class="main">
+
+  <script>
+  window.TOPBAR_CONFIG = {
+    title: "Tài chính",
+    breadcrumb: "Lịch sử tiền vào / tiền ra · tự sinh từ phiếu bán hàng, sửa chữa & nhập hàng",
+    notifs: [
+      { color: "red", icon: "warning", title: "1 khoản chi quá hạn thanh toán", sub: "Nhà cung cấp ABC", time: "1h", unread: true }
+    ]
+  };
+  </script>
+  <script src="./topbar.js"></script>
+
+  <div class="content">
+
+    <div class="tc-stats">
+      <div class="stat-card">
+        <div class="stat-lbl">Tổng tiền vào</div>
+        <div class="stat-val blue" id="statTongThu">0 đ</div>
+        <div class="stat-sub" id="statTongThuSub">0 khoản</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Tổng tiền ra</div>
+        <div class="stat-val orange" id="statTongChi">5,5 tr</div>
+        <div class="stat-sub" id="statTongChiSub">1 khoản</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-lbl">Chênh lệch ròng</div>
+        <div class="stat-val" id="statChenhLech" style="color:var(--error)">-5.500.000 đ</div>
+        <div class="stat-sub">Tiền vào − Tiền ra</div>
+      </div>
+    </div>
+
+    <div class="tc-tabs">
+      <div class="tc-tab active" data-tab="thu" onclick="tcSelectTab('thu')">
+        Tiền vào <span class="tc-tab-count" id="tabCountThu">0</span>
+      </div>
+      <div class="tc-tab" data-tab="chi" onclick="tcSelectTab('chi')">
+        Tiền ra <span class="tc-tab-count" id="tabCountChi">0</span>
+      </div>
+    </div>
+
+    <div class="tc-toolbar">
+      <div class="tc-search">
+        <span class="tc-search-icon">
+          <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M12.2 12.2 16 16"/></svg>
+        </span>
+        <input class="input" id="tcSearch" placeholder="Tìm tên, SĐT hoặc mã..." oninput="tcRenderAll()">
+      </div>
+      <input type="date" class="input" id="tcDate" onchange="tcRenderAll()" style="width:168px;flex:0 0 auto" title="Xem thu chi theo ngày">
+      <button class="btn-outline" id="tcTodayBtn" onclick="tcSetToday()" style="flex:0 0 auto">Hôm nay</button>
+      <button class="btn-outline" id="tcClearDateBtn" onclick="tcClearDate()" style="flex:0 0 auto;display:none">Tất cả ngày</button>
+      <select class="tc-filter-select" id="tcSourceFilter" onchange="tcRenderAll()" style="margin-left:auto">
+        <option value="">Tất cả nguồn</option>
+      </select>
+    </div>
+
+    <!-- SỔ QUỸ NGÀY: tổng thu/chi/tồn quỹ của ngày được chọn -->
+    <div id="tcDaySummary" style="display:none; margin-bottom:14px; gap:12px; grid-template-columns:repeat(3,1fr);">
+      <div class="tc-daybox"><div class="tc-daybox-lbl">TIỀN VÀO NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayThu" style="color:var(--success)">0 đ</div></div>
+      <div class="tc-daybox"><div class="tc-daybox-lbl">TIỀN RA NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayChi" style="color:var(--error)">0 đ</div></div>
+      <div class="tc-daybox"><div class="tc-daybox-lbl">TỒN QUỸ TRONG NGÀY</div><div class="tc-daybox-val" id="tcDayNet">0 đ</div></div>
+    </div>
+
+    <!-- CẦN THU -->
+    <div class="tc-tab-panel active" id="panel-thu">
+      <div class="tc-table-wrap">
+        <table class="tc-table" id="tableThu">
+          <thead>
+            <tr>
+              <th>Tên khách hàng</th>
+              <th>SĐT / Mã</th>
+              <th>Nguồn</th>
+              <th>Tổng tiền</th>
+              <th>Đã thu</th>
+              <th>Còn lại</th>
+              <th>Ngày</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyThu"></tbody>
+        </table>
+        <div class="tc-empty" id="emptyThu">
+          <div class="tc-empty-ico">
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1.8h5l3.2 3.2v10.7H5z"/><path d="M10 1.8v3.2h3.2"/><path d="M7 9.6h4M7 12.4h4"/></svg>
+          </div>
+          <div class="tc-empty-title">Chưa có khoản tiền vào nào.</div>
+        </div>
+        <div class="tc-pagination">
+          <div class="tc-pagination-info" id="pagInfoThu">0–0 trên 0</div>
+          <div class="tc-page-btn active">1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CẦN CHI -->
+    <div class="tc-tab-panel" id="panel-chi">
+      <div class="tc-table-wrap">
+        <table class="tc-table" id="tableChi">
+          <thead>
+            <tr>
+              <th>Tên nguồn</th>
+              <th>SĐT / Mã</th>
+              <th>Nguồn</th>
+              <th>Tổng tiền</th>
+              <th>Đã chi</th>
+              <th>Còn lại</th>
+              <th>Ngày</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyChi"></tbody>
+        </table>
+        <div class="tc-empty" id="emptyChi" style="display:none">
+          <div class="tc-empty-ico">
+            <svg width="22" height="22" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 1.8h5l3.2 3.2v10.7H5z"/><path d="M10 1.8v3.2h3.2"/><path d="M7 9.6h4M7 12.4h4"/></svg>
+          </div>
+          <div class="tc-empty-title">Chưa có khoản tiền ra nào.</div>
+        </div>
+        <div class="tc-pagination">
+          <div class="tc-pagination-info" id="pagInfoChi">0–0 trên 0</div>
+          <div class="tc-page-btn active">1</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL: In lại phiếu bán hàng — chỉ có thông tin tổng (tên SP gộp thành chuỗi,
+     không có giá/serial/bảo hành riêng từng món vì dữ liệu Thu chi hiện chưa lưu
+     mảng item). Muốn in lại đúng từng sản phẩm như bản gốc cần lưu thêm dữ liệu đó
+     lúc tạo phiếu ở Thao tác nhanh — chưa làm trong lần này. -->
+<div class="tcm-backdrop" id="reprintModal" onclick="if(event.target===this) tcCloseReprint()">
+  <div class="tcm-box" style="width:340px">
+    <div class="tcm-hdr">
+      <div class="tcm-hdr-ico">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V3.5A1.5 1.5 0 0 1 3.5 2H6M12 2h2.5A1.5 1.5 0 0 1 16 3.5V6M16 12v2.5a1.5 1.5 0 0 1-1.5 1.5H12M6 16H3.5A1.5 1.5 0 0 1 2 14.5V12"/><line x1="2.5" y1="9" x2="15.5" y2="9"/></svg>
+      </div>
+      <span class="tcm-hdr-title">In lại phiếu bán hàng</span>
+      <button class="tcm-close" onclick="tcCloseReprint()">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="4" x2="14" y2="14"/><line x1="14" y1="4" x2="4" y2="14"/></svg>
+      </button>
+    </div>
+    <div class="tcm-body" style="padding:18px;background:var(--n100)">
+      <div class="receipt-paper" id="reprintPaper"></div>
+    </div>
+    <div class="tcm-footer">
+      <button class="btn-secondary" onclick="tcCloseReprint()">Đóng</button>
+      <button class="btn-primary" onclick="window.print()">In phiếu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+  localStorage.setItem('qranty-sb', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+}
+(function() {
+  if (localStorage.getItem('qranty-sb') === '1') document.body.classList.add('sb-collapsed');
+})();
+
+function toggleAccountMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('accountMenu').classList.toggle('open');
+  document.getElementById('accountTrigger').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.sb-account');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+
+function setAppMode(mode, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('mode-store', mode === 'store');
+  document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  localStorage.setItem('qranty-mode', mode);
+  updateModeStatusBadge();
+}
+(function initAppMode() {
+  var saved = localStorage.getItem('qranty-mode') || 'bh';
+  document.body.classList.toggle('mode-store', saved === 'store');
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.mode === saved);
+    });
+    updateModeStatusBadge();
+  });
+})();
+function updateModeStatusBadge() {
+  var badge = document.getElementById('modeStatusBadge');
+  if (!badge) return;
+  var isStore = document.body.classList.contains('mode-store');
+  badge.classList.toggle('store', isStore);
+  if (isStore) {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 3.3 2.8h11.4l.8 3.7"/><path d="M2.5 6.5h13v8a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.5 15.3v-4h5v4"/></svg> Cửa hàng';
+  } else {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/><path d="M6.5 9.5L8.2 11.3L11.5 7.3"/></svg> Trung tâm bảo hành';
+  }
+}
+
+/* ===== TABS ===== */
+var TC_ACTIVE_TAB = 'thu';
+function tcSelectTab(name) {
+  TC_ACTIVE_TAB = name;
+  document.querySelectorAll('.tc-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === name); });
+  document.querySelectorAll('.tc-tab-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + name); });
+  tcPopulateFilter(name);
+  tcRenderAll();
+}
+
+/* Dropdown lọc nguồn — danh sách nguồn khác nhau cho tab Thu vs Chi */
+function tcPopulateFilter(tab) {
+  var sel = document.getElementById('tcSourceFilter');
+  if (!sel) return;
+  var opts = '<option value="">Tất cả nguồn</option>';
+  QrantyThuChi.sourcesFor(tab).forEach(function (s) {
+    opts += '<option value="' + s.v + '">' + s.l + '</option>';
+  });
+  sel.innerHTML = opts;
+}
+
+/* ===== RENDER TỪ KHO DỮ LIỆU CHUNG (thuchi-store.js) =====
+   Đây là LỊCH SỬ thu chi chỉ-đọc: mọi khoản đều tự sinh từ phiếu thật
+   (bán hàng, sửa chữa → thu; nhập hàng/NCC, tạo sản phẩm lẻ → chi).
+   Trang này không cho tạo tay. */
+function tcRow(entry, isThu) {
+  var src = entry.source || 'manual';
+  var badge = '<span class="tc-badge ' + src + '">' + QrantyThuChi.sourceLabel(src) + '</span>';
+  var order = (isThu && window.QrantyOrders) ? QrantyOrders.getByThuChiId(entry.id) : null;
+  var act = '';
+
+  if (order) {                          // phiếu bán có line items → cho bung chi tiết
+    var caretIco = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l5 5-5 5"/></svg>';
+    act += '<button class="tc-act-btn tc-caret" title="Bung chi tiết" onclick="tcToggleDetail(\'' + entry.id + '\')" id="caret-' + entry.id + '">' + caretIco + '</button>';
+  }
+  if (isThu) {
+    var printIco = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V3.5A1.5 1.5 0 0 1 3.5 2H6M12 2h2.5A1.5 1.5 0 0 1 16 3.5V6M16 12v2.5a1.5 1.5 0 0 1-1.5 1.5H12M6 16H3.5A1.5 1.5 0 0 1 2 14.5V12"/><line x1="2.5" y1="9" x2="15.5" y2="9"/></svg>';
+    act += '<button class="tc-act-btn" title="In lại phiếu" onclick="tcReprint(\'' + entry.id + '\')">' + printIco + '</button>';
+  } else {
+    var eyeIco = '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9S4 3.5 9 3.5 16.5 9 16.5 9 14 14.5 9 14.5 1.5 9 1.5 9Z"/><circle cx="9" cy="9" r="2.2"/></svg>';
+    act += '<button class="tc-act-btn" title="Xem chi tiết">' + eyeIco + '</button>';
+  }
+
+  var main = '<tr>' +
+    '<td class="tc-obj-name">' + entry.name + '</td>' +
+    '<td>' + (entry.code || '—') + '</td>' +
+    '<td>' + badge + '</td>' +
+    '<td class="tc-amt-pos">' + QrantyThuChi.fmtVND(entry.amount) + '</td>' +
+    '<td>' + QrantyThuChi.fmtVND(entry.paid) + '</td>' +
+    '<td class="' + (entry.remain > 0 ? 'tc-amt-rem' : '') + '">' + QrantyThuChi.fmtVND(entry.remain) + '</td>' +
+    '<td>' + entry.date + '</td>' +
+    '<td><div style="display:flex;gap:4px;justify-content:flex-end">' + act + '</div></td>' +
+    '</tr>';
+
+  if (order) main += tcDetailRow(entry.id, order);
+  return main;
+}
+
+function tcDetailRow(id, order) {
+  var fmt = QrantyThuChi.fmtVND;
+  var rows = (order.items || []).map(function (it) {
+    var wty = it.hasWarranty ? ('<span class="tc-det-wty">BH ' + (it.warranty || '') + (it.serial ? ' · ' + it.serial : '') + '</span>') : '<span class="tc-det-nowty">Không BH</span>';
+    return '<div class="tc-det-item"><span class="tc-det-nm">' + (it.name || 'Sản phẩm') + (it.sku ? ' <span class="tc-det-sku">' + it.sku + '</span>' : '') + '</span>'
+      + '<span class="tc-det-mid">' + wty + '</span>'
+      + '<span class="tc-det-price">' + fmt(it.price) + '</span></div>';
+  }).join('');
+  if (!rows) rows = '<div class="tc-det-item"><span class="tc-det-nm" style="color:var(--text-4)">Không có chi tiết sản phẩm.</span></div>';
+  return '<tr class="tc-detail" id="det-' + id + '" style="display:none"><td colspan="8" style="padding:0;background:var(--n50)">'
+    + '<div class="tc-det-wrap"><div class="tc-det-hd">Chi tiết phiếu — ' + (order.items ? order.items.length : 0) + ' sản phẩm</div>'
+    + rows + '</div></td></tr>';
+}
+
+function tcToggleDetail(id) {
+  var det = document.getElementById('det-' + id);
+  var caret = document.getElementById('caret-' + id);
+  if (!det) return;
+  var open = det.style.display === 'none';
+  det.style.display = open ? '' : 'none';
+  if (caret) caret.style.transform = open ? 'rotate(90deg)' : '';
+}
+function tcFmtRange(n) { return n === 0 ? '0–0 trên 0' : ('1–' + n + ' trên ' + n); }
+
+function tcRenderAll() {
+  var data = QrantyThuChi.getData();
+  var srcFilter = (document.getElementById('tcSourceFilter') || {}).value || '';
+  var q = ((document.getElementById('tcSearch') || {}).value || '').trim().toLowerCase();
+  var dateISO = (document.getElementById('tcDate') || {}).value || '';
+  var dateVN = '';
+  if (dateISO) { var p = dateISO.split('-'); if (p.length === 3) dateVN = p[2] + '/' + p[1] + '/' + p[0]; }
+
+  function match(e) {
+    if (srcFilter && (e.source || 'manual') !== srcFilter) return false;
+    if (dateVN && (e.date || '') !== dateVN) return false;
+    if (q) {
+      var hay = ((e.name || '') + ' ' + (e.code || '') + ' ' + (e.ref || '')).toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+
+  // Sổ quỹ theo ngày: hiện tổng thu/chi/tồn của ngày được chọn
+  var daySummary = document.getElementById('tcDaySummary');
+  document.getElementById('tcClearDateBtn').style.display = dateVN ? '' : 'none';
+  if (dateVN) {
+    var dThu = data.thu.filter(function (e) { return e.date === dateVN; });
+    var dChi = data.chi.filter(function (e) { return e.date === dateVN; });
+    var sumAmt = function (arr) { return arr.reduce(function (s, e) { return s + (Number(e.amount) || 0); }, 0); };
+    var vThu = sumAmt(dThu), vChi = sumAmt(dChi), net = vThu - vChi;
+    document.getElementById('tcDayThu').textContent = QrantyThuChi.fmtVND(vThu);
+    document.getElementById('tcDayChi').textContent = QrantyThuChi.fmtVND(vChi);
+    var netEl = document.getElementById('tcDayNet');
+    netEl.textContent = (net < 0 ? '-' : '') + QrantyThuChi.fmtVND(Math.abs(net));
+    netEl.style.color = net < 0 ? 'var(--error)' : 'var(--success)';
+    daySummary.style.display = 'grid';
+  } else {
+    daySummary.style.display = 'none';
+  }
+
+  var thuF = data.thu.filter(match);
+  var chiF = data.chi.filter(match);
+
+  document.getElementById('tbodyThu').innerHTML = thuF.map(function (e) { return tcRow(e, true); }).join('');
+  document.getElementById('tbodyChi').innerHTML = chiF.map(function (e) { return tcRow(e, false); }).join('');
+  document.getElementById('emptyThu').style.display = thuF.length ? 'none' : '';
+  document.getElementById('emptyChi').style.display = chiF.length ? 'none' : '';
+  document.getElementById('pagInfoThu').textContent = tcFmtRange(thuF.length);
+  document.getElementById('pagInfoChi').textContent = tcFmtRange(chiF.length);
+  document.getElementById('tabCountThu').textContent = data.thu.length;
+  document.getElementById('tabCountChi').textContent = data.chi.length;
+
+  // Stat card = TỔNG TIỀN thực phát sinh (cột "Tổng tiền"), không phải phần còn lại.
+  var sum = function (arr, key) { return arr.reduce(function (s, e) { return s + (Number(e[key]) || 0); }, 0); };
+  var tongVao = sum(data.thu, 'amount');
+  var tongRa  = sum(data.chi, 'amount');
+  var chenh   = tongVao - tongRa;
+
+  document.getElementById('statTongThu').textContent = QrantyThuChi.fmtVND(tongVao);
+  document.getElementById('statTongThuSub').textContent = data.thu.length + ' khoản';
+  document.getElementById('statTongChi').textContent = QrantyThuChi.fmtVND(tongRa);
+  document.getElementById('statTongChiSub').textContent = data.chi.length + ' khoản';
+  var chenhEl = document.getElementById('statChenhLech');
+  chenhEl.textContent = (chenh < 0 ? '-' : '') + QrantyThuChi.fmtVND(Math.abs(chenh));
+  chenhEl.style.color = chenh < 0 ? 'var(--error)' : 'var(--success)';
+}
+function tcSetToday() {
+  var d = new Date();
+  document.getElementById('tcDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  tcRenderAll();
+}
+function tcClearDate() { document.getElementById('tcDate').value = ''; tcRenderAll(); }
+document.addEventListener('DOMContentLoaded', function () { tcPopulateFilter('thu'); tcRenderAll(); });
+
+/* ===== In lại phiếu bán hàng (từ tab Lịch sử bán hàng) =====
+   Chỉ in lại được thông tin tổng (tên SP gộp thành chuỗi trong "ref"),
+   không bung được từng sản phẩm/serial/bảo hành riêng — vì lúc tạo phiếu
+   ở Thao tác nhanh, Thu chi chỉ nhận tổng tiền + tên SP gộp, không nhận
+   mảng item. Nếu cần in lại đúng từng dòng như bản gốc, phải lưu thêm
+   dữ liệu item lúc tạo — chưa làm trong lần này. */
+function tcReprint(id) {
+  var data = QrantyThuChi.getData();
+  var entry = data.thu.concat(data.chi).find(function (e) { return e.id === id; });
+  if (!entry) return;
+  var fmt = QrantyThuChi.fmtVND;
+  var seed = QrantyQR.hash(entry.name + '|' + (entry.code || '') + '|' + entry.id);
+  var code = String(seed).slice(0, 8);
+
+  var html = '';
+  html += '<div class="rcp-center"><div class="rcp-title">QRANTY</div><div class="rcp-sub">Cửa hàng demo · 0900 000 000</div></div>';
+  html += '<div class="rcp-center rcp-doctype">PHIẾU BÁN HÀNG (IN LẠI)</div>';
+  html += '<div class="rcp-divider"></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Mã phiếu</span><span class="rcp-val">HD-' + code + '</span></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Ngày</span><span class="rcp-val">' + entry.date + '</span></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Khách hàng</span><span class="rcp-val">' + entry.name + '</span></div>';
+  if (entry.code) html += '<div class="rcp-row"><span class="rcp-label">SĐT</span><span class="rcp-val">' + entry.code + '</span></div>';
+  html += '<div class="rcp-divider"></div>';
+  var order = window.QrantyOrders ? QrantyOrders.getByThuChiId(entry.id) : null;
+  if (order && order.items && order.items.length) {       // in lại đúng từng dòng sản phẩm
+    order.items.forEach(function (it) {
+      html += '<div class="rcp-row"><span class="rcp-label">' + (it.name || 'Sản phẩm') + (it.qty > 1 ? ' x' + it.qty : '') + '</span><span class="rcp-val">' + fmt(it.price) + '</span></div>';
+      if (it.hasWarranty && it.serial) html += '<div class="rcp-row" style="opacity:.7"><span class="rcp-label" style="padding-left:8px">↳ BH ' + (it.warranty || '') + ' · ' + it.serial + '</span><span class="rcp-val"></span></div>';
+    });
+  } else {
+    html += '<div class="rcp-item-name">' + (entry.ref || 'Sản phẩm') + '</div>';
+  }
+  html += '<div class="rcp-divider"></div>';
+  html += '<div class="rcp-total-row"><span>Tổng tiền</span><span>' + fmt(entry.amount) + '</span></div>';
+  html += '<div class="rcp-row"><span class="rcp-label">Đã thu</span><span class="rcp-val">' + fmt(entry.paid) + '</span></div>';
+  if (entry.remain > 0) html += '<div class="rcp-remain-row"><span>Còn lại</span><span>' + fmt(entry.remain) + '</span></div>';
+  html += '<div class="rcp-divider"></div>';
+  html += '<div class="rcp-qr-wrap"><canvas id="reprintQrCanvas" width="90" height="90"></canvas><div class="rcp-qr-code">' + code + '</div></div>';
+  html += '<div class="rcp-foot">Bản in lại từ Lịch sử bán hàng</div>';
+  html += '<div class="rcp-divider"></div><div class="rcp-thanks">Cảm ơn quý khách!</div>';
+
+  document.getElementById('reprintPaper').innerHTML = html;
+  document.getElementById('reprintModal').classList.add('open');
+  var canvas = document.getElementById('reprintQrCanvas');
+  if (canvas) QrantyQR.draw(canvas, seed, 90);
+}
+function tcCloseReprint() {
+  document.getElementById('reprintModal').classList.remove('open');
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') tcCloseReprint();
+});
+</script>
+
+<script src="./qranty-notify.js"></script>
+</body>
+</html>

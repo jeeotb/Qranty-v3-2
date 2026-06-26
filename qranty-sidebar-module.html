@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Sidebar Module</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- ✅ SINGLE SOURCE OF TRUTH — không inline lại ở đây -->
+<link rel="stylesheet" href="./shared.css">
+
+<style>
+/* Chỉ style riêng của module này — không copy từ shared.css */
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+  transition: margin-left .28s cubic-bezier(.4,0,.2,1);
+  background: var(--n50);
+}
+body.sb-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+</style>
+</head>
+<body>
+
+<!-- ✅ Sidebar inject từ sidebar.js — không viết lại HTML -->
+<script src="./sidebar.js"></script>
+
+<!-- Phần nội dung — để trống -->
+<main class="main"></main>
+
+</body>
+</html>

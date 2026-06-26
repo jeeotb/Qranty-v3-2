@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Cài đặt</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./shared.css">
+<style>
+/* Manage branches link */
+.qr-store-manage { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 6px; cursor: pointer; color: var(--n400); font-size: 12px; font-weight: 700; transition: all .13s ease; }
+.qr-store-manage:hover { background: rgba(255,255,255,.06); color: #fff; }
+
+/* Featured "Thao tác nhanh" nav item */
+.nav-item.quick-action { background: linear-gradient(135deg, var(--brand), #3D7CB8); color: #fff; box-shadow: 0 4px 16px rgba(37,99,235,.5), inset 0 1px 0 rgba(255,255,255,.15); font-weight: 800; }
+.nav-item.quick-action::before { display: none; }
+.nav-item.quick-action .ni-box svg { color: #fff; }
+.nav-item.quick-action:hover { background: linear-gradient(135deg, var(--brand), #3D7CB8); }
+
+/* Outline-active nav item (e.g. Kho hàng & Linh kiện) */
+.nav-item.outline-active { background: rgba(37,99,235,.12); border: 1px solid rgba(59,130,246,.45); color: #fff; }
+.nav-item.outline-active .ni-box svg { color: #fff; }
+
+/* Badge color variants */
+.ni-badge.warn { background: var(--warning); }
+
+/* Section divider */
+.sb-divider { height: 1px; background: rgba(255,255,255,.06); margin: 8px 9px; }
+
+/* Footer brand logo */
+.qr-footer-icons { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px 8px; position: relative; z-index: 1; }
+.qr-footer-icon-btn { width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,.06); display: flex; align-items: center; justify-content: center; color: var(--n400); cursor: pointer; transition: all .13s ease; }
+.qr-footer-icon-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.qr-footer-brand { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 4px 16px 14px; opacity: .55; position: relative; z-index: 1; }
+.qr-footer-logo { width: 22px; height: 22px; border-radius: 4px; background: linear-gradient(145deg, var(--brand), var(--p800)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.qr-footer-powered { color: var(--n500); font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+
+/* Account box (bottom of sidebar, Claude-style account menu) */
+.sb-account { position: relative; padding: 8px 9px 10px; border-top: 1px solid rgba(255,255,255,.05); z-index: 10; }
+.sb-account-trigger { display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 8px; border-radius: 6px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); cursor: pointer; transition: all .13s ease; text-align: left; font-family: inherit; }
+.sb-account-trigger:hover { background: rgba(255,255,255,.08); border-color: rgba(59,130,246,.5); }
+.sb-account-trigger.open { background: #16243f; border-color: rgba(255,255,255,.08); border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 1px 0 #16243f; }
+.sb-account-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 8px rgba(37,99,235,.4); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; }
+.sb-account-text { flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.sb-account-name { color: #fff; font-weight: 800; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-account-email { color: var(--n500); font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.sb-account-chevron { flex: 0 0 auto; color: var(--n500); display: flex; transition: transform .16s ease; }
+.sb-account-trigger.open .sb-account-chevron { transform: rotate(180deg); }
+
+.sb-account-menu {
+  position: absolute; left: 9px; right: 9px; bottom: 100%;
+  background: #16243f; border: 1px solid rgba(255,255,255,.08); border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -12px 28px rgba(0,0,0,.35); padding: 6px; z-index: 300;
+  opacity: 0; visibility: hidden; transform: translateY(6px);
+  transition: all .15s ease;
+}
+.sb-account-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.sb-account-item { display: flex; align-items: center; gap: 10px; padding: 8px 9px; border-radius: 6px; cursor: pointer; color: var(--n400); font-size: 12.5px; font-weight: 700; text-decoration: none; transition: all .13s ease; }
+.sb-account-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+.sb-account-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.sb-account-divider { height: 1px; background: rgba(255,255,255,.07); margin: 6px 4px; }
+.sb-account-item.logout { color: #f87171; }
+.sb-account-item.logout:hover { background: rgba(248,113,113,.12); color: #f87171; }
+
+/* Mode switcher: Cửa hàng vs Trung tâm bảo hành */
+.sb-mode-switch { padding: 6px 9px 8px; }
+.sb-mode-label { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--n500); margin-bottom: 6px; padding: 0 2px; }
+.sb-mode-options { display: flex; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 3px; gap: 2px; }
+.sb-mode-opt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 7px 4px; border-radius: 6px; border: none; background: transparent; color: var(--n400); font-size: 10px; font-weight: 700; cursor: pointer; transition: all .13s ease; text-align: center; line-height: 1.25; font-family: inherit; }
+.sb-mode-opt svg { width: 16px; height: 16px; }
+.sb-mode-opt:hover { color: #fff; }
+.sb-mode-opt.active { background: #fff; color: var(--p700); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+
+/* Hide finance-only UI unless "Cửa hàng" mode is active */
+body:not(.mode-store) .fin-only { display: none !important; }
+
+/* Collapsed sidebar: account box */
+body.sb-collapsed .sb-account-text,
+body.sb-collapsed .sb-account-chevron { display: none; }
+body.sb-collapsed .sb-account-trigger { justify-content: center; padding: 7px; gap: 0; }
+body.sb-collapsed .sb-account-trigger.open { border-radius: 6px; }
+body.sb-collapsed .sb-account-menu { left: 8px; right: auto; width: 230px; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,.08); bottom: calc(100% + 6px); }
+.ni-box svg { width: 16px; height: 16px; color: var(--n400); transition: color .13s ease; }
+.nav-item.active .ni-box svg { color: #fff; }
+.nav-item:hover .ni-box svg { color: #fff; }
+
+/* Collapsed sidebar (LarkSuite-style icon rail) */
+body.sb-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+body.sb-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+body.sb-collapsed .qr-store-text,
+body.sb-collapsed .qr-store-chevron { display: none; }
+body.sb-collapsed .qr-store-switcher { justify-content: center; padding: 8px; gap: 0; }
+body.sb-collapsed .qr-store-menu { left: 8px; width: 250px; right: auto; border-radius: 8px; border-top: 1px solid rgba(255,255,255,.08); top: calc(100% + 6px); }
+body.sb-collapsed .qr-store-switcher.open { border-radius: 8px; }
+body.sb-collapsed .sb-group { display: none; }
+body.sb-collapsed .sb-divider { margin: 8px 14px; }
+body.sb-collapsed .nav-item { flex-direction: column; height: auto; min-height: 56px; padding: 8px 4px 7px; gap: 4px; justify-content: center; }
+body.sb-collapsed .nav-item.active::before { top: 4px; bottom: 4px; }
+body.sb-collapsed .ni-label { flex: none; font-size: 9.5px; font-weight: 600; text-align: center; line-height: 1.2; white-space: normal; }
+body.sb-collapsed .ni-badge { position: absolute; top: 4px; right: 10px; font-size: 8.5px; padding: 1px 5px; }
+body.sb-collapsed .qr-footer-icons { flex-wrap: wrap; padding: 12px 8px 8px; }
+body.sb-collapsed .qr-footer-powered { display: none; }
+body.sb-collapsed .qr-footer-brand { justify-content: center; padding: 4px 8px 14px; }
+
+/* Top-right user menu */
+.tb-user-wrap { position: relative; margin-left: 4px; }
+.tb-user { display: flex; align-items: center; gap: 9px; padding: 5px 8px 5px 10px; border-radius: 999px; border: 1px solid transparent; background: transparent; cursor: pointer; transition: all .13s; font-family: inherit; }
+.tb-user:hover, .tb-user.open { background: var(--n100); border-color: var(--n200); }
+.tb-user-pro { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; background: linear-gradient(135deg, var(--warning), #fb923c); color: #fff; box-shadow: 0 2px 6px rgba(245,158,11,.35); }
+.tb-user-name { font-size: 12.5px; font-weight: 800; color: var(--text-1); white-space: nowrap; }
+.tb-user-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 8px rgba(37,99,235,.35); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; }
+
+.tb-user-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 290px;
+  background: #fff; border-radius: var(--r); border: 1px solid var(--n200);
+  box-shadow: 0 16px 40px rgba(15,23,42,.18); overflow: hidden; z-index: 400;
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: all .15s ease;
+}
+.tb-user-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+.tb-user-menu-hdr { background: var(--n900); background-image: radial-gradient(ellipse at 30% 0%, rgba(37,99,235,.35) 0%, transparent 70%); padding: 18px 18px 16px; display: flex; align-items: center; gap: 12px; }
+.tb-user-menu-avatar { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 10px rgba(37,99,235,.4); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #fff; }
+.tb-user-menu-name { font-size: 14px; font-weight: 800; color: #fff; }
+.tb-user-menu-email { font-size: 11.5px; color: var(--n400); font-weight: 600; margin-top: 2px; }
+.tb-user-menu-plan { display: inline-flex; align-items: center; height: 18px; padding: 0 8px; margin-top: 6px; border-radius: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: .06em; background: rgba(255,255,255,.1); color: var(--n300); }
+.tb-info-section { padding: 14px 18px 8px; }
+.tb-info-title { font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin-bottom: 8px; }
+.tb-info-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; font-size: 12.5px; font-weight: 700; border-bottom: 1px solid var(--n100); }
+.tb-info-row:last-child { border-bottom: none; }
+.tb-info-label { color: var(--text-4); font-weight: 600; }
+.tb-info-value { color: var(--text-1); font-weight: 800; }
+.tb-info-value.link { color: var(--p600); }
+.tb-logout { display: flex; align-items: center; gap: 9px; padding: 12px 18px; border-top: 1px solid var(--n100); color: var(--error); font-size: 12.5px; font-weight: 800; cursor: pointer; transition: background .13s; }
+.tb-logout:hover { background: var(--error-bg); }
+
+/* GRID */
+.qa-grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; align-items: start; }
+
+/* HERO PANEL */
+.hero { background: linear-gradient(135deg, var(--p700) 0%, var(--p500) 60%, #60A5FA 100%); border-radius: var(--r); color: #fff; padding: 16px 20px; margin-bottom: 14px; }
+.hero-title { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 900; }
+.hero-sub { font-size: 11.5px; color: rgba(255,255,255,.8); font-weight: 600; margin-top: 3px; margin-left: 31px; }
+.hero-icon { width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* NOTICE */
+
+/* FORM */
+.field { margin-bottom: 14px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.field-label .req { color: var(--error); }
+.field-label .opt { font-size: 10.5px; font-weight: 700; color: var(--text-4); text-transform: none; }
+.field-hint { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 4px; }
+.input {
+  width: 100%; height: 38px; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  padding: 0 12px; font-size: 13px; font-family: inherit; font-weight: 600; color: var(--text-1);
+  background: #fff; transition: border-color .13s, box-shadow .13s;
+}
+.input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.input::placeholder { color: var(--n400); font-weight: 500; }
+textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family: inherit; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* segmented toggle (serial mode) */
+.seg { display: inline-flex; background: var(--n100); border-radius: 5px; padding: 2px; gap: 2px; margin-left: 4px; }
+.seg-item { padding: 2px 10px; border-radius: 4px; font-size: 10.5px; font-weight: 700; color: var(--text-3); cursor: pointer; transition: all .13s; }
+.seg-item.active { background: var(--p500); color: #fff; box-shadow: 0 1px 3px rgba(37,99,235,.35); }
+
+/* duration pills */
+.dur-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dur-pill { padding: 7px 16px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; font-size: 12.5px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all .13s; }
+.dur-pill:hover { border-color: var(--p500); color: var(--p600); }
+.dur-pill.active { background: var(--p500); border-color: var(--p500); color: #fff; box-shadow: 0 3px 8px rgba(37,99,235,.3); }
+.dur-or { font-size: 11px; color: var(--text-4); font-weight: 700; }
+.dur-custom { width: 70px; }
+.dur-unit { font-size: 12px; color: var(--text-3); font-weight: 700; }
+
+/* search input with icon */
+.input-icon-wrap { position: relative; }
+.input-icon-wrap .input { padding-left: 36px; }
+.input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--n400); display: flex; }
+
+.input-with-btn { display: flex; gap: 8px; }
+.input-with-btn .input { flex: 1; }
+.icon-btn-sq { width: 38px; height: 38px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--n500); transition: all .13s; flex-shrink: 0; }
+.icon-btn-sq:hover { border-color: var(--brand); color: var(--brand); }
+
+/* action row */
+.action-row { display: flex; gap: 10px; margin-top: 18px; }
+.action-row .btn-primary { flex: 1; }
+
+/* recent activations list */
+.recent-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--n200); }
+.recent-hdr { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--text-2); margin-bottom: 10px; }
+.recent-list { display: flex; flex-direction: column; gap: 8px; }
+.recent-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm); border: 1px solid var(--n100); transition: background .13s; }
+.recent-row:hover { background: var(--n50); }
+.recent-ico { width: 32px; height: 32px; border-radius: 6px; background: var(--s50); color: var(--p500); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.recent-info { flex: 1; min-width: 0; }
+.recent-name { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+.recent-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 1px; }
+.recent-badge { font-size: 11px; font-weight: 800; color: var(--p600); background: var(--s50); padding: 3px 10px; border-radius: 10px; flex-shrink: 0; }
+
+/* right column */
+.side-card-hdr { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; }
+.side-card-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-bottom: 12px; }
+.lookup-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 28px 10px; text-align: center; }
+.lookup-empty-ico { width: 46px; height: 46px; border-radius: 50%; background: var(--n100); display: flex; align-items: center; justify-content: center; color: var(--n400); }
+.lookup-empty-title { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.lookup-empty-sub { font-size: 11px; color: var(--text-4); font-weight: 600; }
+
+
+/* AUTOCOMPLETE */
+.ac-wrap { position: relative; }
+.ac-dropdown {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  background: #fff; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  box-shadow: var(--shadow-hover); z-index: 50; overflow: hidden;
+  display: none; max-height: 280px; overflow-y: auto;
+}
+.ac-dropdown.open { display: block; }
+.ac-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--n100); }
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover, .ac-item.hi { background: var(--s50); }
+.ac-item-ico { width: 28px; height: 28px; border-radius: 6px; background: var(--n100); color: var(--text-3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ac-item-text { flex: 1; min-width: 0; }
+.ac-item-name { font-size: 12.5px; font-weight: 700; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-item-sub { font-size: 10.5px; color: var(--text-4); font-weight: 600; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-item-tag { font-size: 9.5px; font-weight: 800; padding: 2px 7px; border-radius: 8px; flex-shrink: 0; white-space: nowrap; }
+.ac-item-tag.instock { background: var(--success-bg); color: #15803d; }
+.ac-item-tag.nostock { background: var(--n100); color: var(--text-4); }
+.ac-item.ac-new { color: var(--p600); font-weight: 800; font-size: 12.5px; }
+.ac-item.ac-new .ac-item-ico { background: var(--s50); color: var(--p500); }
+.ac-hint-row { padding: 7px 12px; font-size: 10.5px; color: var(--text-4); font-weight: 600; background: var(--n50); border-top: 1px solid var(--n100); }
+.ac-hint-empty { padding: 16px 12px; text-align: center; font-size: 11.5px; color: var(--text-4); font-weight: 600; }
+
+/* QR RESULT PANEL */
+.qr-result { border-radius: var(--r); border: 1.5px solid var(--success); background: var(--success-bg); padding: 16px; margin-bottom: 16px; display: none; }
+.qr-result.show { display: flex; gap: 16px; align-items: center; }
+.qr-result.existing { border-color: var(--p500); background: var(--s50); }
+.qr-result-img { width: 76px; height: 76px; border-radius: var(--r-sm); background: #fff; border: 1px solid var(--n200); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 8px; }
+.qr-result-body { flex: 1; min-width: 0; }
+.qr-result-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; padding: 2px 9px; border-radius: 10px; margin-bottom: 6px; background: var(--success); color: #fff; }
+.qr-result.existing .qr-result-badge { background: var(--p500); }
+.qr-result-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.qr-result-sub { font-size: 11.5px; color: var(--text-2); font-weight: 600; margin-top: 2px; line-height: 1.5; }
+.qr-result-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.qr-result-btn { height: 34px; padding: 0 12px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit; transition: all .13s; }
+.qr-result-btn:hover { border-color: var(--p500); color: var(--p600); }
+
+
+.tasks-card { margin-top: 16px; }
+.task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--n100); }
+.task-row:last-child { border-bottom: none; }
+.task-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--n300); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.task-check.done { background: var(--success); border-color: var(--success); color: #fff; }
+.task-info { flex: 1; min-width: 0; }
+.task-title { font-size: 12.5px; font-weight: 700; color: var(--text-1); line-height: 1.4; }
+.task-row.done .task-title { text-decoration: line-through; color: var(--text-4); }
+.task-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+.task-tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; white-space: nowrap; }
+.tag-gap { background: #fee2e2; color: #b91c1c; }
+.tag-sua { background: #dbeafe; color: #2563eb; }
+.tag-bh { background: #ede9fe; color: #7c3aed; }
+.tag-done { background: #dcfce7; color: #15803d; }
+.count-badge { background: var(--p500); color: #fff; font-size: 10.5px; font-weight: 800; padding: 1px 8px; border-radius: 10px; }
+.add-link { font-size: 11.5px; font-weight: 700; color: var(--p600); cursor: pointer; margin-left: auto; }
+.tasks-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+/* ===== SETTINGS PAGE ===== */
+.settings-wrap { max-width: 760px; }
+.settings-section { margin-bottom: 20px; }
+.settings-section-title { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-4); margin-bottom: 10px; padding: 0 2px; }
+
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; }
+.settings-row + .settings-row { border-top: 1px solid var(--n100); }
+.settings-row-text { flex: 1; min-width: 0; }
+.settings-row-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.settings-row-desc { font-size: 12px; color: var(--text-3); font-weight: 600; margin-top: 4px; line-height: 1.5; }
+.settings-mode-tag { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+.settings-mode-tag.bh { background: var(--info-bg); color: var(--info); }
+.settings-mode-tag.store { background: var(--success-bg); color: #15803d; }
+
+/* Toggle switch */
+.toggle-switch { position: relative; flex-shrink: 0; width: 46px; height: 26px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: var(--n300); border-radius: 999px; cursor: pointer; transition: background .18s ease; }
+.toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .18s ease; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.toggle-switch input:checked + .toggle-slider { background: var(--brand); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* Settings sub-nav layout */
+.settings-layout { display: grid; grid-template-columns: 232px 1fr; gap: 16px; align-items: start; }
+.settings-subnav { background: #fff; border: 1px solid var(--n200); border-radius: var(--r); padding: 6px; position: sticky; top: 76px; }
+.settings-subnav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-sm); font-size: 12.5px; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all .13s; margin-bottom: 1px; }
+.settings-subnav-item svg { width: 16px; height: 16px; color: var(--text-4); flex-shrink: 0; }
+.settings-subnav-item:hover { background: var(--n50); color: var(--text-1); }
+.settings-subnav-item.active { background: var(--s50); color: var(--p700); }
+.settings-subnav-item.active svg { color: var(--p600); }
+.settings-panel { display: none; }
+.settings-panel.active { display: block; }
+.settings-content { min-width: 0; }
+
+/* Column-display config */
+.cfg-group { padding: 16px 18px; }
+.cfg-group + .cfg-group { border-top: 1px solid var(--n100); }
+.cfg-group-title { font-size: 13px; font-weight: 800; color: var(--text-1); }
+.cfg-group-sub { font-size: 11.5px; color: var(--text-3); font-weight: 600; margin-top: 2px; margin-bottom: 12px; }
+.cfg-check-grid { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.cfg-check { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--text-2); cursor: pointer; }
+.cfg-check input { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+.cfg-subtitle { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-4); margin: 12px 0 8px; }
+
+/* Serial template */
+.serial-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.serial-var-chip { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 6px; background: var(--s50); color: var(--p600); font-family: monospace; }
+.serial-example { font-size: 11.5px; color: var(--text-3); font-weight: 600; margin-bottom: 4px; }
+.serial-preview { font-size: 12px; color: var(--text-2); font-weight: 700; margin-top: 6px; font-family: monospace; }
+.serial-refresh { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--p600); cursor: pointer; margin-top: 8px; }
+
+/* Tag manager (Quản lý nhãn) */
+.tagmgr-card { padding: 16px 18px; }
+.tagmgr-card + .tagmgr-card { border-top: 1px solid var(--n100); }
+.tagmgr-title { font-size: 13px; font-weight: 800; color: var(--text-1); margin-bottom: 2px; }
+.tagmgr-sub { font-size: 11.5px; color: var(--text-3); font-weight: 600; margin-bottom: 10px; }
+.tagmgr-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tagmgr-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 5px 6px 5px 10px; border-radius: 999px; background: var(--n100); color: var(--text-2); }
+.tagmgr-chip button { width: 16px; height: 16px; border-radius: 50%; border: none; background: var(--n300); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+.tagmgr-chip button:hover { background: var(--error); }
+.tagmgr-add { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px; border: 1.5px dashed var(--n300); color: var(--text-3); cursor: pointer; background: transparent; font-family: inherit; }
+.tagmgr-add:hover { border-color: var(--p500); color: var(--p600); }
+/* Quản lý trường chi tiết */
+.tagmgr-chip .fm-chip-name { background: transparent; border: none; font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer; padding: 0; width: auto; height: auto; border-radius: 0; }
+.tagmgr-chip .fm-chip-name:hover { color: var(--p600); background: transparent; }
+.tagmgr-chip .fm-chip-del { width: 16px; height: 16px; border-radius: 50%; border: none; background: var(--n300); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 12px; line-height: 1; padding: 0; }
+.tagmgr-chip .fm-chip-del:hover { background: var(--error, #dc2626); }
+.fm-edit-input, .fm-add-input { height: 28px; border: 1px solid var(--p500); border-radius: 999px; font-family: inherit; font-size: 12px; padding: 0 12px; outline: none; min-width: 150px; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.tagmgr-empty { font-size: 12px; color: var(--text-4); font-style: italic; }
+.fm-highlight { animation: fmFlash 1.8s ease; }
+@keyframes fmFlash { 0%, 40% { box-shadow: 0 0 0 3px rgba(37,99,235,.45); } 100% { box-shadow: 0 0 0 3px rgba(37,99,235,0); } }
+
+/* Slide-over: financial features intro */
+.fin-slide-backdrop {
+  position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 500;
+  opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s ease;
+}
+.fin-slide-backdrop.open { opacity: 1; visibility: visible; }
+.fin-slide-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 92vw;
+  background: #fff; z-index: 501; box-shadow: -12px 0 40px rgba(15,23,42,.25);
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .25s ease;
+}
+.fin-slide-backdrop.open .fin-slide-panel { transform: translateX(0); }
+.fin-slide-hdr {
+  padding: 22px 22px 18px; background: linear-gradient(135deg, var(--p700) 0%, var(--p500) 60%, #60A5FA 100%);
+  color: #fff; flex-shrink: 0;
+}
+.fin-slide-hdr-icon { width: 38px; height: 38px; border-radius: 9px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.fin-slide-hdr-title { font-size: 17px; font-weight: 900; }
+.fin-slide-hdr-sub { font-size: 12px; color: rgba(255,255,255,.85); font-weight: 600; margin-top: 4px; line-height: 1.5; }
+.fin-slide-body { flex: 1; overflow-y: auto; padding: 18px 22px; }
+.fin-feature { display: flex; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--n100); }
+.fin-feature:last-child { border-bottom: none; }
+.fin-feature-ico { width: 36px; height: 36px; border-radius: 8px; background: var(--s50); color: var(--p500); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.fin-feature-text { min-width: 0; }
+.fin-feature-title { font-size: 13px; font-weight: 800; color: var(--text-1); }
+.fin-feature-desc { font-size: 11.5px; color: var(--text-3); font-weight: 600; margin-top: 3px; line-height: 1.5; }
+.fin-slide-footer { padding: 16px 22px; border-top: 1px solid var(--n200); display: flex; gap: 10px; flex-shrink: 0; }
+.fin-slide-footer .btn-secondary { flex: 0 0 auto; }
+.fin-slide-footer .btn-primary { flex: 1; }
+
+.mode-status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--s50); color: var(--p700); margin-left: 4px; }
+.mode-status-badge svg { width: 12px; height: 12px; }
+.mode-status-badge.store { background: var(--success-bg); color: #15803d; }
+
+.confirm-code-display { text-align: center; font-family: 'SF Mono', Consolas, monospace; font-size: 32px; font-weight: 900; letter-spacing: .25em; color: var(--p700); background: var(--s50); border-radius: var(--r-sm); padding: 14px 0; margin-bottom: 14px; }
+.confirm-code-input { text-align: center; font-family: 'SF Mono', Consolas, monospace; font-size: 16px; font-weight: 800; letter-spacing: .2em; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<script src="./sidebar.js"></script>
+
+<!-- MAIN -->
+<main class="main">
+
+  <script>
+  window.TOPBAR_CONFIG = {
+    title: "Cài đặt",
+    breadcrumb: "Cài đặt hệ thống",
+    notifs: [
+      { color: "amber", icon: "warning", title: "Cần cấu hình mẫu Serial", sub: "Chưa có mẫu Serial mặc định", time: "1h", unread: true }
+    ]
+  };
+  </script>
+  <script src="./topbar.js"></script>
+
+  <div class="content">
+    <div class="settings-layout">
+
+      <!-- SUB NAV -->
+      <div class="settings-subnav">
+        <div class="settings-subnav-item active" data-panel="che-do" onclick="selectSettingsTab('che-do')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.4"/><path d="M9 1.8v2.3M9 13.9v2.3M16.2 9h-2.3M4.1 9H1.8M14.1 3.9l-1.6 1.6M5.5 12.5 3.9 14.1M14.1 14.1l-1.6-1.6M5.5 5.5 3.9 3.9"/></svg>
+          Chế độ vận hành
+        </div>
+        <div class="settings-subnav-item" data-panel="hien-thi" onclick="selectSettingsTab('hien-thi')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="14" height="12" rx="1.5"/><line x1="2" y1="7.5" x2="16" y2="7.5"/><line x1="7" y1="7.5" x2="7" y2="15"/></svg>
+          Hiển thị bảng
+        </div>
+        <div class="settings-subnav-item" data-panel="serial" onclick="selectSettingsTab('serial')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="1.5"/><path d="M5.5 6.5h7M5.5 9.5h7M5.5 12.5h4"/></svg>
+          Mẫu Serial
+        </div>
+        <div class="settings-subnav-item" data-panel="nhan" onclick="selectSettingsTab('nhan')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5 9 2.5h6v6L8 16z"/><circle cx="11.2" cy="6.2" r="1.2" fill="currentColor" stroke="none"/></svg>
+          Quản lý nhãn
+        </div>
+        <div class="settings-subnav-item" data-panel="truong" onclick="selectSettingsTab('truong')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3" width="13" height="3.2" rx="1"/><rect x="2.5" y="8" width="13" height="3.2" rx="1"/><path d="M5 13.5h5"/></svg>
+          Quản lý trường
+        </div>
+        <div class="settings-subnav-item" data-panel="trang-thai-sua" onclick="selectSettingsTab('trang-thai-sua')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="3.5" height="12" rx="1"/><rect x="7.25" y="3" width="3.5" height="12" rx="1"/><rect x="12.5" y="3" width="3.5" height="12" rx="1"/></svg>
+          Trạng thái sửa chữa
+        </div>
+        <div class="settings-subnav-item" data-panel="tai-khoan" onclick="selectSettingsTab('tai-khoan')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M3 16c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/></svg>
+          Tài khoản
+        </div>
+      </div>
+
+      <!-- PANELS -->
+      <div class="settings-content">
+
+        <!-- CHẾ ĐỘ VẬN HÀNH -->
+        <div class="settings-panel active" id="panel-che-do">
+          <div class="settings-section">
+            <div class="settings-section-title">Chế độ vận hành</div>
+            <div class="card">
+              <div class="settings-row">
+                <div class="settings-row-text">
+                  <div class="settings-row-title">
+                    Chế độ bán hàng
+                    <span class="settings-mode-tag store" id="modeTagStore" style="display:none">Đang bật</span>
+                    <span class="settings-mode-tag bh" id="modeTagBH">Chưa bật</span>
+                  </div>
+                  <div class="settings-row-desc">
+                    Mở thêm các tính năng quản lý tài chính cho hoạt động bán hàng: công nợ khách hàng, doanh thu, giá nhập/giá bán và dòng tiền nhập – xuất. Khi tắt, Qranty chỉ hoạt động như một trung tâm bảo hành đơn giản.
+                  </div>
+                </div>
+                <label class="toggle-switch" title="Bật/tắt chế độ bán hàng">
+                  <input type="checkbox" id="modeToggleSettings" onchange="setAppMode(this.checked ? 'store' : 'bh')">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HIỂN THỊ BẢNG -->
+        <div class="settings-panel" id="panel-hien-thi">
+          <div class="settings-section">
+            <div class="settings-section-title">Hiển thị bảng</div>
+            <div class="card">
+              <div class="card-body" style="border-bottom:1px solid var(--n100)">
+                <div class="cfg-group-title">Chọn cột hiển thị</div>
+                <div class="cfg-group-sub" style="margin-bottom:0">Chọn cột muốn hiển thị trên từng bảng dữ liệu trong hệ thống. Thay đổi áp dụng ngay cho toàn bộ cửa hàng.</div>
+              </div>
+
+              <div class="cfg-group">
+                <div class="cfg-group-title">Sản phẩm</div>
+                <div class="cfg-group-sub">Bảng danh sách trong Kho hàng &amp; Linh kiện.</div>
+                <div class="cfg-check-grid">
+                  <label class="cfg-check"><input type="checkbox" checked> Sản phẩm</label>
+                  <label class="cfg-check"><input type="checkbox" checked> SKU</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Loại</label>
+                  <label class="cfg-check"><input type="checkbox" checked class="fin-only"> Giá nhập</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Giá bán</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Tồn kho</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Phụ kiện đi kèm</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Trạng thái</label>
+                </div>
+                <div class="cfg-subtitle">Trường tùy chỉnh</div>
+                <div class="cfg-check-grid">
+                  <label class="cfg-check"><input type="checkbox" checked> Nhà cung cấp</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Bảo hành áp dụng</label>
+                </div>
+              </div>
+
+              <div class="cfg-group">
+                <div class="cfg-group-title">Linh kiện</div>
+                <div class="cfg-check-grid">
+                  <label class="cfg-check"><input type="checkbox" checked> Tên linh kiện</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Loại</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Tương thích</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Tồn kho</label>
+                  <label class="cfg-check"><input type="checkbox" checked class="fin-only"> Đơn giá nhập</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Mức cảnh báo</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Trạng thái</label>
+                </div>
+              </div>
+
+              <div class="cfg-group">
+                <div class="cfg-group-title">Lô hàng</div>
+                <div class="cfg-check-grid">
+                  <label class="cfg-check"><input type="checkbox" checked> Mã lô</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Ngày nhập</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Nhà cung cấp</label>
+                  <label class="cfg-check"><input type="checkbox" checked> SL sản phẩm/linh kiện</label>
+                  <label class="cfg-check"><input type="checkbox" checked class="fin-only"> Tổng giá trị</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Bảo hành áp dụng</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Trạng thái</label>
+                </div>
+              </div>
+
+              <div class="cfg-group">
+                <div class="cfg-group-title">Khách hàng</div>
+                <div class="cfg-check-grid">
+                  <label class="cfg-check"><input type="checkbox" checked> Email</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Giới tính</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Sinh nhật</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Địa chỉ</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Nguồn</label>
+                  <label class="cfg-check"><input type="checkbox" checked class="fin-only"> Công nợ</label>
+                  <label class="cfg-check"><input type="checkbox" checked> Ngày tạo</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MẪU SERIAL -->
+        <div class="settings-panel" id="panel-serial">
+          <div class="settings-section">
+            <div class="settings-section-title">Mẫu Serial</div>
+            <div class="card card-body">
+              <div class="cfg-group-title" style="margin-bottom:2px">Cài đặt mẫu Serial</div>
+              <div class="cfg-group-sub">Định nghĩa cách hệ thống sinh mã serial khi thêm sản phẩm mới.</div>
+
+              <div class="serial-vars">
+                <span class="serial-var-chip">{YYYY}</span>
+                <span class="serial-var-chip">{MM}</span>
+                <span class="serial-var-chip">{DD}</span>
+                <span class="serial-var-chip">{ABBR}</span>
+                <span class="serial-var-chip">{RANDOM_N}</span>
+              </div>
+              <div class="serial-example">Ví dụ: SN-{ABBR}-{YYYY}{MM}-{RANDOM_8} → SN-SP-202606-AB3XY7KL</div>
+
+              <div class="field" style="margin-top:16px">
+                <div class="field-label">Mẫu Serial (thêm đơn lẻ)</div>
+                <input class="input" value="{RANDOM_12}">
+                <div class="serial-preview">Xem trước: DAEIJGHBKFCL</div>
+                <div class="serial-refresh" onclick="alert('Đã làm mới xem trước')">
+                  <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 9a6.5 6.5 0 1 1-1.9-4.6M15.5 2.5V7h-4.5"/></svg>
+                  Làm mới xem trước
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:18px">
+                <div class="field-label">Mẫu Serial (thêm theo lô)</div>
+                <input class="input" value="{RANDOM_12}">
+                <div class="serial-preview">Xem trước: BLDGJAHKEICF</div>
+                <div class="serial-refresh" onclick="alert('Đã làm mới xem trước')">
+                  <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 9a6.5 6.5 0 1 1-1.9-4.6M15.5 2.5V7h-4.5"/></svg>
+                  Làm mới xem trước
+                </div>
+              </div>
+
+              <button class="btn-primary" style="width:auto;padding:0 22px;margin-top:20px">
+                <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 7 13l8-9"/></svg>
+                Lưu cấu hình
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUẢN LÝ NHÃN -->
+        <div class="settings-panel" id="panel-nhan">
+          <div class="settings-section">
+            <div class="settings-section-title">Quản lý nhãn / danh mục</div>
+            <div class="notice" style="margin-bottom:14px">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M9 8v4.5M9 5.5v.01"/></svg>
+              Đây là các nhãn lõi mặc định của app. Thêm nhanh ngay trong form nhập sản phẩm/khách hàng bằng "+ Thêm mới"; tại đây để đổi tên (bấm vào nhãn), thêm hoặc xoá. Trường tùy chỉnh riêng nằm ở mục "Quản lý trường".
+            </div>
+            <div class="card" id="labelMgrCards"></div>
+          </div>
+        </div>
+
+
+        <!-- QUẢN LÝ TRƯỜNG CHI TIẾT (theo danh mục) -->
+        <div class="settings-panel" id="panel-truong">
+          <div class="settings-section">
+            <div class="settings-section-title">Quản lý trường chi tiết theo danh mục</div>
+            <div class="notice" style="margin-bottom:14px">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M9 8v4.5M9 5.5v.01"/></svg>
+              Mỗi danh mục có bộ trường riêng (vd Laptop: RAM, ROM, Card đồ họa). Có thể thêm nhanh ngay khi tạo sản phẩm; tại đây để đổi tên, thêm hoặc xoá trường của từng danh mục.
+            </div>
+            <div class="card" id="fieldMgrCards"></div>
+          </div>
+        </div>
+
+
+        <!-- TRẠNG THÁI SỬA CHỮA (cột kanban) -->
+        <div class="settings-panel" id="panel-trang-thai-sua">
+          <div class="settings-section">
+            <div class="settings-section-title">Cột trạng thái sửa chữa (Kanban)</div>
+            <div class="notice" style="margin-bottom:14px">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M9 8v4.5M9 5.5v.01"/></svg>
+              Các cột này hiện trực tiếp trên bảng Kanban ở trang Sửa chữa. Giữ ít cột (≈4) cho vừa màn hình. Đổi tên/màu, thêm hoặc xoá cột — phiếu thuộc cột bị xoá sẽ tự dồn về cột đầu tiên.
+            </div>
+            <div class="card" style="padding:6px 8px"><div id="rcColList"></div></div>
+
+            <div class="settings-section-title" style="margin-top:20px">Thêm cột mới</div>
+            <div class="card">
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; padding:6px 4px">
+                <div style="flex:1; min-width:180px">
+                  <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:5px">Tên cột</div>
+                  <input class="input" id="rcNewLabel" placeholder="VD: Chờ khách duyệt" style="width:100%">
+                </div>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:5px">Màu</div>
+                  <select class="input" id="rcNewColor" style="width:140px"></select>
+                </div>
+                <button class="btn-primary" onclick="rcAddCol()" style="flex:0 0 auto">
+                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M9 4v10M4 9h10"/></svg>
+                  Thêm cột
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TÀI KHOẢN -->
+        <div class="settings-panel" id="panel-tai-khoan">
+          <div class="settings-section">
+            <div class="settings-section-title">Tài khoản</div>
+            <div class="card">
+              <div class="settings-row">
+                <div class="settings-row-text">
+                  <div class="settings-row-title">Thông tin cửa hàng</div>
+                  <div class="settings-row-desc">Tên cửa hàng, địa chỉ, số điện thoại liên hệ hiển thị trên phiếu bảo hành.</div>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-text">
+                  <div class="settings-row-title">Quản lý nhân viên</div>
+                  <div class="settings-row-desc">Phân quyền truy cập theo vai trò trong cửa hàng.</div>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-text">
+                  <div class="settings-row-title">Kênh thông báo &amp; Zalo OA</div>
+                  <div class="settings-row-desc">Đã chuyển sang mục riêng — xem trang "Thông báo" trong menu Nội bộ.</div>
+                </div>
+                <a href="./qranty-thong-bao.html" class="btn-secondary" style="height:36px;padding:0 14px;font-size:12.5px">Mở</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Slide-over: giới thiệu tính năng tài chính khi bật Chế độ cửa hàng -->
+<div class="fin-slide-backdrop" id="finSlideBackdrop" onclick="if(event.target===this) closeFinSlide(true)">
+  <div class="fin-slide-panel">
+    <div class="fin-slide-hdr">
+      <div class="fin-slide-hdr-icon">
+        <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+          <line x1="9" y1="2" x2="9" y2="16" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12.5 5C12.5 5 11.5 3.5 9 3.5C6.5 3.5 5 5 5 6.5C5 8.2 6.5 8.8 9 9.5C11.5 10.2 13 11 13 12.8C13 14.2 11.5 15.2 9 15.2C6.5 15.2 5.5 14 5.5 14" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="fin-slide-hdr-title">Đã bật chế độ Cửa hàng</div>
+      <div class="fin-slide-hdr-sub">Các tính năng quản lý tài chính sau đây vừa được mở thêm trong Qranty:</div>
+    </div>
+    <div class="fin-slide-body">
+
+      <div class="fin-feature">
+        <div class="fin-feature-ico">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3.5" width="15" height="11" rx="1.5"/><path d="M1.5 7h15"/><path d="M4.5 11h3"/></svg>
+        </div>
+        <div class="fin-feature-text">
+          <div class="fin-feature-title">Công nợ khách hàng</div>
+          <div class="fin-feature-desc">Theo dõi khoản khách còn nợ, nhắc thanh toán và lịch sử thu nợ — hiển thị ngay trong hồ sơ khách hàng.</div>
+        </div>
+      </div>
+
+      <div class="fin-feature">
+        <div class="fin-feature-ico">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15V8M7 15V4M12 15v-6M16 15V2"/></svg>
+        </div>
+        <div class="fin-feature-text">
+          <div class="fin-feature-title">Doanh thu &amp; báo cáo</div>
+          <div class="fin-feature-desc">Scorecard doanh thu theo ngày/tháng và biểu đồ xu hướng doanh thu trên Dashboard.</div>
+        </div>
+      </div>
+
+      <div class="fin-feature">
+        <div class="fin-feature-ico">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8L9 4L16 8V15H2V8Z"/><path d="M2 8L9 4L16 8"/></svg>
+        </div>
+        <div class="fin-feature-text">
+          <div class="fin-feature-title">Giá nhập / Giá bán &amp; tồn kho theo giá trị</div>
+          <div class="fin-feature-desc">Hiện thêm cột giá nhập, giá bán trong Kho hàng và giá trị tồn kho quy đổi sang tiền.</div>
+        </div>
+      </div>
+
+      <div class="fin-feature">
+        <div class="fin-feature-ico">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.7 2.3 5.2 9 8.7l6.7-3.5z"/><path d="M2.3 9 9 12.5l6.7-3.5"/><path d="M2.3 12.8 9 16.3l6.7-3.5"/></svg>
+        </div>
+        <div class="fin-feature-text">
+          <div class="fin-feature-title">Nhập / xuất tiền theo phiếu</div>
+          <div class="fin-feature-desc">Ghi nhận dòng tiền vào – ra gắn với từng phiếu nhập kho, bán hàng và sửa chữa.</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="fin-slide-footer">
+      <button class="btn-secondary" onclick="closeFinSlide(true)">Tắt lại</button>
+      <button class="btn-primary" onclick="closeFinSlide(false)">Bắt đầu sử dụng</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+}
+function selectSettingsTab(name) {
+  document.querySelectorAll('.settings-subnav-item').forEach(function (item) {
+    item.classList.toggle('active', item.dataset.panel === name);
+  });
+  document.querySelectorAll('.settings-panel').forEach(function (panel) {
+    panel.classList.toggle('active', panel.id === 'panel-' + name);
+  });
+  if (name === 'truong') renderFieldManager();
+  if (name === 'nhan') renderLabelManager();
+  if (name === 'trang-thai-sua') rcRenderManager();
+}
+
+/* ── Quản lý cột trạng thái sửa chữa (repair-columns-store.js) ──────────── */
+var RC_COLOR_LABELS = { blue: 'Xanh dương', amber: 'Cam', green: 'Xanh lá', teal: 'Xanh ngọc', purple: 'Tím', red: 'Đỏ', sky: 'Xanh trời', gray: 'Xám' };
+function rcColorOptions(sel) {
+  if (!window.QrantyRepairCols) return '';
+  return Object.keys(QrantyRepairCols.COLORS).map(function (k) {
+    return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + (RC_COLOR_LABELS[k] || k) + '</option>';
+  }).join('');
+}
+function rcRenderManager() {
+  if (!window.QrantyRepairCols) return;
+  var colorSel = document.getElementById('rcNewColor');
+  if (colorSel && !colorSel.dataset.filled) { colorSel.innerHTML = rcColorOptions('blue'); colorSel.dataset.filled = '1'; }
+  var cols = QrantyRepairCols.getAll();
+  var box = document.getElementById('rcColList');
+  if (!box) return;
+  box.innerHTML = cols.map(function (c, i) {
+    var hex = QrantyRepairCols.colorHex(c.color);
+    var canDel = cols.length > 1;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--n100)">'
+      + '<span style="width:13px;height:13px;border-radius:50%;background:' + hex + ';flex-shrink:0"></span>'
+      + '<input class="input" value="' + (c.label || '').replace(/"/g, '&quot;') + '" onchange="rcSetLabel(\'' + c.key + '\',this.value)" style="flex:1;min-width:120px;height:34px">'
+      + '<select class="input" onchange="rcSetColor(\'' + c.key + '\',this.value)" style="width:130px;height:34px">' + rcColorOptions(c.color) + '</select>'
+      + '<button class="btn-outline" title="Sang trái" onclick="rcMove(\'' + c.key + '\',-1)"' + (i === 0 ? ' disabled style="padding:6px 9px;opacity:.4"' : ' style="padding:6px 9px"') + '>‹</button>'
+      + '<button class="btn-outline" title="Sang phải" onclick="rcMove(\'' + c.key + '\',1)"' + (i === cols.length - 1 ? ' disabled style="padding:6px 9px;opacity:.4"' : ' style="padding:6px 9px"') + '>›</button>'
+      + '<button class="btn-danger" onclick="rcDelete(\'' + c.key + '\')"' + (canDel ? '' : ' disabled') + ' style="padding:6px 11px">Xoá</button>'
+      + '</div>';
+  }).join('');
+}
+function rcSetLabel(key, val) { QrantyRepairCols.update(key, { label: (val || '').trim() || 'Cột' }); rcRenderManager(); }
+function rcSetColor(key, val) { QrantyRepairCols.update(key, { color: val }); rcRenderManager(); }
+function rcMove(key, dir) { QrantyRepairCols.move(key, dir); rcRenderManager(); }
+function rcDelete(key) {
+  var cols = QrantyRepairCols.getAll();
+  if (cols.length <= 1) { alert('Cần giữ lại ít nhất 1 cột.'); return; }
+  var c = cols.filter(function (x) { return x.key === key; })[0];
+  if (confirm('Xoá cột "' + (c ? c.label : key) + '"? Phiếu đang ở cột này sẽ tự dồn về cột đầu tiên.')) { QrantyRepairCols.remove(key); rcRenderManager(); }
+}
+function rcAddCol() {
+  var label = (document.getElementById('rcNewLabel').value || '').trim();
+  if (!label) { document.getElementById('rcNewLabel').focus(); return; }
+  var color = document.getElementById('rcNewColor').value || 'gray';
+  QrantyRepairCols.add(label, color);
+  document.getElementById('rcNewLabel').value = '';
+  rcRenderManager();
+}
+
+/* ── Quản lý nhãn lõi (brand/category/origin/unit/custSource) ──────────── */
+var LM_GROUPS = [
+  { kind: 'brand',      title: 'Thương hiệu',      sub: 'Áp dụng cho sản phẩm.' },
+  { kind: 'category',   title: 'Danh mục sản phẩm', sub: 'Đồng bộ với cây Nhóm hàng ở Kho hàng.' },
+  { kind: 'origin',     title: 'Xuất xứ',          sub: '' },
+  { kind: 'unit',       title: 'Đơn vị',           sub: '' },
+  { kind: 'custSource', title: 'Nguồn khách hàng', sub: 'Áp dụng cho hồ sơ khách hàng.' }
+];
+var LM_STATE = { addingKind: null, editing: null };
+var LM_BUSY = false;
+function lmGet(kind) {
+  if (typeof QrantyKho === 'undefined') return [];
+  return kind === 'category' ? (QrantyKho.getCategories ? QrantyKho.getCategories() : []) : QrantyKho.getLabels(kind);
+}
+function lmAdd(kind, v) { if (kind === 'category') QrantyKho.addCategory(v); else QrantyKho.addLabel(kind, v); }
+function lmRename(kind, o, n) { if (kind === 'category') QrantyKho.renameCategory(o, n); else QrantyKho.renameLabel(kind, o, n); }
+function lmRemove(kind, name) {
+  if (kind === 'category') {
+    if (QrantyKho.getSubcategories(name).length) { alert('Phải xoá hết danh mục con trong "' + name + '" trước.'); return false; }
+    if (QrantyKho.countInCategory(name) > 0) { alert('Còn sản phẩm trong danh mục "' + name + '" — xoá hết sản phẩm trước.'); return false; }
+    QrantyKho.removeCategory(name); return true;
+  }
+  var n = QrantyKho.countByLabel(kind, name);
+  if (n > 0 && !confirm('Có ' + n + ' sản phẩm đang gắn "' + name + '". Vẫn xoá nhãn này?')) return false;
+  if (n === 0 && !confirm('Xoá nhãn "' + name + '"?')) return false;
+  QrantyKho.removeLabel(kind, name); return true;
+}
+function renderLabelManager() {
+  var box = document.getElementById('labelMgrCards');
+  if (!box) return;
+  if (typeof QrantyKho === 'undefined') { box.innerHTML = '<div class="tagmgr-empty" style="padding:14px">Không tải được dữ liệu kho.</div>'; return; }
+  box.innerHTML = LM_GROUPS.map(function (g) {
+    var items = lmGet(g.kind);
+    var chips = items.map(function (it) {
+      if (LM_STATE.editing && LM_STATE.editing.kind === g.kind && LM_STATE.editing.name === it) {
+        return '<span class="tagmgr-chip editing"><input class="fm-edit-input" data-kind="' + fmEscAttr(g.kind) + '" data-name="' + fmEscAttr(it) + '" value="' + fmEscAttr(it) + '" onkeydown="lmEditKey(event)" onblur="lmEditBlur(event)"></span>';
+      }
+      return '<span class="tagmgr-chip" data-kind="' + fmEscAttr(g.kind) + '" data-name="' + fmEscAttr(it) + '">' +
+        '<button type="button" class="fm-chip-name" onclick="lmStartRename(this)" title="Bấm để đổi tên">' + fmEsc(it) + '</button>' +
+        '<button type="button" class="fm-chip-del" onclick="lmRemoveClick(this)" title="Xoá">&times;</button>' +
+      '</span>';
+    }).join('');
+    var addCtl = (LM_STATE.addingKind === g.kind)
+      ? '<input class="fm-add-input" data-kind="' + fmEscAttr(g.kind) + '" placeholder="Tên nhãn + Enter" onkeydown="lmAddKey(event)" onblur="lmAddBlur(event)">'
+      : '<button type="button" class="tagmgr-add" data-kind="' + fmEscAttr(g.kind) + '" onclick="lmStartAdd(this)">+ Thêm nhãn</button>';
+    return '<div class="tagmgr-card" data-kind="' + fmEscAttr(g.kind) + '">' +
+      '<div class="tagmgr-title">' + fmEsc(g.title) + '</div>' +
+      (g.sub ? '<div class="tagmgr-sub">' + fmEsc(g.sub) + '</div>' : '') +
+      '<div class="tagmgr-chips">' + (chips || '<span class="tagmgr-empty">Chưa có nhãn nào</span> ') + addCtl + '</div>' +
+    '</div>';
+  }).join('');
+  var inp = box.querySelector('.fm-edit-input, .fm-add-input');
+  if (inp) { inp.focus(); if (inp.select) inp.select(); }
+}
+function lmStartAdd(b) { LM_STATE.editing = null; LM_STATE.addingKind = b.getAttribute('data-kind'); renderLabelManager(); }
+function lmAddKey(e) { if (e.key === 'Enter') { e.preventDefault(); lmAddCommit(e.target); } else if (e.key === 'Escape') { LM_STATE.addingKind = null; renderLabelManager(); } }
+function lmAddBlur(e) { if (LM_BUSY) return; LM_STATE.addingKind = null; renderLabelManager(); }
+function lmAddCommit(el) { LM_BUSY = true; var k = el.getAttribute('data-kind'), v = (el.value || '').trim(); if (v) lmAdd(k, v); LM_STATE.addingKind = null; renderLabelManager(); LM_BUSY = false; }
+function lmStartRename(btn) { var chip = btn.closest('.tagmgr-chip'); LM_STATE.addingKind = null; LM_STATE.editing = { kind: chip.getAttribute('data-kind'), name: chip.getAttribute('data-name') }; renderLabelManager(); }
+function lmEditKey(e) { if (e.key === 'Enter') { e.preventDefault(); lmEditCommit(e.target); } else if (e.key === 'Escape') { LM_STATE.editing = null; renderLabelManager(); } }
+function lmEditBlur(e) { if (LM_BUSY) return; LM_STATE.editing = null; renderLabelManager(); }
+function lmEditCommit(el) { LM_BUSY = true; var k = el.getAttribute('data-kind'), old = el.getAttribute('data-name'), v = (el.value || '').trim(); if (v && v !== old) lmRename(k, old, v); LM_STATE.editing = null; renderLabelManager(); LM_BUSY = false; }
+function lmRemoveClick(btn) { var chip = btn.closest('.tagmgr-chip'); var k = chip.getAttribute('data-kind'), name = chip.getAttribute('data-name'); if (lmRemove(k, name)) renderLabelManager(); }
+
+/* ── Quản lý trường chi tiết theo danh mục (wired tới kho-store) ───────── */
+var FM_STATE = { addingCat: null, editing: null };
+var FM_BUSY = false;
+function fmEscAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+function fmEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function fmCats() {
+  if (typeof QrantyKho === 'undefined') return [];
+  var set = {};
+  (QrantyKho.getData ? QrantyKho.getData() : []).forEach(function (p) { if (p.category) set[p.category] = 1; });
+  (QrantyKho.getCategories ? QrantyKho.getCategories() : []).forEach(function (c) { if (c) set[c] = 1; });
+  set['Linh kiện'] = 1;
+  return Object.keys(set).sort(function (a, b) { return a.localeCompare(b, 'vi'); });
+}
+function renderFieldManager() {
+  var box = document.getElementById('fieldMgrCards');
+  if (!box) return;
+  if (typeof QrantyKho === 'undefined') { box.innerHTML = '<div class="tagmgr-empty" style="padding:14px">Không tải được dữ liệu kho.</div>'; return; }
+  var cats = fmCats();
+  box.innerHTML = cats.map(function (cat) {
+    var fields = QrantyKho.getCatTagDefs(cat) || [];
+    var chips = fields.map(function (f) {
+      if (FM_STATE.editing && FM_STATE.editing.cat === cat && FM_STATE.editing.field === f) {
+        return '<span class="tagmgr-chip editing"><input class="fm-edit-input" data-cat="' + fmEscAttr(cat) + '" data-field="' + fmEscAttr(f) + '" value="' + fmEscAttr(f) + '" onkeydown="fmEditKey(event)" onblur="fmEditBlur(event)"></span>';
+      }
+      return '<span class="tagmgr-chip" data-cat="' + fmEscAttr(cat) + '" data-field="' + fmEscAttr(f) + '">' +
+        '<button type="button" class="fm-chip-name" onclick="fmStartRename(this)" title="Bấm để đổi tên">' + fmEsc(f) + '</button>' +
+        '<button type="button" class="fm-chip-del" onclick="fmRemove(this)" title="Xoá trường">&times;</button>' +
+      '</span>';
+    }).join('');
+    var addCtl = (FM_STATE.addingCat === cat)
+      ? '<input class="fm-add-input" data-cat="' + fmEscAttr(cat) + '" placeholder="Tên trường + Enter" onkeydown="fmAddKey(event)" onblur="fmAddBlur(event)">'
+      : '<button type="button" class="tagmgr-add" data-cat="' + fmEscAttr(cat) + '" onclick="fmStartAdd(this)">+ Thêm trường</button>';
+    return '<div class="tagmgr-card" data-cat="' + fmEscAttr(cat) + '">' +
+      '<div class="tagmgr-title">' + fmEsc(cat) + '</div>' +
+      '<div class="tagmgr-sub">Trường chi tiết áp dụng khi tạo sản phẩm thuộc danh mục này.</div>' +
+      '<div class="tagmgr-chips">' + (chips || '<span class="tagmgr-empty">Chưa có trường nào</span> ') + addCtl + '</div>' +
+    '</div>';
+  }).join('') || '<div class="tagmgr-empty" style="padding:14px">Chưa có danh mục nào — tạo danh mục trong Kho hàng trước.</div>';
+  var inp = box.querySelector('.fm-edit-input, .fm-add-input');
+  if (inp) { inp.focus(); if (inp.select) inp.select(); }
+}
+function fmStartAdd(b) { FM_STATE.editing = null; FM_STATE.addingCat = b.getAttribute('data-cat'); renderFieldManager(); }
+function fmAddKey(e) { if (e.key === 'Enter') { e.preventDefault(); fmAddCommit(e.target); } else if (e.key === 'Escape') { FM_STATE.addingCat = null; renderFieldManager(); } }
+function fmAddBlur(e) { if (FM_BUSY) return; FM_STATE.addingCat = null; renderFieldManager(); }
+function fmAddCommit(el) { FM_BUSY = true; var cat = el.getAttribute('data-cat'), v = (el.value || '').trim(); if (v && QrantyKho.addCatTagDef) QrantyKho.addCatTagDef(cat, v); FM_STATE.addingCat = null; renderFieldManager(); FM_BUSY = false; }
+function fmStartRename(btn) { var chip = btn.closest('.tagmgr-chip'); FM_STATE.addingCat = null; FM_STATE.editing = { cat: chip.getAttribute('data-cat'), field: chip.getAttribute('data-field') }; renderFieldManager(); }
+function fmEditKey(e) { if (e.key === 'Enter') { e.preventDefault(); fmEditCommit(e.target); } else if (e.key === 'Escape') { FM_STATE.editing = null; renderFieldManager(); } }
+function fmEditBlur(e) { if (FM_BUSY) return; FM_STATE.editing = null; renderFieldManager(); }
+function fmEditCommit(el) { FM_BUSY = true; var cat = el.getAttribute('data-cat'), old = el.getAttribute('data-field'), v = (el.value || '').trim(); if (v && v !== old && QrantyKho.renameCatTagDef) QrantyKho.renameCatTagDef(cat, old, v); FM_STATE.editing = null; renderFieldManager(); FM_BUSY = false; }
+function fmRemove(btn) { var chip = btn.closest('.tagmgr-chip'); var cat = chip.getAttribute('data-cat'), f = chip.getAttribute('data-field'); if (!confirm('Xoá trường "' + f + '" khỏi danh mục "' + cat + '"?')) return; if (QrantyKho.removeCatTagDef) QrantyKho.removeCatTagDef(cat, f); renderFieldManager(); }
+
+/* Mở đúng tab + cuộn tới danh mục khi vào từ link "Quản lý trường ↗" */
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    var qs = new URLSearchParams(window.location.search);
+    if (qs.get('settings') === 'truong') {
+      selectSettingsTab('truong');
+      var cat = qs.get('cat');
+      if (cat) {
+        var el = document.querySelector('#fieldMgrCards .tagmgr-card[data-cat="' + (window.CSS && CSS.escape ? CSS.escape(cat) : cat) + '"]');
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('fm-highlight'); setTimeout(function () { el.classList.remove('fm-highlight'); }, 1900); }
+      }
+    }
+  } catch (e) {}
+});
+
+function setAppMode(mode, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('mode-store', mode === 'store');
+  document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  localStorage.setItem('qranty-mode', mode);
+  updateModeStatusBadge();
+  syncSettingsUI(mode);
+}
+(function initAppMode() {
+  var saved = localStorage.getItem('qranty-mode') || 'bh';
+  document.body.classList.toggle('mode-store', saved === 'store');
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.sb-mode-opt').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.mode === saved);
+    });
+    syncSettingsUI(saved);
+    updateModeStatusBadge();
+  });
+})();
+function toggleAccountMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('accountMenu').classList.toggle('open');
+  document.getElementById('accountTrigger').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.sb-account');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+function toggleStoreMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('storeMenu').classList.toggle('open');
+  document.getElementById('storeSwitcher').classList.toggle('open');
+}
+document.addEventListener('click', function (e) {
+  const wrap = document.querySelector('.qr-store-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  }
+});
+document.querySelectorAll('.qr-store-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.qr-store-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+    const check = '<div class="qr-store-item-check"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 7 13 14.5 4.5"/></svg></div>';
+    document.querySelectorAll('.qr-store-item-check').forEach(c => c.remove());
+    item.insertAdjacentHTML('beforeend', check);
+    document.getElementById('storeMenu').classList.remove('open');
+    document.getElementById('storeSwitcher').classList.remove('open');
+  });
+});
+
+/* ===== SETTINGS: Chế độ cửa hàng ===== */
+function syncSettingsUI(mode) {
+  const tagStore = document.getElementById('modeTagStore');
+  const tagBH = document.getElementById('modeTagBH');
+  const toggle = document.getElementById('modeToggleSettings');
+  if (!tagStore || !tagBH) return;
+  const isStore = mode === 'store';
+  tagStore.style.display = isStore ? '' : 'none';
+  tagBH.style.display = isStore ? 'none' : '';
+  if (toggle) toggle.checked = isStore;
+}
+function closeFinSlide(revert) {
+  document.getElementById('finSlideBackdrop').classList.remove('open');
+  if (revert) {
+    setAppMode('bh');
+  }
+}
+
+function updateModeStatusBadge() {
+  var badge = document.getElementById('modeStatusBadge');
+  if (!badge) return;
+  var isStore = document.body.classList.contains('mode-store');
+  badge.classList.toggle('store', isStore);
+  if (isStore) {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 3.3 2.8h11.4l.8 3.7"/><path d="M2.5 6.5h13v8a.8.8 0 0 1-.8.8H3.3a.8.8 0 0 1-.8-.8z"/><path d="M6.5 15.3v-4h5v4"/></svg> Cửa hàng';
+  } else {
+    badge.innerHTML = '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/><path d="M6.5 9.5L8.2 11.3L11.5 7.3"/></svg> Trung tâm bảo hành';
+  }
+}
+
+var __pendingModeSwitch = null;
+var __pendingModeCode = null;
+function confirmModeSwitch(mode, e) {
+  if (e) e.stopPropagation();
+  var current = document.body.classList.contains('mode-store') ? 'store' : 'bh';
+  if (mode === current) return;
+  __pendingModeSwitch = mode;
+  __pendingModeCode = String(Math.floor(1000 + Math.random() * 9000));
+  var label = mode === 'store' ? 'Cửa hàng' : 'Trung tâm bảo hành';
+  document.getElementById('confirmModeBody').textContent = 'Đổi sang ' + label + ' sẽ thay đổi giao diện và quyền truy cập cho toàn bộ nhân viên. Nhập mã xác nhận để tiếp tục:';
+  document.getElementById('confirmModeCode').textContent = __pendingModeCode;
+  var input = document.getElementById('confirmModeInput');
+  input.value = '';
+  var btn = document.getElementById('confirmModeBtn');
+  btn.disabled = true;
+  document.getElementById('confirmModeBackdrop').classList.add('open');
+}
+function checkConfirmModeInput() {
+  var input = document.getElementById('confirmModeInput');
+  var btn = document.getElementById('confirmModeBtn');
+  btn.disabled = (input.value !== __pendingModeCode);
+}
+function closeConfirmModeModal() {
+  document.getElementById('confirmModeBackdrop').classList.remove('open');
+  __pendingModeSwitch = null;
+  __pendingModeCode = null;
+}
+function doConfirmModeSwitch() {
+  if (!__pendingModeSwitch) return;
+  setAppMode(__pendingModeSwitch);
+  closeConfirmModeModal();
+}</script>
+
+<!-- Confirm mode switch modal -->
+<div class="fin-slide-backdrop" id="confirmModeBackdrop" onclick="if(event.target===this) closeConfirmModeModal()">
+  <div class="fin-slide-panel" style="width:380px;max-width:92vw;top:50%;right:50%;transform:translate(50%,-50%);bottom:auto;border-radius:var(--r);">
+    <div class="fin-slide-hdr" style="border-radius:var(--r) var(--r) 0 0;">
+      <div class="fin-slide-hdr-title">Xác nhận đổi chế độ làm việc</div>
+      <div class="fin-slide-hdr-sub" id="confirmModeBody">Đổi sang chế độ khác sẽ thay đổi giao diện và quyền truy cập cho toàn bộ nhân viên. Nhập mã xác nhận để tiếp tục:</div>
+    </div>
+    <div class="fin-slide-body">
+      <div class="confirm-code-display" id="confirmModeCode">0000</div>
+      <input type="text" class="input confirm-code-input" id="confirmModeInput" placeholder="Nhập mã xác nhận" oninput="checkConfirmModeInput()" autocomplete="off">
+    </div>
+    <div class="fin-slide-footer">
+      <button class="btn-secondary" onclick="closeConfirmModeModal()">Huỷ</button>
+      <button class="btn-primary" id="confirmModeBtn" disabled onclick="doConfirmModeSwitch()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<script src="./kho-store.js"></script>
+<script src="./repair-columns-store.js"></script>
+<script src="./qranty-notify.js"></script>
+</body>
+</html>

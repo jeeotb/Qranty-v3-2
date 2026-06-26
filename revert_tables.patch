@@ -1,0 +1,88 @@
+--- qranty-kho-hang-v2.html
++++ qranty-kho-hang-v2.html
+@@ -1934,8 +1934,8 @@
+   var groupKeys = Object.keys(groups).sort(function(a, b) {
+     if (a === 'Khác') return 1;
+     if (b === 'Khác') return -1;
+     return a.localeCompare(b);
+   });
+ 
+   var html = '';
+-  groupKeys.forEach(function(cat) {
+-    var items = groups[cat];
+-    html += '<tr class="cat-group-row" onclick="toggleGroupRow(this, \'' + escapeHtml(cat) + '\')">' +
+-      '<td colspan="11">' +
+-        '<div class="cat-group-content">' +
+-          '<div class="cat-group-left">' +
+-            '<div class="cat-group-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7l4 4 4-4"/></svg></div>' +
+-            '<span class="cat-group-name">Nhóm hàng: ' + escapeHtml(cat) + '</span>' +
+-            '<span class="cat-group-count">' + items.length + ' SKU</span>' +
+-          '</div>' +
+-          '<button class="cat-group-add-btn" onclick="event.stopPropagation(); openAddProductModal(false, null, false); document.getElementById(\'apmCategory\').value=\'' + escapeHtml(cat) + '\';">' +
+-            '<svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v10M4 9h10"/></svg>' +
+-            'Thêm vào nhóm' +
+-          '</button>' +
+-        '</div>' +
+-      '</td>' +
+-    '</tr>';
+-
+-    html += items.map(function(p) {
++  tbody.innerHTML = list.map(function (p) {
+       var grp = (p.category === 'Linh kiện' || p.category === 'Phụ kiện') ? 'part' : 'product';
+       var grpLabel = grp === 'part' ? 'Linh kiện' : 'Sản phẩm';
+       var costPriceText = p.costPrice ? QrantyKho.fmtVND(p.costPrice) : '<span class="td-dash">-</span>';
+       var salePriceText = p.salePrice ? QrantyKho.fmtVND(p.salePrice) : '<span class="td-dash">-</span>';
+       
+       var statusHtml = '';
+       if (p.qty === 0) {
+         statusHtml = '<span class="kh-status out-of-stock"><span class="kh-status-dot"></span>Hết hàng</span>';
+       } else if (p.qty <= 3) {
+         statusHtml = '<span class="kh-status low-stock"><span class="kh-status-dot"></span>Sắp hết</span>';
+       } else {
+         statusHtml = '<span class="kh-status in-stock"><span class="kh-status-dot"></span>Còn hàng</span>';
+       }
+ 
+       var iconSvg = grp === 'part' ? 
+         '<svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3.5L12 6 10 4l2.5-2.5A4 4 0 0 0 5 7.5L2 10.5l3 3 3-3A4 4 0 0 0 14.5 3.5z"/></svg>' :
+         '<svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1.5" width="8" height="15" rx="1.8"/><line x1="7" y1="13.5" x2="11" y2="13.5"/></svg>';
+ 
+       var lotText = p.lot || '<span class="td-dash">-</span>';
+ 
+-      return '<tr class="product-row" data-group-name="' + escapeHtml(cat) + '" data-group="' + grp + '" data-sku="' + p.sku + '">' +
++      return '<tr data-group="' + grp + '" data-sku="' + p.sku + '">' +
+         '<td>' +
+           '<div class="kh-product">' +
+             '<div class="kh-product-ico">' + iconSvg + '</div>' +
+             '<div>' +
+               '<div class="kh-product-name">' + escapeHtml(p.name) + '</div>' +
+               '<div class="kh-product-sub">' + escapeHtml(p.brand || '—') + '</div>' +
+             '</div>' +
+           '</div>' +
+         '</td>' +
+         '<td class="kh-mono">' + p.sku + '</td>' +
+         '<td><span class="goods-group-badge ' + grp + '">' + grpLabel + '</span></td>' +
+         '<td>' + escapeHtml(p.category || '—') + '</td>' +
+         '<td class="fin-only">' + salePriceText + '</td>' +
+         '<td class="fin-only">' + costPriceText + '</td>' +
+         '<td><span class="td-dash">-</span></td>' +
+         '<td>' +
+           '<div class="kh-qty">' +
+             '<span class="kh-qty-num">' + p.qty + '</span>' +
+             '<div class="kh-qty-bar"><div class="kh-qty-bar-fill ' + (p.qty <= 3 ? 'warning' : 'ok') + '" style="width:' + Math.min(100, p.qty * 5) + '%"></div></div>' +
+           '</div>' +
+         '</td>' +
+         '<td>' + lotText + '</td>' +
+         '<td>' + statusHtml + '</td>' +
+         '<td>' +
+           '<div class="kh-actions-cell">' +
+             '<button class="kh-icon-btn" title="Xem" onclick="viewProduct(\'' + p.sku + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9S4 3.5 9 3.5 16.5 9 16.5 9 14 14.5 9 14.5 1.5 9 1.5 9z"/><circle cx="9" cy="9" r="2.3"/></svg></button>' +
+             '<button class="kh-icon-btn" title="Sửa" onclick="editProduct(\'' + p.sku + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 2.5 15 6l-8.5 8.5L3 16l1.5-3.5z"/></svg></button>' +
+             '<button class="kh-icon-btn" title="Sao chép" onclick="cloneProduct(\'' + p.sku + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="9" height="9" rx="1.2"/><path d="M3 12V3h9"/></svg></button>' +
+             '<button class="kh-icon-btn danger" title="Xoá" onclick="deleteProduct(\'' + p.sku + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M7 5V3.2A1 1 0 0 1 8 2.2h2a1 1 0 0 1 1 1V5M5 5l.6 9.5A1.5 1.5 0 0 0 7.1 16h3.8a1.5 1.5 0 0 0 7.1 16h3.8a1.5 1.5 0 0 0 1.5-1.5L13 5"/></svg></button>' +
+           '</div>' +
+         '</td>' +
+       '</tr>';
+-    }).join('');
+-  });
+-
+-  tbody.innerHTML = html;

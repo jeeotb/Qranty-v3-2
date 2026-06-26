@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Bán hàng nhanh</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --p500: #1F5C99; --p600: #194E80;
+  --brand: #2563EB; --brand-600: #1D4ED8;
+  --s50: #EEF3F8; --s100: #DCE6EF;
+  --success: #22C55E; --success-bg: #F0FDF4;
+  --error: #EF4444; --error-bg: #FEF2F2;
+  --warning: #F59E0B; --warning-bg: #FFFBEB;
+  --n50: #F8FAFC; --n100: #F1F5F9; --n200: #E2E8F0; --n300: #CBD5E1;
+  --n400: #94A3B8; --n500: #64748B;
+  --text-1: #0F172A; --text-2: #475569; --text-3: #64748B; --text-4: #94A3B8;
+  --r: 14px; --r-sm: 10px;
+  --shadow-card: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--n50);
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  justify-content: center;
+}
+
+/* khung mô phỏng màn hình quầy (tablet/điện thoại đứng) */
+.screen {
+  width: 420px;
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOPBAR */
+.topbar {
+  height: 56px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--n200);
+  flex-shrink: 0;
+}
+.topbar .back {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3); background: var(--n100);
+}
+.topbar .ttl { font-size: 15px; font-weight: 800; }
+.topbar .sub { font-size: 11px; color: var(--text-4); font-weight: 600; }
+
+.body-scroll { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 110px; }
+
+/* SCAN BLOCK */
+.scan-box {
+  border: 2px dashed var(--p500);
+  background: var(--s50);
+  border-radius: var(--r);
+  padding: 22px 16px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.scan-ico {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #fff; border: 1px solid var(--n200);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 10px; color: var(--p500);
+}
+.scan-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+.scan-sub { font-size: 11.5px; color: var(--text-3); font-weight: 600; }
+.scan-or { font-size: 11px; color: var(--text-4); font-weight: 700; margin: 12px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+.input {
+  width: 100%; height: 46px; border: 1px solid var(--n200); border-radius: var(--r-sm);
+  padding: 0 14px; font-size: 14px; font-family: inherit; font-weight: 600; color: var(--text-1);
+  background: #fff;
+}
+.input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.input::placeholder { color: var(--n400); font-weight: 500; }
+
+/* SẢN PHẨM ĐÃ CHỌN */
+.item-card {
+  display: flex; gap: 12px; align-items: center;
+  border: 1px solid var(--n200); border-radius: var(--r); padding: 12px;
+  margin-bottom: 16px; background: #fff;
+}
+.item-thumb {
+  width: 48px; height: 48px; border-radius: 10px; background: var(--s50);
+  display: flex; align-items: center; justify-content: center; color: var(--p500); flex-shrink: 0;
+}
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 13.5px; font-weight: 800; }
+.item-meta { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; font-family: monospace; }
+.item-price { font-size: 14px; font-weight: 800; color: var(--p600); white-space: nowrap; }
+.item-remove {
+  width: 28px; height: 28px; border-radius: 7px; border: none; background: var(--n100);
+  color: var(--text-3); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+}
+
+/* SECTION */
+.section { margin-bottom: 16px; }
+.section-label { font-size: 11.5px; font-weight: 800; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+
+/* KHÁCH HÀNG */
+.cust-row { display: flex; gap: 8px; }
+.cust-row .input { flex: 1; }
+.cust-skip {
+  height: 46px; padding: 0 14px; border-radius: var(--r-sm); border: 1px solid var(--n200);
+  background: var(--n50); font-size: 12.5px; font-weight: 800; color: var(--text-2); cursor: pointer;
+  white-space: nowrap; font-family: inherit;
+}
+
+/* SỐ TIỀN */
+.amount-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px 10px; }
+.amount-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.amount-value { font-size: 26px; font-weight: 900; color: var(--text-1); font-family: monospace; }
+
+.paid-input-wrap { position: relative; }
+.paid-input {
+  width: 100%; height: 56px; border: 1.5px solid var(--n200); border-radius: var(--r-sm);
+  padding: 0 14px; font-size: 22px; font-family: 'Inter', monospace; font-weight: 800; color: var(--text-1);
+  background: #fff; text-align: right;
+}
+.paid-input:focus { outline: none; border-color: var(--p500); box-shadow: 0 0 0 3px var(--s50); }
+.paid-suffix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 700; color: var(--text-4); }
+
+.quick-amounts { display: flex; gap: 6px; margin-top: 8px; }
+.quick-amt-btn {
+  flex: 1; height: 36px; border-radius: 8px; border: 1px solid var(--n200); background: var(--n50);
+  font-size: 12px; font-weight: 800; color: var(--text-2); cursor: pointer; font-family: inherit;
+}
+.quick-amt-btn:active { background: var(--s100); border-color: var(--p500); color: var(--p600); }
+
+/* DEBT BOX */
+.debt-box { border-radius: var(--r-sm); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.debt-box.none { background: var(--success-bg); border: 1px solid var(--success); }
+.debt-box.has { background: var(--error-bg); border: 1px solid var(--error); }
+.debt-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.debt-hint { font-size: 10.5px; color: var(--text-4); font-weight: 600; margin-top: 2px; }
+.debt-value { font-size: 16px; font-weight: 900; }
+.debt-value.none { color: #15803d; }
+.debt-value.has { color: var(--error); }
+
+/* BH NOTE */
+.bh-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--s50); border-radius: var(--r-sm); padding: 12px;
+  font-size: 11.5px; font-weight: 600; color: var(--text-2); line-height: 1.5;
+}
+.bh-note svg { flex-shrink: 0; margin-top: 1px; color: var(--p500); }
+
+/* BOTTOM ACTION BAR */
+.action-bar {
+  position: sticky; bottom: 0;
+  border-top: 1px solid var(--n200);
+  background: #fff;
+  padding: 12px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.total-row { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+.total-label { font-size: 12.5px; font-weight: 700; color: var(--text-3); }
+.total-value { font-size: 19px; font-weight: 900; color: var(--text-1); }
+.btn-confirm {
+  width: 100%; height: 52px; border-radius: var(--r-sm); border: none;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand)); color: #fff;
+  font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit;
+  box-shadow: 0 4px 14px rgba(37,99,235,.32);
+}
+.btn-confirm:disabled { background: var(--n300); box-shadow: none; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="screen">
+
+  <div class="topbar">
+    <div class="back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13 5 8l5-5"/></svg>
+    </div>
+    <div>
+      <div class="ttl">Bán hàng nhanh</div>
+      <div class="sub">Quét serial → thu tiền → xong</div>
+    </div>
+  </div>
+
+  <div class="body-scroll">
+
+    <!-- SCAN -->
+    <div class="scan-box">
+      <div class="scan-ico">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V4a1 1 0 0 1 1-1h3M3 17v3a1 1 0 0 0 1 1h3M21 7V4a1 1 0 0 0-1-1h-3M21 17v3a1 1 0 0 1-1 1h-3M7 12h10"/></svg>
+      </div>
+      <div class="scan-title">Quét mã serial sản phẩm</div>
+      <div class="scan-sub">Tự nhận sản phẩm, giá bán &amp; thời hạn bảo hành</div>
+      <div class="scan-or">hoặc</div>
+      <input class="input" placeholder="Nhập serial / tìm theo tên sản phẩm...">
+    </div>
+
+    <!-- SẢN PHẨM ĐÃ CHỌN -->
+    <div class="item-card">
+      <div class="item-thumb">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>
+      </div>
+      <div class="item-info">
+        <div class="item-name">iPhone 15 128GB</div>
+        <div class="item-meta">RHM1K7O7PQNI · BH 12 tháng</div>
+      </div>
+      <div class="item-price">15.000.000đ</div>
+      <button class="item-remove">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>
+      </button>
+    </div>
+
+    <!-- KHÁCH HÀNG -->
+    <div class="section">
+      <div class="section-label">Khách hàng</div>
+      <div class="cust-row">
+        <input class="input" placeholder="SĐT hoặc tên khách hàng...">
+        <button class="cust-skip">Khách lẻ</button>
+      </div>
+    </div>
+
+    <!-- SỐ TIỀN -->
+    <div class="section">
+      <div class="section-label">Thanh toán</div>
+      <div class="amount-row">
+        <div class="amount-label">Tổng tiền đơn</div>
+        <div class="amount-value">15.000.000</div>
+      </div>
+      <div class="paid-input-wrap">
+        <span class="paid-suffix">Khách trả</span>
+        <input class="paid-input" id="paid" inputmode="numeric" value="15.000.000">
+      </div>
+      <div class="quick-amounts">
+        <button class="quick-amt-btn" data-val="15000000">Đủ 15.000.000</button>
+        <button class="quick-amt-btn" data-val="10000000">10.000.000</button>
+        <button class="quick-amt-btn" data-val="5000000">5.000.000</button>
+      </div>
+
+      <div class="debt-box none" id="debtBox">
+        <div>
+          <div class="debt-label">Còn nợ khách hàng</div>
+          <div class="debt-hint">Tự lưu vào Công nợ &amp; hồ sơ khách</div>
+        </div>
+        <div class="debt-value none" id="debtValue">Đã thanh toán đủ</div>
+      </div>
+    </div>
+
+    <!-- BH NOTE -->
+    <div class="bh-note">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v3.5M8 11h.01"/></svg>
+      <div>Sau khi xác nhận: tồn kho tự trừ, bảo hành tự kích hoạt theo serial — không cần thao tác thêm.</div>
+    </div>
+
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <div class="total-row">
+      <div class="total-label">Tổng cần thu</div>
+      <div class="total-value">15.000.000đ</div>
+    </div>
+    <button class="btn-confirm">Xác nhận bán hàng</button>
+  </div>
+
+</div>
+
+<script>
+function parseNum(v) { return parseInt(v.replace(/[^\d]/g, ''), 10) || 0; }
+function formatNum(n) { return n.toLocaleString('vi-VN'); }
+
+const TOTAL = 15000000;
+const paidEl = document.getElementById('paid');
+const debtBox = document.getElementById('debtBox');
+const debtValue = document.getElementById('debtValue');
+
+function update() {
+  const paid = parseNum(paidEl.value);
+  const debt = TOTAL - paid;
+  if (debt > 0) {
+    debtBox.classList.remove('none'); debtBox.classList.add('has');
+    debtValue.classList.remove('none'); debtValue.classList.add('has');
+    debtValue.textContent = formatNum(debt) + 'đ';
+  } else {
+    debtBox.classList.remove('has'); debtBox.classList.add('none');
+    debtValue.classList.remove('has'); debtValue.classList.add('none');
+    debtValue.textContent = 'Đã thanh toán đủ';
+  }
+}
+paidEl.addEventListener('input', () => {
+  const raw = parseNum(paidEl.value);
+  paidEl.value = raw ? formatNum(raw) : '';
+  update();
+});
+document.querySelectorAll('.quick-amt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    paidEl.value = formatNum(parseInt(btn.dataset.val, 10));
+    update();
+  });
+});
+update();
+</script>
+</body>
+</html>

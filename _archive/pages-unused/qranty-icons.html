@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty Icon Library v3 — Lucide Stroke</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p500:#2563EB;--p600:#1D4ED8;--p700:#1E40AF;--p800:#1E3A8A;
+  --s50:#EFF6FF;--s100:#DBEAFE;
+  --n50:#F8FAFC;--n100:#F1F5F9;--n200:#E2E8F0;
+  --n400:#94A3B8;--n500:#64748B;--n600:#475569;
+  --n700:#334155;--n800:#1E293B;--n900:#0F172A;
+}
+body{font-family:'Inter',sans-serif;background:var(--n50);color:var(--n900);padding:32px;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;padding-bottom:28px;border-bottom:1px solid var(--n200);flex-wrap:wrap;gap:16px;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-icon{width:44px;height:44px;background:linear-gradient(145deg,#2563EB,#1E3A8A);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(37,99,235,.4),inset 0 1px 0 rgba(255,255,255,.2);}
+.brand-name{font-size:18px;font-weight:900;color:var(--n900);letter-spacing:-.3px;}
+.brand-sub{font-size:11px;color:var(--n400);font-weight:600;margin-top:3px;}
+
+.dl-btn{display:inline-flex;align-items:center;gap:7px;background:var(--p500);color:#fff;font-size:13px;font-weight:700;padding:9px 18px;border-radius:9px;border:none;cursor:pointer;transition:all .14s;box-shadow:0 4px 12px rgba(37,99,235,.3);}
+.dl-btn:hover{background:var(--p700);transform:translateY(-1px);}
+.hint{font-size:11px;color:var(--n400);font-weight:600;margin-top:5px;text-align:right;}
+
+/* ── SPEC BAR ── */
+.spec-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px;}
+.spec-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#fff;border:1px solid var(--n200);border-radius:8px;font-size:12px;font-weight:700;color:var(--n600);}
+.spec-chip svg{color:var(--p500);}
+.spec-chip code{font-family:'Courier New',monospace;color:var(--p500);font-size:11px;}
+
+/* ── SECTION ── */
+.section{margin-bottom:40px;}
+.section-hd{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.section-tag{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--n400);}
+.section-line{flex:1;height:1px;background:var(--n200);}
+.section-count{font-size:10px;font-weight:700;background:var(--n100);color:var(--n500);padding:3px 10px;border-radius:10px;}
+.section-desc{font-size:11.5px;color:var(--n400);font-weight:600;margin-bottom:14px;}
+
+/* ── GRID ── */
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;}
+
+/* ── CARD ── */
+.icon-card{background:#fff;border:1.5px solid var(--n200);border-radius:12px;padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:all .14s;position:relative;overflow:hidden;user-select:none;}
+.icon-card:hover{border-color:var(--p500);box-shadow:0 4px 16px rgba(37,99,235,.13);transform:translateY(-1px);}
+.icon-card:hover .preview svg{stroke:#2563EB;}
+.icon-card:active{transform:scale(.96);}
+/* copy overlay */
+.icon-card::after{content:'Copy SVG';position:absolute;inset:0;background:rgba(37,99,235,.88);color:#fff;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .13s;border-radius:11px;letter-spacing:.04em;}
+.icon-card:hover::after{opacity:1;}
+
+/* ── PREVIEW — flat, no background ── */
+.preview{width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* Remove all gradient classes — icons now flat single-color */
+.navy,.blue,.sky,.green,.teal,.amber,.orange,.purple,.indigo,.red,.rose,.yellow{background:none;box-shadow:none;}
+
+.icon-name {font-size:12px;font-weight:800;color:var(--n700);text-align:center;line-height:1.3;letter-spacing:-.1px;}
+.icon-sub  {font-size:10px;color:var(--n400);font-weight:600;text-align:center;line-height:1.3;}
+.icon-id   {font-size:9px;font-weight:700;color:var(--p500);font-family:'Courier New',monospace;background:var(--s50);padding:2px 7px;border-radius:4px;}
+
+/* ── SIDEBAR PREVIEW ── */
+.sb-wrap{background:var(--n900);border-radius:16px;padding:20px 20px 20px 20px;margin-bottom:40px;display:flex;gap:0;align-items:stretch;}
+.sb-mini{width:188px;flex-shrink:0;background:var(--n900);border-radius:10px;border:1px solid rgba(255,255,255,.07);overflow:hidden;}
+.sb-logo-row{display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sb-logo-box{width:28px;height:28px;background:linear-gradient(145deg,#2563EB,#1E3A8A);border-radius:7px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(37,99,235,.4);flex-shrink:0;}
+.sb-logo-name{font-size:13px;font-weight:900;color:#fff;letter-spacing:-.3px;}
+.sb-body{padding:10px 8px 12px;}
+.sb-grp{font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--n600);padding:6px 8px 4px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;margin-bottom:1.5px;cursor:pointer;position:relative;}
+.sb-item .si-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-item .si-lbl{font-size:12px;font-weight:600;color:var(--n500);}
+.sb-item.act{background:linear-gradient(90deg,rgba(37,99,235,.28),rgba(37,99,235,.07));}
+.sb-item.act .si-lbl{color:#fff;font-weight:700;}
+.sb-item.act::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:#2563EB;border-radius:0 2px 2px 0;}
+/* info panel */
+.sb-info{padding:8px 24px;color:var(--n400);}
+.sb-info h3{font-size:13px;font-weight:800;color:#fff;margin-bottom:8px;}
+.sb-info p{font-size:11.5px;line-height:1.75;margin-bottom:10px;}
+.sb-info code{font-family:'Courier New',monospace;font-size:11px;color:#93C5FD;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:3px;}
+.sb-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.sb-chip{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--n400);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--n900);color:#fff;font-size:12px;font-weight:700;padding:10px 20px;border-radius:999px;opacity:0;transition:all .18s ease;pointer-events:none;white-space:nowrap;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <line x1="14" y1="17.5" x2="21" y2="17.5"/><line x1="17.5" y1="14" x2="17.5" y2="21"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">Qranty Icon Library <span style="font-size:12px;color:var(--n400);font-weight:600">v3 · Lucide</span></div>
+      <div class="brand-sub">Lucide / Heroicons · Stroke style · 38 icons · Click để copy SVG</div>
+    </div>
+  </div>
+  <div>
+    <button class="dl-btn" onclick="downloadAll()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Tải tất cả SVG
+    </button>
+    <div class="hint">Click icon → Copy SVG · Paste vào Figma / code</div>
+  </div>
+</header>
+
+<!-- ── SPEC BAR ── -->
+<div class="spec-bar">
+  <div class="spec-chip">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg>
+    Icon style: <code>stroke</code>, <code>fill="none"</code>
+  </div>
+  <div class="spec-chip">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    Stroke-width: <code>1.5</code> (20px) · <code>1.8</code> (18px) · <code>2</code> (16px)
+  </div>
+  <div class="spec-chip">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+    Sizes: <code>16×16</code> · <code>18×18</code> · <code>20×20</code>
+  </div>
+  <div class="spec-chip">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    Source: Lucide Icons / Heroicons Outline
+  </div>
+  <div class="spec-chip">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Màu trên sidebar: <code>#64748B</code> inactive · <code>#fff</code> active
+  </div>
+</div>
+
+<!-- ── SIDEBAR PREVIEW ── -->
+<div class="sb-wrap">
+  <div class="sb-mini">
+    <div class="sb-logo-row">
+      <div class="sb-logo-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <line x1="14" y1="17.5" x2="21" y2="17.5"/><line x1="17.5" y1="14" x2="17.5" y2="21"/>
+        </svg>
+      </div>
+      <span class="sb-logo-name">Qranty</span>
+    </div>
+    <div class="sb-body">
+      <div class="sb-grp">Quản lý</div>
+      <div class="sb-item act">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <span class="si-lbl">Thao tác nhanh</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <span class="si-lbl">Tổng quan</span>
+      </div>
+      <div class="sb-grp" style="margin-top:8px;">Vận hành</div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <span class="si-lbl">Sản phẩm</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <span class="si-lbl">Kho hàng</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+        <span class="si-lbl">Bảo hành</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="si-lbl">Khách hàng</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+        <span class="si-lbl">Sửa chữa</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></div>
+        <span class="si-lbl">QR Code</span>
+      </div>
+      <div class="sb-grp" style="margin-top:8px;">Nội bộ</div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+        <span class="si-lbl">Công nợ</span>
+      </div>
+      <div class="sb-item">
+        <div class="si-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <span class="si-lbl">Chăm sóc</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-info">
+    <h3>Sidebar — Icon render context</h3>
+    <p>
+      Inactive: <code>stroke="#64748B"</code> &nbsp;·&nbsp; Active: <code>stroke="white"</code><br>
+      Size trong sidebar: <code>16×16px</code> &nbsp;·&nbsp; stroke-width: <code>1.8</code><br>
+      Size trong content (topbar, card): <code>18×18</code> hoặc <code>20×20</code><br>
+      Không dùng <code>fill</code>, không thêm background riêng cho icon trong sidebar.
+    </p>
+    <p>Icon gradient bên dưới dùng cho <strong style="color:#fff">KPI cards &amp; feature sections</strong> — đặt stroke icon trắng lên nền gradient màu.</p>
+    <div class="sb-chips">
+      <span class="sb-chip">Lucide Icons</span>
+      <span class="sb-chip">stroke-linecap: round</span>
+      <span class="sb-chip">stroke-linejoin: round</span>
+      <span class="sb-chip">viewBox 0 0 24 24</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+  01 — QUẢN LÝ (sidebar group)
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">01 · Quản lý</span><div class="section-line"></div><div class="section-count">2</div></div>
+  <p class="section-desc">Thao tác nhanh · Tổng quan</p>
+  <div class="icon-grid" id="g-ql"></div>
+</div>
+
+<!-- ══════════════════════════
+  02 — VẬN HÀNH
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">02 · Vận hành</span><div class="section-line"></div><div class="section-count">6</div></div>
+  <p class="section-desc">Sản phẩm · Kho hàng · Bảo hành · Khách hàng · Sửa chữa · QR Code</p>
+  <div class="icon-grid" id="g-vh"></div>
+</div>
+
+<!-- ══════════════════════════
+  03 — NỘI BỘ
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">03 · Nội bộ</span><div class="section-line"></div><div class="section-count">2</div></div>
+  <p class="section-desc">Công nợ · Chăm sóc khách hàng</p>
+  <div class="icon-grid" id="g-nb"></div>
+</div>
+
+<!-- ══════════════════════════
+  04 — KPI CARDS
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">04 · KPI Cards</span><div class="section-line"></div><div class="section-count">8</div></div>
+  <p class="section-desc">Icon trong stat cards — hiển thị trên nền gradient màu tương ứng từng chỉ số</p>
+  <div class="icon-grid" id="g-kpi"></div>
+</div>
+
+<!-- ══════════════════════════
+  05 — CHARTS & HEADERS
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">05 · Charts &amp; Headers</span><div class="section-line"></div><div class="section-count">8</div></div>
+  <p class="section-desc">Icon tiêu đề widget biểu đồ trong dashboard</p>
+  <div class="icon-grid" id="g-ch"></div>
+</div>
+
+<!-- ══════════════════════════
+  06 — ALERTS & STATUS
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">06 · Alerts &amp; Status</span><div class="section-line"></div><div class="section-count">5</div></div>
+  <p class="section-desc">Thông báo · Trạng thái bảo hành · Cảnh báo hệ thống</p>
+  <div class="icon-grid" id="g-al"></div>
+</div>
+
+<!-- ══════════════════════════
+  07 — SYSTEM & UI
+══════════════════════════ -->
+<div class="section">
+  <div class="section-hd"><span class="section-tag">07 · System &amp; UI</span><div class="section-line"></div><div class="section-count">7</div></div>
+  <p class="section-desc">Icon hành động hệ thống: tìm kiếm, thêm, xóa, cài đặt...</p>
+  <div class="icon-grid" id="g-sys"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ────────────────────────────────────────
+   SVG helper — Lucide / Heroicons stroke
+   All icons: fill="none", stroke="white",
+   stroke-width="1.8", stroke-linecap="round",
+   stroke-linejoin="round", viewBox="0 0 24 24"
+──────────────────────────────────────── */
+function ic(paths, sw) {
+  sw = sw || 1.8;
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+}
+
+const ICONS = {
+
+  /* ── 01 QUẢN LÝ ── */
+  ql: [
+    { name:'Thao tác nhanh', sub:'Quick actions', color:'navy', id:'zap',
+      svg: ic(`<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`) },
+    { name:'Tổng quan', sub:'Dashboard · bar-chart-2', color:'blue', id:'bar-chart-2',
+      svg: ic(`<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`) },
+  ],
+
+  /* ── 02 VẬN HÀNH ── */
+  vh: [
+    { name:'Sản phẩm', sub:'Product · package', color:'sky', id:'package',
+      svg: ic(`<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>`) },
+    { name:'Kho hàng', sub:'Warehouse · home', color:'indigo', id:'home',
+      svg: ic(`<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`) },
+    { name:'Bảo hành', sub:'Warranty · shield-check', color:'green', id:'shield-check',
+      svg: ic(`<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>`) },
+    { name:'Khách hàng', sub:'Customers · users', color:'blue', id:'users',
+      svg: ic(`<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`) },
+    { name:'Sửa chữa', sub:'Repair · wrench', color:'red', id:'wrench',
+      svg: ic(`<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`) },
+    { name:'QR Code', sub:'Scanner · qr-code', color:'navy', id:'qr-code',
+      svg: ic(`<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>`) },
+  ],
+
+  /* ── 03 NỘI BỘ ── */
+  nb: [
+    { name:'Công nợ', sub:'Debt · credit-card', color:'amber', id:'credit-card',
+      svg: ic(`<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>`) },
+    { name:'Chăm sóc', sub:'Care · bell', color:'sky', id:'bell',
+      svg: ic(`<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`) },
+  ],
+
+  /* ── 04 KPI ── */
+  kpi: [
+    { name:'Tổng phiếu', sub:'Total tickets · file-text', color:'blue', id:'file-text',
+      svg: ic(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>`) },
+    { name:'Đã kích hoạt', sub:'Activated · qr-code', color:'navy', id:'qr-code-2',
+      svg: ic(`<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>`) },
+    { name:'KH mới', sub:'New customers · user-plus', color:'green', id:'user-plus',
+      svg: ic(`<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>`) },
+    { name:'Bảo hành KPI', sub:'Warranty · shield', color:'purple', id:'shield',
+      svg: ic(`<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>`) },
+    { name:'Tồn kho KPI', sub:'Stock · layers', color:'amber', id:'layers',
+      svg: ic(`<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>`) },
+    { name:'Doanh thu', sub:'Revenue · dollar-sign', color:'navy', id:'dollar-sign',
+      svg: ic(`<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`) },
+    { name:'Phiếu sửa', sub:'Repair tickets · tool', color:'red', id:'tool',
+      svg: ic(`<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`) },
+    { name:'Linh kiện', sub:'Component · cpu', color:'purple', id:'cpu',
+      svg: ic(`<rect x="9" y="9" width="6" height="6"/><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="9"/><line x1="15" y1="3" x2="15" y2="9"/><line x1="9" y1="15" x2="9" y2="21"/><line x1="15" y1="15" x2="15" y2="21"/><line x1="3" y1="9" x2="9" y2="9"/><line x1="3" y1="15" x2="9" y2="15"/><line x1="15" y1="9" x2="21" y2="9"/><line x1="15" y1="15" x2="21" y2="15"/>`) },
+  ],
+
+  /* ── 05 CHARTS ── */
+  ch: [
+    { name:'Line Chart', sub:'Trend · trending-up', color:'green', id:'trending-up',
+      svg: ic(`<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>`) },
+    { name:'Bar Chart', sub:'Bar · bar-chart', color:'blue', id:'bar-chart',
+      svg: ic(`<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>`) },
+    { name:'Shield Donut', sub:'BH chart · shield', color:'purple', id:'shield-d',
+      svg: ic(`<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="12" x2="15" y2="12"/>`) },
+    { name:'Top KH', sub:'Best · star', color:'amber', id:'star',
+      svg: ic(`<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`) },
+    { name:'Best Seller', sub:'Hot · flame', color:'red', id:'flame',
+      svg: ic(`<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/>`) },
+    { name:'Forecast', sub:'Forecast · calendar', color:'orange', id:'calendar',
+      svg: ic(`<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`) },
+    { name:'Trending Down', sub:'Low · trending-down', color:'indigo', id:'trending-down',
+      svg: ic(`<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>`) },
+    { name:'Lô sản phẩm', sub:'Batch · layers', color:'teal', id:'layers-2',
+      svg: ic(`<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>`) },
+  ],
+
+  /* ── 06 ALERTS ── */
+  al: [
+    { name:'Cảnh báo', sub:'Warning · alert-triangle', color:'yellow', id:'alert-triangle',
+      svg: ic(`<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`) },
+    { name:'Thành công', sub:'OK · check-circle', color:'green', id:'check-circle',
+      svg: ic(`<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`) },
+    { name:'Thông tin', sub:'Info · info', color:'blue', id:'info',
+      svg: ic(`<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`) },
+    { name:'Hết hạn BH', sub:'Expired · shield-x', color:'red', id:'shield-x',
+      svg: ic(`<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>`) },
+    { name:'Sắp hết hạn', sub:'Expiring · bell + clock', color:'amber', id:'bell-alert',
+      svg: ic(`<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="5"/>`) },
+  ],
+
+  /* ── 07 SYSTEM ── */
+  sys: [
+    { name:'Logo Mark', sub:'Brand icon · grid', color:'navy', id:'grid',
+      svg: ic(`<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><line x1="14" y1="17.5" x2="21" y2="17.5"/><line x1="17.5" y1="14" x2="17.5" y2="21"/>`) },
+    { name:'Cài đặt', sub:'Settings · settings', color:'indigo', id:'settings',
+      svg: ic(`<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>`) },
+    { name:'Tải xuống', sub:'Download · download', color:'blue', id:'download',
+      svg: ic(`<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`) },
+    { name:'Tìm kiếm', sub:'Search · search', color:'sky', id:'search',
+      svg: ic(`<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`) },
+    { name:'Thêm mới', sub:'Add new · plus-circle', color:'green', id:'plus-circle',
+      svg: ic(`<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>`) },
+    { name:'Hóa đơn', sub:'Invoice · file-text', color:'teal', id:'receipt',
+      svg: ic(`<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`) },
+    { name:'Xóa', sub:'Delete · trash-2', color:'rose', id:'trash-2',
+      svg: ic(`<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>`) },
+  ],
+
+};
+
+/* ── RENDER ── */
+function render(gridId, arr) {
+  const el = document.getElementById(gridId);
+  if (!el) return;
+  arr.forEach(ic => {
+    const div = document.createElement('div');
+    div.className = 'icon-card';
+    div.innerHTML = `
+      <div class="preview ${ic.color}">${ic.svg}</div>
+      <div class="icon-name">${ic.name}</div>
+      <div class="icon-sub">${ic.sub.split('·')[0].trim()}</div>
+      <div class="icon-id">${ic.id}</div>`;
+    div.addEventListener('click', () => {
+      /* export at 20×20 for production use */
+      const exportSvg = ic.svg
+        .replace('width="22"', 'width="20"')
+        .replace('height="22"', 'height="20"')
+        .replace(/stroke="#475569"/g, 'stroke="currentColor"');
+      navigator.clipboard.writeText(exportSvg.trim())
+        .then(() => toast('✓ Copied  ' + ic.id));
+    });
+    el.appendChild(div);
+  });
+}
+
+render('g-ql',  ICONS.ql);
+render('g-vh',  ICONS.vh);
+render('g-nb',  ICONS.nb);
+render('g-kpi', ICONS.kpi);
+render('g-ch',  ICONS.ch);
+render('g-al',  ICONS.al);
+render('g-sys', ICONS.sys);
+
+/* ── TOAST ── */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/* ── DOWNLOAD ALL (SVG Sprite) ── */
+function downloadAll() {
+  const all = [...ICONS.ql, ...ICONS.vh, ...ICONS.nb, ...ICONS.kpi,
+               ...ICONS.ch, ...ICONS.al, ...ICONS.sys];
+  let out = `<!-- Qranty Icon Library v3 — Lucide Stroke Style — ${all.length} icons -->\n`;
+  out += `<!-- Usage: <use href="#qi-{id}"/> -->\n\n`;
+  out += `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">\n`;
+  all.forEach(ic => {
+    const inner = ic.svg
+      .replace(/<svg[^>]*>/,'')
+      .replace('</svg>','')
+      .replace(/<!--.*?-->/gs,'')
+      .replace('width="22"','').replace('height="22"','')
+      .replace(/stroke="white"/g, 'stroke="currentColor"')
+      .trim();
+    out += `  <symbol id="qi-${ic.id}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">\n    ${inner}\n  </symbol>\n`;
+  });
+  out += `</svg>\n\n`;
+  out += `<!-- Usage examples:\n`;
+  out += `  Sidebar (16px): <svg width="16" height="16"><use href="#qi-zap"/></svg>\n`;
+  out += `  Content (20px): <svg width="20" height="20"><use href="#qi-bar-chart-2"/></svg>\n`;
+  out += `  KPI card (22px): <svg width="22" height="22" stroke="white"><use href="#qi-file-text"/></svg>\n-->\n\n`;
+  all.forEach(ic => {
+    const prod = ic.svg.replace('width="22"','width="20"').replace('height="22"','height="20"')
+                      .replace(/stroke="white"/g,'stroke="currentColor"');
+    out += `<!-- ${ic.name} · ${ic.id} -->\n${prod.trim()}\n\n`;
+  });
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out], { type: 'image/svg+xml' }));
+  a.download = 'qranty-icons-v3-lucide.svg';
+  a.click();
+  toast(`✓ Tải ${all.length} icons — qranty-icons-v3-lucide.svg`);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qranty — Sidebar Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─── shared.css ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --p500: #1F5C99; --p600: #194E80; --p700: #163E66; --p800: #0F2D4E;
+  --brand: #2563EB; --brand-600: #1D4ED8;
+  --s50: #EEF3F8;  --s100: #DCE6EF; --s200: #C2D6E6; --s300: #9BBED9;
+  --success: #22C55E; --warning: #F59E0B; --error: #EF4444;
+  --n50: #F8FAFC; --n100: #F1F5F9; --n200: #E2E8F0; --n300: #CBD5E1;
+  --n400: #94A3B8; --n500: #64748B; --n600: #475569;
+  --n700: #334155; --n800: #1E293B; --n900: #0F172A;
+  --text-1: #0F172A; --text-2: #475569; --text-3: #64748B; --text-4: #94A3B8;
+  --sidebar-w: 220px; --sidebar-w-collapsed: 72px; --topbar-h: 56px;
+  --r: 14px; --r-sm: 8px;
+}
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--n50); color: var(--text-1); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* Sidebar base */
+.sidebar { width: var(--sidebar-w); background: var(--n900); position: fixed; inset: 0 auto 0 0; display: flex; flex-direction: column; z-index: 200; overflow: visible; transition: width .28s cubic-bezier(.4,0,.2,1); }
+body.sb-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
+.sidebar::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 180px; background: radial-gradient(ellipse at 50% -20%, rgba(37,99,235,.3) 0%, transparent 70%); pointer-events: none; }
+
+.sb-collapse-edge { position: absolute; top: 50%; right: -13px; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; border: 1.5px solid var(--n200); color: var(--text-3); cursor: pointer; transition: all .15s ease; z-index: 210; box-shadow: 2px 2px 8px rgba(0,0,0,.12); }
+.sb-collapse-edge:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
+.sb-collapse-edge svg { transition: transform .18s ease; }
+body.sb-collapsed .sb-collapse-edge svg { transform: rotate(180deg); }
+
+.sb-logo { height: var(--topbar-h); display: flex; align-items: center; gap: 10px; padding: 0 14px; position: relative; z-index: 500; isolation: isolate; border-bottom: 1px solid rgba(255,255,255,.05); }
+
+.sb-nav { padding: 10px 9px 0; flex: 1; overflow-y: auto; position: relative; z-index: 1; scrollbar-width: none; }
+.sb-nav::-webkit-scrollbar { display: none; }
+.sb-group { font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--n600); padding: 8px 8px 4px; }
+.nav-item { display: flex; align-items: center; gap: 9px; height: 38px; padding: 0 8px; border-radius: 6px; margin-bottom: 1px; cursor: pointer; color: var(--n400); font-size: 13px; font-weight: 600; transition: all .13s ease; position: relative; user-select: none; text-decoration: none; }
+.nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
+.nav-item.active { background: linear-gradient(90deg, rgba(37,99,235,.3) 0%, rgba(37,99,235,.08) 100%); color: #fff; font-weight: 700; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 7px; bottom: 7px; width: 3px; border-radius: 0 3px 3px 0; background: linear-gradient(180deg, var(--brand), var(--s300)); }
+.ni-box { width: 28px; height: 28px; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .13s ease; }
+.nav-item.active .ni-box { background: linear-gradient(145deg, var(--brand), var(--brand-600)); box-shadow: 0 3px 10px rgba(37,99,235,.45), inset 0 1px 0 rgba(255,255,255,.2); }
+.nav-item.active .ni-box svg * { fill: #fff !important; }
+.nav-item:hover:not(.active) .ni-box { background: rgba(255,255,255,.07); }
+.ni-label { flex: 1; }
+.ni-badge { background: var(--p500); color: #fff; font-size: 9.5px; font-weight: 800; padding: 1px 7px; border-radius: 10px; flex-shrink: 0; }
+
+.sb-footer { padding: 10px 9px; position: relative; z-index: 1; border-top: 1px solid rgba(255,255,255,.05); }
+
+/* Main content area */
+.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; min-width: 0; transition: margin-left .28s cubic-bezier(.4,0,.2,1); }
+body.sb-collapsed .main { margin-left: var(--sidebar-w-collapsed); }
+
+/* ─── sidebar.js injected styles ─── */
+.sb-collapse-edge { top: 14px !important; transform: none !important; }
+body.sb-collapsed .sb-collapse-edge { top: 14px !important; transform: none !important; }
+
+.qr-store-wrap { position: relative; z-index: 300; }
+.qr-store-switcher { display: flex !important; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1) !important; background: rgba(255,255,255,.06) !important; cursor: pointer; text-align: left; transition: background .13s ease, border-color .13s ease; overflow: hidden; }
+.qr-store-switcher:hover { background: rgba(255,255,255,.11) !important; border-color: rgba(255,255,255,.2) !important; }
+.qr-store-switcher.open { background: rgba(255,255,255,.13) !important; border-color: rgba(255,255,255,.22) !important; }
+.qr-store-name { color: #fff !important; font-weight: 700; font-size: 12.5px; }
+.qr-store-sub  { color: rgba(255,255,255,.5) !important; font-size: 10.5px; font-weight: 600; }
+.qr-store-chevron { color: rgba(255,255,255,.4) !important; transition: transform .16s ease; }
+.qr-store-switcher.open .qr-store-chevron { transform: rotate(180deg); }
+
+.qr-store-menu { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: #152238; border: 1px solid rgba(255,255,255,.18); border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06); padding: 6px; z-index: 99999; isolation: isolate; opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top center; transition: opacity .18s ease, transform .18s ease, visibility .18s ease; min-width: 200px; }
+.qr-store-menu.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.qr-store-search { width: 100%; height: 32px; border-radius: 7px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07); color: #fff; padding: 0 10px; font-size: 12px; font-weight: 600; margin-bottom: 6px; font-family: inherit; }
+.qr-store-search::placeholder { color: rgba(255,255,255,.3); }
+.qr-store-search:focus { outline: none; border-color: var(--brand); background: rgba(255,255,255,.1); }
+.qr-store-item { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; transition: background .12s; }
+.qr-store-item:hover { background: rgba(255,255,255,.07); }
+.qr-store-item.active { background: rgba(37,99,235,.2); }
+.qr-store-item-avatar { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; letter-spacing: -.3px; }
+.qr-store-item-avatar[data-color="blue"]   { background: linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; }
+.qr-store-item-avatar[data-color="teal"]   { background: linear-gradient(135deg,#0d9488,#0f766e); color:#fff; }
+.qr-store-item-avatar[data-color="purple"] { background: linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
+.qr-store-item-avatar[data-color="amber"]  { background: linear-gradient(135deg,#d97706,#b45309); color:#fff; }
+.qr-store-item-text { flex: 1; min-width: 0; }
+.qr-store-item-name { color: #fff; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
+.qr-store-item-sub  { color: rgba(255,255,255,.45); font-size: 11px; font-weight: 500; line-height: 1.3; margin-top: 1px; }
+.qr-store-item-check { flex: 0 0 auto; color: #60a5fa; display: flex; }
+.qr-store-menu-divider { height: 1px; background: rgba(255,255,255,.08); margin: 6px 2px; }
+.qr-store-manage { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; color: rgba(255,255,255,.38); font-size: 12px; font-weight: 600; transition: all .12s; }
+.qr-store-manage:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.75); }
+body.sb-collapsed .qr-store-switcher { padding: 8px; justify-content: center; gap: 0; border-radius: 8px; }
+body.sb-collapsed .qr-store-menu { position: fixed !important; left: var(--sidebar-w-collapsed) !important; top: 10px !important; right: auto !important; width: 240px; border-radius: 12px; transform-origin: top left; }
+body.sb-collapsed .ni-label { font-size: 8px !important; font-weight: 600; letter-spacing: .01em; }
+
+.sb-brand { display: flex; align-items: center; gap: 8px; padding: 0 2px; user-select: none; }
+.sb-brand-logo { height: 32px; width: 32px; object-fit: contain; display: block; flex-shrink: 0; }
+.sb-brand-name { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 17px; color: #fff; letter-spacing: -.2px; line-height: 1; white-space: nowrap; }
+body.sb-collapsed .sb-brand { justify-content: center; padding: 0; }
+body.sb-collapsed .sb-brand-name { display: none; }
+
+.sb-mode-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 12px; }
+.sb-mode-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #fff; }
+.sb-mode-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+body:not(.mode-store) .sb-mode-badge-dot { background: #A78BFA; }
+body.mode-store .sb-mode-badge-dot { background: #4ADE80; }
+.sb-mode-toggle { position: relative; width: 40px; height: 24px; flex-shrink: 0; }
+.sb-mode-toggle input { opacity: 0; width: 0; height: 0; }
+.sb-mode-toggle-slider { position: absolute; inset: 0; border-radius: 999px; cursor: pointer; background: rgba(255,255,255,.2); transition: background .2s ease; }
+.sb-mode-toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .22s cubic-bezier(.4,0,.2,1); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.sb-mode-toggle input:checked + .sb-mode-toggle-slider { background: #4ADE80; }
+.sb-mode-toggle input:checked + .sb-mode-toggle-slider::before { transform: translateX(16px); }
+
+/* Account menu */
+.sb-account { padding: 8px 9px 12px; position: relative; z-index: 1; border-top: 1px solid rgba(255,255,255,.05); }
+.sb-account-trigger { display: flex; align-items: center; gap: 9px; width: 100%; padding: 8px; border-radius: 8px; background: none; border: none; cursor: pointer; transition: background .13s; }
+.sb-account-trigger:hover { background: rgba(255,255,255,.07); }
+.sb-account-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(145deg, var(--brand), var(--brand-600)); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
+.sb-account-text { flex: 1; min-width: 0; text-align: left; }
+.sb-account-name { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-account-email { font-size: 10px; color: var(--n500); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-account-chevron { color: var(--n500); transition: transform .15s; flex-shrink: 0; }
+.sb-account-trigger.open .sb-account-chevron { transform: rotate(180deg); }
+body.sb-collapsed .sb-account-text, body.sb-collapsed .sb-account-chevron { display: none; }
+body.sb-collapsed .sb-account-trigger { justify-content: center; }
+.sb-account-menu { position: absolute; bottom: calc(100% + 4px); left: 9px; right: 9px; background: #1a2d4a; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 6px; box-shadow: 0 -8px 32px rgba(0,0,0,.4); opacity: 0; visibility: hidden; transform: translateY(6px) scale(.98); transform-origin: bottom center; transition: opacity .15s, transform .15s, visibility .15s; z-index: 500; }
+.sb-account-menu.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.sb-account-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; color: rgba(255,255,255,.7); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background .12s; text-decoration: none; font-family: inherit; background: none; border: none; width: 100%; }
+.sb-account-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.sb-account-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.sb-account-item.logout { color: #f87171; }
+.sb-account-item.logout:hover { background: rgba(239,68,68,.12); }
+.sb-account-divider { height: 1px; background: rgba(255,255,255,.08); margin: 4px 2px; }
+
+/* collapsed hidden */
+body.sb-collapsed .sb-group { opacity: 0; pointer-events: none; }
+body.sb-collapsed .nav-item { justify-content: center; padding: 0; }
+body.sb-collapsed .nav-badge { display: none; }
+
+/* Demo page */
+.demo-main { margin-left: var(--sidebar-w); flex: 1; display: flex; align-items: center; justify-content: center; transition: margin-left .28s cubic-bezier(.4,0,.2,1); padding: 2rem; }
+body.sb-collapsed .demo-main { margin-left: var(--sidebar-w-collapsed); }
+.demo-card { background: #fff; border-radius: 16px; padding: 2rem 2.5rem; box-shadow: 0 2px 16px rgba(0,0,0,.08); text-align: center; color: #64748b; font-size: 14px; line-height: 1.6; }
+.demo-card h2 { margin: 0 0 .5rem; color: #1e293b; font-size: 18px; font-weight: 700; }
+.demo-card code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #2563eb; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <button class="sb-collapse-edge" onclick="toggleSidebar()" title="Thu gọn">
+    <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4 6 9l5 5"/></svg>
+  </button>
+  <div class="sb-logo">
+    <div class="qr-store-wrap">
+      <div class="sb-brand">
+        <img class="sb-brand-logo" src="../../icon qranty.png" alt="Qranty">
+        <span class="sb-brand-name">Qranty</span>
+      </div>
+
+      <div class="qr-store-menu" id="storeMenu">
+        <input class="qr-store-search" placeholder="Tìm chi nhánh...">
+
+        <div class="qr-store-item active" onclick="switchStore(this)">
+          <div class="qr-store-item-avatar" data-color="blue">Q1</div>
+          <div class="qr-store-item-text">
+            <div class="qr-store-item-name">Qranty Quận 1</div>
+            <div class="qr-store-item-sub">Chủ cửa hàng · TP.HCM</div>
+          </div>
+          <div class="qr-store-item-check">
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 7 13 14.5 4.5"/></svg>
+          </div>
+        </div>
+        <div class="qr-store-item" onclick="switchStore(this)">
+          <div class="qr-store-item-avatar" data-color="teal">TĐ</div>
+          <div class="qr-store-item-text">
+            <div class="qr-store-item-name">Qranty Thủ Đức</div>
+            <div class="qr-store-item-sub">Quản lý · TP.HCM</div>
+          </div>
+        </div>
+        <div class="qr-store-item" onclick="switchStore(this)">
+          <div class="qr-store-item-avatar" data-color="purple">HN</div>
+          <div class="qr-store-item-text">
+            <div class="qr-store-item-name">Qranty Hà Nội</div>
+            <div class="qr-store-item-sub">Nhân viên · Hà Nội</div>
+          </div>
+        </div>
+
+        <div class="qr-store-menu-divider"></div>
+        <div class="qr-store-manage">
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.4"/><path d="M9 1.8v2.3M9 13.9v2.3M16.2 9h-2.3M4.1 9H1.8M14.1 3.9l-1.6 1.6M5.5 12.5 3.9 14.1M14.1 14.1l-1.6-1.6M5.5 5.5 3.9 3.9"/></svg>
+          Quản lý chi nhánh
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="sb-group">Quản lý</div>
+
+    <a href="#" class="nav-item" data-page="thao-tac-nhanh">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.2 1.5 3.5 9.8h4.3l-.8 6.7 6.7-8.3H9.4z"/>
+        </svg>
+      </div>
+      <span class="ni-label">Thao tác nhanh</span>
+    </a>
+
+    <a href="#" class="nav-item active" data-page="dashboard">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="9.5" width="3.6" height="6.5" rx="1"/>
+          <rect x="7.2" y="5.5" width="3.6" height="10.5" rx="1"/>
+          <rect x="12.4" y="2" width="3.6" height="14" rx="1"/>
+        </svg>
+      </div>
+      <span class="ni-label">Tổng quan</span>
+    </a>
+
+    <div class="sb-group">Vận hành</div>
+
+    <a href="#" class="nav-item" data-page="san-pham">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 5.8 9 2l7 3.8v6.4L9 16l-7-3.8z"/>
+          <path d="M2 5.8 9 9.5l7-3.7M9 9.5V16"/>
+        </svg>
+      </div>
+      <span class="ni-label">Sản phẩm</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="kho-hang">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="14" height="5" rx="1.2"/><rect x="2" y="9" width="14" height="7" rx="1.2"/><path d="M6 12.5h6"/>
+        </svg>
+      </div>
+      <span class="ni-label">Kho hàng</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="bao-hanh">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/>
+          <path d="M6.5 9.5L8.2 11.3L11.5 7.3"/>
+        </svg>
+      </div>
+      <span class="ni-label">Bảo hành</span>
+      <span class="ni-badge">15</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="khach-hang">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7" cy="6" r="2.6"/>
+          <path d="M2 15.5c0-3 2.2-5 5-5s5 2 5 5"/>
+          <circle cx="13.2" cy="6.5" r="1.9"/>
+          <path d="M11.8 10.7c2 .2 3.7 1.8 3.7 4.8"/>
+        </svg>
+      </div>
+      <span class="ni-label">Khách hàng</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="repair-kanban">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11.3 2.7a3 3 0 0 0-4.1 4.1l-5 5v2.5h2.5l5-5a3 3 0 0 0 4.1-4.1l-2 2-1.9-1.9z"/>
+        </svg>
+      </div>
+      <span class="ni-label">Sửa chữa</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="qr-code">
+      <div class="ni-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+      </div>
+      <span class="ni-label">QR Code</span>
+    </a>
+
+    <div class="sb-group">Nội bộ</div>
+
+    <a href="#" class="nav-item fin-only" data-page="cong-no">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 1.8h5l3.2 3.2v10.7H5z"/>
+          <path d="M10 1.8v3.2h3.2"/>
+          <path d="M7 9.6h4M7 12.4h4"/>
+        </svg>
+      </div>
+      <span class="ni-label">Công nợ</span>
+    </a>
+
+    <a href="#" class="nav-item" data-page="thong-bao">
+      <div class="ni-box">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 1.5C6 1.5 4.5 3.5 4.5 6.5V9.5L2.5 12.5H15.5L13.5 9.5V6.5C13.5 3.5 12 1.5 9 1.5Z"/>
+          <path d="M7 14.5C7 15.6 7.9 16.5 9 16.5C10.1 16.5 11 15.6 11 14.5"/>
+        </svg>
+      </div>
+      <span class="ni-label">Chăm sóc lại</span>
+    </a>
+  </div>
+
+  <div class="sb-account">
+    <button class="sb-account-trigger" id="accountTrigger" onclick="toggleAccountMenu(event)" title="Ngô Quốc Hậu · haunq1997@gmail.com">
+      <div class="sb-account-avatar">NH</div>
+      <div class="sb-account-text">
+        <div class="sb-account-name">Ngô Quốc Hậu</div>
+        <div class="sb-account-email">haunq1997@gmail.com</div>
+      </div>
+      <div class="sb-account-chevron">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 8.5L7 5.5L10 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </div>
+    </button>
+
+    <div class="sb-account-menu" id="accountMenu">
+      <a href="#" class="sb-account-item" data-page="cai-dat">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.4"/><path d="M9 1.8v2.3M9 13.9v2.3M16.2 9h-2.3M4.1 9H1.8M14.1 3.9l-1.6 1.6M5.5 12.5 3.9 14.1M14.1 14.1l-1.6-1.6M5.5 5.5 3.9 3.9"/></svg>
+        Cài đặt
+      </a>
+      <a href="#" class="sb-account-item">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M6.7 7a2.3 2.3 0 0 1 4.4.9c0 1.5-2.1 1.8-2.1 3.4"/><path d="M9 13.4v.01"/></svg>
+        Trợ giúp
+      </a>
+      <a href="#" class="sb-account-item">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M7.2 6.2v5.6l4.8-2.8z" fill="currentColor" stroke="none"/></svg>
+        Hướng dẫn sử dụng
+      </a>
+      <a href="#" class="sb-account-item">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="14" height="11" rx="1.8"/><path d="M2.5 4.5 9 10l6.5-5.5"/></svg>
+        Liên hệ
+      </a>
+      <div class="sb-account-divider"></div>
+      <a href="#" class="sb-account-item logout">
+        <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2H3.5A1.5 1.5 0 0 0 2 3.5v11A1.5 1.5 0 0 0 3.5 16H7"/><path d="M12 12.5 16 9l-4-3.5M16 9H6.5"/></svg>
+        Đăng xuất
+      </a>
+    </div>
+  </div>
+</aside>
+
+<div class="demo-main">
+  <div class="demo-card">
+    <h2>Sidebar Preview</h2>
+    Trang này chỉ để xem trước sidebar.<br>
+    Mọi thay đổi trong <code>sidebar.js</code> sẽ phản ánh ngay tại đây.
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.body.classList.toggle('sb-collapsed');
+  localStorage.setItem('qranty-sb', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+}
+
+function toggleStoreMenu() {
+  var menu    = document.getElementById('storeMenu');
+  var trigger = document.getElementById('storeSwitcher');
+  if (!menu) return;
+  var isOpen = menu.classList.contains('open');
+  if (isOpen) {
+    menu.classList.remove('open');
+    if (trigger) trigger.classList.remove('open');
+  } else {
+    menu.classList.add('open');
+    if (trigger) trigger.classList.add('open');
+    var search = menu.querySelector('.qr-store-search');
+    if (search) setTimeout(function() { search.focus(); }, 60);
+  }
+}
+
+function toggleAccountMenu(e) {
+  e.stopPropagation();
+  var menu    = document.getElementById('accountMenu');
+  var trigger = document.getElementById('accountTrigger');
+  menu.classList.toggle('open');
+  trigger.classList.toggle('open');
+}
+
+function switchStore(el) {
+  document.querySelectorAll('.qr-store-item').forEach(function(i) { i.classList.remove('active'); });
+  el.classList.add('active');
+  var name  = el.querySelector('.qr-store-item-name');
+  var nameEl = document.querySelector('.qr-store-name');
+  if (name && nameEl) nameEl.textContent = name.textContent;
+  var menu    = document.getElementById('storeMenu');
+  var trigger = document.getElementById('storeSwitcher');
+  if (menu)    menu.classList.remove('open');
+  if (trigger) trigger.classList.remove('open');
+}
+
+document.addEventListener('click', function(e) {
+  var storeWrap = document.querySelector('.qr-store-wrap');
+  if (storeWrap && !storeWrap.contains(e.target)) {
+    var menu    = document.getElementById('storeMenu');
+    var trigger = document.getElementById('storeSwitcher');
+    if (menu)    menu.classList.remove('open');
+    if (trigger) trigger.classList.remove('open');
+  }
+  var accountWrap = document.querySelector('.sb-account');
+  if (accountWrap && !accountWrap.contains(e.target)) {
+    document.getElementById('accountMenu').classList.remove('open');
+    document.getElementById('accountTrigger').classList.remove('open');
+  }
+});
+
+(function() {
+  if (localStorage.getItem('qranty-sb') === '1') document.body.classList.add('sb-collapsed');
+  var m = localStorage.getItem('qranty-mode') || 'bh';
+  var toggle = document.getElementById('sbModeToggle');
+  if (toggle) toggle.checked = (m === 'store');
+})();
+</script>
+</body>
+</html>
