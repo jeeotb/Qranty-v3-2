@@ -1,4 +1,7 @@
 (function() {
+  var currentPlan = 'Pro';
+  try { currentPlan = localStorage.getItem('qranty-billing-plan') || 'Pro'; } catch(e) {}
+
   var SIDEBAR_HTML = `<style data-sidebar-toggle>
 /* Collapse button: move to top */
 .sb-collapse-edge { top: 14px !important; transform: none !important; }
@@ -355,7 +358,7 @@ body.mode-store .sb-mode-badge-dot { background: #4ADE80; }
           <div class="sba-profile-email">haunq1997@gmail.com</div>
           <span class="sba-plan-badge">
             <svg width="9" height="9" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L15.5 4.5V10C15.5 13.3 12.6 16 9 16.5C5.4 16 2.5 13.3 2.5 10V4.5Z"/><path d="M6.5 9.5L8.2 11.3L11.5 7.3"/></svg>
-            Admin
+            ${currentPlan}
           </span>
         </div>
       </div>
@@ -373,7 +376,7 @@ body.mode-store .sb-mode-badge-dot { background: #4ADE80; }
         </div>
         <div class="sba-info-row">
           <span class="sba-info-key">Gói dịch vụ</span>
-          <span class="sba-info-val sba-info-val--plan">Admin</span>
+          <span class="sba-info-val sba-info-val--plan">${currentPlan}</span>
         </div>
         <div class="sba-info-row" style="border-bottom:none">
           <span class="sba-info-key">Chi nhánh</span>
@@ -391,7 +394,7 @@ body.mode-store .sb-mode-badge-dot { background: #4ADE80; }
         <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M6.7 7a2.3 2.3 0 0 1 4.4.9c0 1.5-2.1 1.8-2.1 3.4"/><path d="M9 13.4v.01"/></svg>
         Trợ giúp
       </a>
-      <a href="#" class="sb-account-item">
+      <a href="https://qranty-guide.vercel.app" target="_blank" class="sb-account-item">
         <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M7.2 6.2v5.6l4.8-2.8z" fill="currentColor" stroke="none"/></svg>
         Hướng dẫn sử dụng
       </a>
@@ -438,12 +441,24 @@ body.mode-store .sb-mode-badge-dot { background: #4ADE80; }
     navItem.classList.add('active');
   }
 
+  // Đổi tên mục "Thao tác nhanh" theo chế độ: Cửa hàng → Tạo phiếu bán hàng,
+  // Trung tâm bảo hành → Tạo phiếu bảo hành. Gọi lại được khi đổi chế độ.
+  function _updateQuickLabel() {
+    var m = 'bh'; try { m = localStorage.getItem('qranty-mode') || 'bh'; } catch (e) {}
+    var lbl = document.querySelector('.nav-item[data-page="thao-tac-nhanh"] .ni-label');
+    if (lbl) lbl.textContent = (m === 'store') ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành';
+  }
+  _updateQuickLabel();
+  window.qrantyUpdateQuickLabel = _updateQuickLabel;
+
   // Sync toggle + dot with localStorage mode
   document.addEventListener('DOMContentLoaded', function() {
     var m = localStorage.getItem('qranty-mode') || 'bh';
     var toggle = document.getElementById('sbModeToggle');
     if (toggle) toggle.checked = (m === 'store');
+    _updateQuickLabel();
   });
+  window.addEventListener('storage', function (e) { if (e.key === 'qranty-mode') _updateQuickLabel(); });
 })();
 
 /* ── Store switcher toggle (global, called from onclick) ──────── */

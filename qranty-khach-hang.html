@@ -228,6 +228,8 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
 <script src="./thuchi-store.js"></script>
 <script src="./customer-store.js"></script>
 <script src="./warranty-store.js"></script>
+<script src="./date-range-filter.js"></script>
+<script src="./qranty-confirm.js"></script>
 
 <!-- MAIN -->
 <main class="main">
@@ -283,6 +285,7 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
         <option>Có công nợ</option>
         <option>Đang bảo hành</option>
       </select>
+      <span id="khDateRange" title="Lọc theo ngày tạo khách hàng"></span>
       <div class="kh-spacer"></div>
       <div class="col-filter-wrap">
         <button class="btn-outline">
@@ -866,7 +869,8 @@ function khRender(){
   var tb = document.getElementById('custTbody'); if (!tb || !window.QrantyKhach) return;
   var q = (document.getElementById('khSearch') || {}).value || '';
   var list = q ? QrantyKhach.search(q) : QrantyKhach.getAll();
-  
+  if (window.khDR) list = list.filter(function (c) { return khDR.inRange(c.createdAt); }); // lọc theo ngày tạo
+
   var totalItems = list.length;
   var pageSize = 10;
   var totalPages = Math.ceil(totalItems / pageSize) || 1;
@@ -897,10 +901,15 @@ function khRender(){
 }
 
 function khDelete(id){
-  if (confirm('Xoá khách hàng này khỏi danh sách?')) { QrantyKhach.remove(id); khRender(); }
+  qConfirm('Xoá khách hàng này khỏi danh sách?', function () {
+    QrantyKhach.remove(id); khRender();
+  }, { title: 'Xóa khách hàng', okText: 'Xóa', danger: true });
 }
 
-document.addEventListener('DOMContentLoaded', khRender);
+document.addEventListener('DOMContentLoaded', function () {
+  window.khDR = QrantyDateRange.mount({ el: '#khDateRange', onChange: function () { khCurrentPage = 1; khRender(); } });
+  khRender();
+});
 </script>
 
 <!-- Confirm mode switch modal -->

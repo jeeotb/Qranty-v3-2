@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hóa đơn điện tử VAT — Qranty</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1e3b8b;
+    --text: #1f2937;
+    --border: #d1d5db;
+    --bg-light: #f9fafb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: var(--text);
+    background: #e5e7eb;
+    padding: 40px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .invoice-paper {
+    background: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  
+  /* Watermark background */
+  .invoice-paper::after {
+    content: 'QRANTY INVOICE';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 70px; font-weight: 900;
+    color: rgba(30, 59, 139, 0.04);
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: 4px;
+    white-space: nowrap;
+  }
+
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .company-logo-sec {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 42px; height: 42px; border-radius: 8px;
+    background: linear-gradient(145deg, #2563EB, #0F2D4E);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px; font-weight: 900;
+  }
+  .logo-title {
+    font-size: 22px; font-weight: 800; color: #0F172A;
+  }
+  
+  .invoice-meta-sec {
+    text-align: right;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .invoice-meta-sec h1 {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .mono-code {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 14.5px;
+    color: #b91c1c;
+  }
+
+  .party-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+  .party-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    background: var(--bg-light);
+  }
+  .party-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+  
+  .table-sec {
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  .invoice-table th, .invoice-table td {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+  .invoice-table th {
+    background: #f3f4f6;
+    font-weight: 800;
+    color: #374151;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  .summary-sec {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+  }
+  .summary-table {
+    width: 320px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .summary-table td {
+    padding: 6px 12px;
+    text-align: right;
+  }
+  .summary-table tr.total-row td {
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--primary);
+    border-top: 1.5px solid var(--primary);
+    padding-top: 8px;
+  }
+
+  .word-amount-sec {
+    font-size: 12.5px;
+    font-style: italic;
+    margin-bottom: 36px;
+    border: 1px dashed var(--border);
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--bg-light);
+    position: relative;
+    z-index: 1;
+  }
+
+  .signatures-sec {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    text-align: center;
+    font-size: 12.5px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .signature-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 120px;
+  }
+  .signature-box .title {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .signature-box .sub {
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 24px;
+  }
+  
+  .digital-stamp {
+    border: 2px solid #b91c1c;
+    color: #b91c1c;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-weight: 800;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    line-height: 1.4;
+    transform: rotate(-3deg);
+    max-width: 220px;
+    background: rgba(253, 242, 242, 0.9);
+  }
+
+  .action-bar {
+    max-width: 800px;
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 38px; padding: 0 16px; border-radius: 6px;
+    font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none;
+    transition: all 0.15s; border: 1px solid var(--border);
+    background: #fff; color: var(--text);
+  }
+  .btn:hover { background: #f3f4f6; }
+  .btn-primary {
+    background: var(--primary); color: #fff; border: none;
+    box-shadow: 0 4px 12px rgba(30,59,139,0.25);
+  }
+  .btn-primary:hover { background: #162c66; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .invoice-paper { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+    .action-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="invoice-paper" id="print-area">
+  <!-- Header -->
+  <div class="header-grid">
+    <div class="company-logo-sec">
+      <div class="logo-icon">Q</div>
+      <div>
+        <div class="logo-title">Qranty</div>
+        <div style="font-size:10px; color:#6b7280; font-weight:600; margin-top:2px;">Nền tảng Quản lý bán hàng &amp; Bảo hành</div>
+      </div>
+    </div>
+    
+    <div class="invoice-meta-sec">
+      <h1>Hóa đơn giá trị gia tăng</h1>
+      <div>Mẫu số (Form): <span style="font-weight:600;">1/001</span></div>
+      <div>Ký hiệu (Serial): <span style="font-weight:600;">QT/26E</span></div>
+      <div>Số hóa đơn (No.): <span class="mono-code" id="inv-no">INV-20260620-0012</span></div>
+      <div style="font-size:11px; color:#6b7280; margin-top:4px;">Ngày phát hành: <span id="inv-date" style="font-weight:700;">20/06/2026</span></div>
+    </div>
+  </div>
+
+  <!-- Parties -->
+  <div class="party-grid">
+    <!-- Seller -->
+    <div class="party-box">
+      <div class="party-title">Đơn vị bán hàng (Seller)</div>
+      <div style="font-size:13.5px; font-weight:800; color:var(--primary); margin-bottom:4px;">CÔNG TY CỔ PHẦN QRANTY VIỆT NAM</div>
+      <div>Mã số thuế (Tax ID): <strong>0317888999</strong></div>
+      <div>Địa chỉ: Tầng 5, Tòa nhà Qranty, Lê Lợi, Quận 1, TP. Hồ Chí Minh</div>
+      <div>Email: billing@qranty.vn</div>
+      <div>Số tài khoản: 992563EB2026 tại MBBank</div>
+    </div>
+
+    <!-- Buyer -->
+    <div class="party-box">
+      <div class="party-title">Đơn vị mua hàng (Buyer)</div>
+      <div style="font-size:13.5px; font-weight:800; color:#000; margin-bottom:4px;" id="buyer-name">-</div>
+      <div>Mã số thuế (Tax ID): <strong id="buyer-tax">-</strong></div>
+      <div>Địa chỉ: <span id="buyer-addr">-</span></div>
+      <div>Email nhận hóa đơn: <span id="buyer-email">-</span></div>
+      <div>Hình thức thanh toán: <strong>Chuyển khoản (payOS)</strong></div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-sec">
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th style="width:50px; text-align:center;">STT</th>
+          <th>Tên dịch vụ / Hàng hóa</th>
+          <th style="width:90px; text-align:center;">Đơn vị</th>
+          <th style="width:80px; text-align:center;">Số lượng</th>
+          <th style="width:130px; text-align:right;">Đơn giá (chưa VAT)</th>
+          <th style="width:140px; text-align:right;">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="text-align:center;">1</td>
+          <td><strong id="invoice-item-desc">Gói phần mềm Qranty Pro</strong></td>
+          <td style="text-align:center;">Tháng</td>
+          <td style="text-align:center;" id="invoice-qty">12</td>
+          <td style="text-align:right;" id="invoice-unit-price">-</td>
+          <td style="text-align:right;" id="invoice-amount">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-sec">
+    <table class="summary-table">
+      <tr>
+        <td style="color:#6b7280; font-weight:600;">Cộng tiền dịch vụ:</td>
+        <td id="sum-pretax" style="font-weight:700;">-</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-weight:600;">Thuế suất GTGT:</td>
+        <td style="font-weight:700;">10%</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-weight:600;">Tiền thuế GTGT:</td>
+        <td id="sum-vat" style="font-weight:700;">-</td>
+      </tr>
+      <tr class="total-row">
+        <td>Tổng cộng tiền thanh toán:</td>
+        <td id="sum-total">-</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Word representation -->
+  <div class="word-amount-sec">
+    Số tiền viết bằng chữ (In words): <strong id="word-amount" style="color:var(--primary);">-</strong>
+  </div>
+
+  <!-- Signatures -->
+  <div class="signatures-sec">
+    <div class="signature-box">
+      <div class="title">Người mua hàng (Buyer)</div>
+      <div class="sub">(Ký, ghi rõ họ tên)</div>
+      <div style="font-size:11.5px; color:#9ca3af; margin-top:20px;">(Ký điện tử / Digitally signed)</div>
+    </div>
+    
+    <div class="signature-box">
+      <div class="title">Người bán hàng (Seller)</div>
+      <div class="sub">(Ký, đóng dấu điện tử)</div>
+      
+      <!-- Electronic Signature stamp box -->
+      <div class="digital-stamp" id="seller-stamp">
+        <div>Ký bởi: CP Qranty VN</div>
+        <div style="font-size:9.5px; font-weight:normal; margin-top:2px;">Ngày ký (Date): <span id="stamp-date">20/06/2026</span></div>
+        <div style="font-size:8.5px; font-weight:bold; color:#16a34a; margin-top:2px;">HỢP LỆ (VALID SIGNATURE)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="action-bar">
+  <a href="./qranty-cai-dat.html?settings=thanh-toan" class="btn">
+    ← Về trang Quản lý thanh toán
+  </a>
+  <button class="btn btn-primary" onclick="window.print()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    In hóa đơn / Lưu PDF
+  </button>
+</div>
+
+<script>
+function formatVND(amt) {
+  return amt.toLocaleString('vi-VN') + 'đ';
+}
+
+function convertNumberToWords(amount) {
+  // Simple VN Currency word converter for mock values
+  var sText = "";
+  if (amount === 5880000) return "Năm triệu tám trăm tám mươi nghìn đồng chẵn.";
+  if (amount === 290000) return "Hai trăm chín mươi nghìn đồng chẵn.";
+  if (amount === 1470000) return "Một triệu bốn trăm bảy mươi nghìn đồng chẵn.";
+  if (amount === 4998000) return "Bốn triệu chín trăm chín mươi tám nghìn đồng chẵn.";
+  if (amount === 1249500) return "Một triệu hai trăm bốn mươi chín nghìn năm trăm đồng.";
+  if (amount === 10098000) return "Mười triệu không trăm chín mươi tám nghìn đồng chẵn.";
+  if (amount === 870000) return "Tám trăm bảy mươi nghìn đồng chẵn.";
+  if (amount === 841500) return "Tám trăm bốn mươi mốt nghìn năm trăm đồng.";
+  
+  // Basic fallback
+  return amount.toLocaleString('vi-VN') + " đồng.";
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var qs = new URLSearchParams(window.location.search);
+  var id = qs.get('id');
+  
+  var invoiceData = null;
+  if (id) {
+    try {
+      var raw = localStorage.getItem('invoice-detail-' + id);
+      if (raw) invoiceData = JSON.parse(raw);
+    } catch(e) {}
+  }
+  
+  // Fallbacks if not in storage (e.g. initial view of seeded transaction)
+  if (!invoiceData) {
+    var dateText = '20/06/2026';
+    if (id && id.indexOf('-') > 0) {
+      var parts = id.split('-');
+      if (parts[1] && parts[1].length === 8) {
+        var y = parts[1].slice(0, 4);
+        var m = parts[1].slice(4, 6);
+        var d = parts[1].slice(6, 8);
+        dateText = d + '/' + m + '/' + y;
+      }
+    }
+    
+    // Seed default mock invoice details
+    var seedConfig = {
+      companyName: 'Công ty TNHH Qranty Việt Nam',
+      taxId: '0109123456',
+      address: 'Số 10, Đường 3/2, Phường 12, Quận 10, TP. Hồ Chí Minh',
+      email: 'haunq1997@gmail.com'
+    };
+    
+    // Read from global config if available
+    try {
+      var localConf = localStorage.getItem('qranty-billing-invoice-info');
+      if (localConf) {
+        var parsed = JSON.parse(localConf);
+        if (parsed.companyName) seedConfig = parsed;
+      }
+    } catch(e) {}
+
+    // Guess pkg based on amount or default
+    var isStd = id && id.indexOf('089') >= 0;
+    var pkgName = isStd ? 'Standard' : 'Pro';
+    var period = isStd ? '1 tháng' : '12 tháng';
+    var totalAmount = isStd ? 290000 : 5880000;
+
+    invoiceData = {
+      invoiceId: id || 'INV-20260620-0012',
+      issueDate: dateText,
+      buyer: seedConfig,
+      package: pkgName,
+      period: period,
+      amount: totalAmount
+    };
+  }
+
+  // If loading a dynamically created transaction via store
+  if (invoiceData.txId && !invoiceData.amount) {
+    try {
+      var rawTxs = localStorage.getItem('qranty-billing-transactions');
+      if (rawTxs) {
+        var txs = JSON.parse(rawTxs);
+        var matchingTx = txs.filter(function(t) { return t.id === invoiceData.txId; })[0];
+        if (matchingTx) {
+          invoiceData.package = matchingTx.package;
+          invoiceData.period = matchingTx.period;
+          invoiceData.amount = matchingTx.amount;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Pre-fill fields
+  document.getElementById('inv-no').textContent = invoiceData.invoiceId;
+  document.getElementById('inv-date').textContent = invoiceData.issueDate;
+  document.getElementById('stamp-date').textContent = invoiceData.issueDate + ' 08:35:12';
+  
+  var buyer = invoiceData.buyer || {};
+  document.getElementById('buyer-name').textContent = buyer.companyName || 'Khách hàng vãng lai';
+  document.getElementById('buyer-tax').textContent = buyer.taxId || 'Cá nhân không có MST';
+  document.getElementById('buyer-addr').textContent = buyer.address || 'Chưa cung cấp địa chỉ';
+  document.getElementById('buyer-email').textContent = buyer.email || 'Chưa cung cấp email';
+
+  var pkg = invoiceData.package || 'Pro';
+  var periodStr = invoiceData.period || '12 tháng';
+  document.getElementById('invoice-item-desc').textContent = 'Gói phần mềm Qranty ' + pkg;
+  
+  var monthsVal = parseInt(periodStr) || 1;
+  document.getElementById('invoice-qty').textContent = monthsVal;
+
+  var total = invoiceData.amount || 5880000;
+  var preTax = Math.round(total / 1.1);
+  var vat = total - preTax;
+  var unitPrice = Math.round(preTax / monthsVal);
+
+  document.getElementById('invoice-unit-price').textContent = formatVND(unitPrice);
+  document.getElementById('invoice-amount').textContent = formatVND(preTax);
+  
+  document.getElementById('sum-pretax').textContent = formatVND(preTax);
+  document.getElementById('sum-vat').textContent = formatVND(vat);
+  document.getElementById('sum-total').textContent = formatVND(total);
+  
+  document.getElementById('word-amount').textContent = convertNumberToWords(total);
+});
+</script>
+</body>
+</html>

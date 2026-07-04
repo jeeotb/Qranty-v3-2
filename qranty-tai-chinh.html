@@ -155,6 +155,7 @@ textarea.tcm-input { height: 70px; padding: 10px 12px; resize: vertical; line-he
 <script src="./sidebar.js"></script>
 <script src="./thuchi-store.js"></script>
 <script src="./order-store.js"></script>
+<script src="./date-range-filter.js"></script>
 <script src="./qr-draw.js"></script>
 
 <main class="main">
@@ -206,19 +207,18 @@ textarea.tcm-input { height: 70px; padding: 10px 12px; resize: vertical; line-he
         </span>
         <input class="input" id="tcSearch" placeholder="Tìm tên, SĐT hoặc mã..." oninput="tcRenderAll()">
       </div>
-      <input type="date" class="input" id="tcDate" onchange="tcRenderAll()" style="width:168px;flex:0 0 auto" title="Xem thu chi theo ngày">
-      <button class="btn-outline" id="tcTodayBtn" onclick="tcSetToday()" style="flex:0 0 auto">Hôm nay</button>
-      <button class="btn-outline" id="tcClearDateBtn" onclick="tcClearDate()" style="flex:0 0 auto;display:none">Tất cả ngày</button>
+      <!-- Bộ lọc thời gian dùng chung (date-range-filter.js) -->
+      <span id="tcDateRange"></span>
       <select class="tc-filter-select" id="tcSourceFilter" onchange="tcRenderAll()" style="margin-left:auto">
         <option value="">Tất cả nguồn</option>
       </select>
     </div>
 
-    <!-- SỔ QUỸ NGÀY: tổng thu/chi/tồn quỹ của ngày được chọn -->
+    <!-- SỔ QUỸ THEO KỲ: tổng thu/chi/tồn quỹ của ngày/khoảng ngày được chọn -->
     <div id="tcDaySummary" style="display:none; margin-bottom:14px; gap:12px; grid-template-columns:repeat(3,1fr);">
-      <div class="tc-daybox"><div class="tc-daybox-lbl">TIỀN VÀO NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayThu" style="color:var(--success)">0 đ</div></div>
-      <div class="tc-daybox"><div class="tc-daybox-lbl">TIỀN RA NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayChi" style="color:var(--error)">0 đ</div></div>
-      <div class="tc-daybox"><div class="tc-daybox-lbl">TỒN QUỸ TRONG NGÀY</div><div class="tc-daybox-val" id="tcDayNet">0 đ</div></div>
+      <div class="tc-daybox"><div class="tc-daybox-lbl" id="tcDayLblThu">TIỀN VÀO NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayThu" style="color:var(--success)">0 đ</div></div>
+      <div class="tc-daybox"><div class="tc-daybox-lbl" id="tcDayLblChi">TIỀN RA NGÀY NÀY</div><div class="tc-daybox-val" id="tcDayChi" style="color:var(--error)">0 đ</div></div>
+      <div class="tc-daybox"><div class="tc-daybox-lbl" id="tcDayLblNet">TỒN QUỸ TRONG NGÀY</div><div class="tc-daybox-val" id="tcDayNet">0 đ</div></div>
     </div>
 
     <!-- CẦN THU -->
@@ -431,9 +431,10 @@ function tcDetailRow(id, order) {
       + '<span class="tc-det-price">' + fmt(it.price) + '</span></div>';
   }).join('');
   if (!rows) rows = '<div class="tc-det-item"><span class="tc-det-nm" style="color:var(--text-4)">Không có chi tiết sản phẩm.</span></div>';
+  var noteHtml = order.note ? '<div class="tc-det-item" style="border-top:1px dashed var(--n200);margin-top:6px;padding-top:6px"><span class="tc-det-nm" style="color:var(--text-3)">Ghi chú: ' + order.note + '</span></div>' : '';
   return '<tr class="tc-detail" id="det-' + id + '" style="display:none"><td colspan="8" style="padding:0;background:var(--n50)">'
     + '<div class="tc-det-wrap"><div class="tc-det-hd">Chi tiết phiếu — ' + (order.items ? order.items.length : 0) + ' sản phẩm</div>'
-    + rows + '</div></td></tr>';
+    + rows + noteHtml + '</div></td></tr>';
 }
 
 function tcToggleDetail(id) {
@@ -446,17 +447,20 @@ function tcToggleDetail(id) {
 }
 function tcFmtRange(n) { return n === 0 ? '0–0 trên 0' : ('1–' + n + ' trên ' + n); }
 
+/* ===== BỘ LỌC THỜI GIAN — component dùng chung (date-range-filter.js) ===== */
+var tcDR = null; // gán ở DOMContentLoaded
+
 function tcRenderAll() {
   var data = QrantyThuChi.getData();
   var srcFilter = (document.getElementById('tcSourceFilter') || {}).value || '';
   var q = ((document.getElementById('tcSearch') || {}).value || '').trim().toLowerCase();
-  var dateISO = (document.getElementById('tcDate') || {}).value || '';
-  var dateVN = '';
-  if (dateISO) { var p = dateISO.split('-'); if (p.length === 3) dateVN = p[2] + '/' + p[1] + '/' + p[0]; }
+  var range = tcDR ? tcDR.getRange() : { from: null, to: null };
+
+  function inRange(e) { return tcDR ? tcDR.inRange(e.date) : true; }
 
   function match(e) {
     if (srcFilter && (e.source || 'manual') !== srcFilter) return false;
-    if (dateVN && (e.date || '') !== dateVN) return false;
+    if (!inRange(e)) return false;
     if (q) {
       var hay = ((e.name || '') + ' ' + (e.code || '') + ' ' + (e.ref || '')).toLowerCase();
       if (hay.indexOf(q) < 0) return false;
@@ -464,12 +468,16 @@ function tcRenderAll() {
     return true;
   }
 
-  // Sổ quỹ theo ngày: hiện tổng thu/chi/tồn của ngày được chọn
+  // Sổ quỹ theo kỳ: hiện tổng thu/chi/tồn của ngày hoặc khoảng ngày được chọn
   var daySummary = document.getElementById('tcDaySummary');
-  document.getElementById('tcClearDateBtn').style.display = dateVN ? '' : 'none';
-  if (dateVN) {
-    var dThu = data.thu.filter(function (e) { return e.date === dateVN; });
-    var dChi = data.chi.filter(function (e) { return e.date === dateVN; });
+  var hasRange = !!(range.from || range.to);
+  if (hasRange) {
+    var isSingleDay = range.from && range.to && range.from.getTime() === range.to.getTime();
+    document.getElementById('tcDayLblThu').textContent = isSingleDay ? 'TIỀN VÀO NGÀY NÀY' : 'TIỀN VÀO TRONG KỲ';
+    document.getElementById('tcDayLblChi').textContent = isSingleDay ? 'TIỀN RA NGÀY NÀY' : 'TIỀN RA TRONG KỲ';
+    document.getElementById('tcDayLblNet').textContent = isSingleDay ? 'TỒN QUỸ TRONG NGÀY' : 'TỒN QUỸ TRONG KỲ';
+    var dThu = data.thu.filter(inRange);
+    var dChi = data.chi.filter(inRange);
     var sumAmt = function (arr) { return arr.reduce(function (s, e) { return s + (Number(e.amount) || 0); }, 0); };
     var vThu = sumAmt(dThu), vChi = sumAmt(dChi), net = vThu - vChi;
     document.getElementById('tcDayThu').textContent = QrantyThuChi.fmtVND(vThu);
@@ -508,13 +516,11 @@ function tcRenderAll() {
   chenhEl.textContent = (chenh < 0 ? '-' : '') + QrantyThuChi.fmtVND(Math.abs(chenh));
   chenhEl.style.color = chenh < 0 ? 'var(--error)' : 'var(--success)';
 }
-function tcSetToday() {
-  var d = new Date();
-  document.getElementById('tcDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+document.addEventListener('DOMContentLoaded', function () {
+  tcDR = QrantyDateRange.mount({ el: '#tcDateRange', onChange: tcRenderAll });
+  tcPopulateFilter('thu');
   tcRenderAll();
-}
-function tcClearDate() { document.getElementById('tcDate').value = ''; tcRenderAll(); }
-document.addEventListener('DOMContentLoaded', function () { tcPopulateFilter('thu'); tcRenderAll(); });
+});
 
 /* ===== In lại phiếu bán hàng (từ tab Lịch sử bán hàng) =====
    Chỉ in lại được thông tin tổng (tên SP gộp thành chuỗi trong "ref"),
@@ -547,6 +553,9 @@ function tcReprint(id) {
     });
   } else {
     html += '<div class="rcp-item-name">' + (entry.ref || 'Sản phẩm') + '</div>';
+  }
+  if (order && order.note) {
+    html += '<div class="rcp-divider"></div><div class="rcp-row"><span class="rcp-label">Ghi chú</span></div><div style="margin-top:2px">' + order.note + '</div>';
   }
   html += '<div class="rcp-divider"></div>';
   html += '<div class="rcp-total-row"><span>Tổng tiền</span><span>' + fmt(entry.amount) + '</span></div>';

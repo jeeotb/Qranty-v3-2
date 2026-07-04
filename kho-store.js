@@ -250,10 +250,21 @@ const QrantyKho = (() => {
 
   /** Nhóm hàng tạo tay (lưu riêng) — để nhóm chưa có sản phẩm vẫn hiện ở sidebar. */
   function getCategories() {
-    try { var v = JSON.parse(localStorage.getItem('qranty-kho-categories')); if (Array.isArray(v)) return v; } catch (e) {}
-    var def = ['Laptop', 'Điện thoại thông minh', 'Máy tính bảng', 'Loa', 'Bộ đàm'];
-    localStorage.setItem('qranty-kho-categories', JSON.stringify(def));
-    return def;
+    var list = null;
+    try { var v = JSON.parse(localStorage.getItem('qranty-kho-categories')); if (Array.isArray(v)) list = v; } catch (e) {}
+    if (!list) list = ['Điện thoại thông minh', 'Máy tính bảng', 'Laptop', 'Loa', 'Bộ đàm', 'Linh kiện', 'Phụ kiện'];
+    // Tự lành dữ liệu: mọi danh mục đang dùng trên sản phẩm phải có trong danh sách quản lý
+    // (tránh tình trạng danh mục quản lý lệch với category thật của sản phẩm).
+    var changed = false;
+    try {
+      var used = {};
+      getData().forEach(function (p) { var c = (p.category || '').trim(); if (c) used[c] = true; });
+      Object.keys(used).forEach(function (c) { if (list.indexOf(c) < 0) { list.push(c); changed = true; } });
+    } catch (e) {}
+    if (changed || !localStorage.getItem('qranty-kho-categories')) {
+      localStorage.setItem('qranty-kho-categories', JSON.stringify(list));
+    }
+    return list;
   }
   function addCategory(name) {
     name = (name || '').trim();
@@ -519,37 +530,72 @@ const QrantyKho = (() => {
     return list[0];
   }
 
-  /** Cập nhật trạng thái serials của một phiếu nhập (lô) */
+  /**
+   * Cập nhật trạng thái serials của một phiếu nhập (lô).
+   * Chỉ những serial THỰC SỰ đổi trạng thái (status cũ !== status mới) mới được
+   * tính là "thay đổi" — nhờ vậy gọi lại hàm này trên 1 serial đã 'active' rồi sẽ
+   * không bị tính thêm lần nữa (tránh trừ/cộng tồn kho 2 lần cho cùng 1 serial).
+   * Đồng thời đồng bộ luôn tồn kho sản phẩm: kích hoạt (pending → active) = xuất
+   * kho 1 đơn vị; thu hồi (active → pending) = nhập lại kho 1 đơn vị — để trạng
+   * thái "Còn hàng / Sắp hết / Hết hàng" ở Kho hàng phản ánh đúng số đã kích hoạt.
+   * Trả về { pnk, changed, skipped } — changed: serial thực sự đổi trạng thái,
+   * skipped: serial đã ở đúng trạng thái đích từ trước (không đổi gì).
+   */
   function updatePNKSerials(pnkCode, itemSku, serialCodes, status, customerPhone) {
     var list = getPNKList();
     var pnk = list.find(function (x) { return x.code === pnkCode; });
     if (!pnk) return null;
-    
-    if (itemSku) {
-      var item = pnk.items.find(function (i) { return i.sku === itemSku || (!i.sku && i.name); });
-      if (item && item.serials) {
-        item.serials.forEach(function (s) {
-          if (serialCodes.indexOf(s.code) !== -1) {
-            s.status = status;
-            s.customerPhone = (status === 'active' ? customerPhone : null);
-          }
-        });
-      }
-    } else {
-      pnk.items.forEach(function (item) {
-        if (item.serials) {
-          item.serials.forEach(function (s) {
-            if (serialCodes.indexOf(s.code) !== -1) {
-              s.status = status;
-              s.customerPhone = (status === 'active' ? customerPhone : null);
-            }
-          });
+
+    var changed = [];
+    var skipped = [];
+
+    function applyToItem(item) {
+      if (!item.serials) return;
+      item.serials.forEach(function (s) {
+        if (serialCodes.indexOf(s.code) === -1) return;
+        if (s.status === status) {
+          skipped.push(s.code);
+          return;
         }
+        changed.push({ sku: item.sku, code: s.code, from: s.status, to: status });
+        s.status = status;
+        s.customerPhone = (status === 'active' ? customerPhone : null);
       });
     }
-    
+
+    if (itemSku) {
+      var item = pnk.items.find(function (i) { return i.sku === itemSku || (!i.sku && i.name); });
+      if (item) applyToItem(item);
+    } else {
+      pnk.items.forEach(applyToItem);
+    }
+
     localStorage.setItem(KEY_PNK, JSON.stringify(list));
-    return pnk;
+
+    changed.forEach(function (c) {
+      if (!c.sku) return;
+      if (c.to === 'active' && c.from !== 'active') updateStock(c.sku, -1);
+      else if (c.to === 'pending' && c.from === 'active') updateStock(c.sku, 1);
+    });
+
+    return { pnk: pnk, changed: changed, skipped: skipped };
+  }
+
+  /**
+   * Tổng hợp số serial đã/chưa kích hoạt của 1 SKU, gộp trên TẤT CẢ các lô (PNK)
+   * có chứa SKU đó. Dùng để hiện "x/y chưa kích hoạt" ở Kho hàng thay vì chỉ hiện
+   * tổng số lượng chung chung.
+   */
+  function getSerialStatsBySku(sku) {
+    var total = 0, active = 0;
+    getPNKList().forEach(function (pnk) {
+      (pnk.items || []).forEach(function (item) {
+        if (item.sku !== sku || !item.serials) return;
+        total += item.serials.length;
+        active += item.serials.filter(function (s) { return s.status === 'active'; }).length;
+      });
+    });
+    return { total: total, active: active, pending: total - active };
   }
 
   function _seedPNK() {
@@ -688,5 +734,6 @@ const QrantyKho = (() => {
     getPNKList,
     addPNK,
     updatePNKSerials,
+    getSerialStatsBySku,
   };
 })();

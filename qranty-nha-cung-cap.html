@@ -117,6 +117,7 @@ textarea.ackm-input { height: 72px; padding: 10px 12px; resize: vertical; line-h
 <script src="./sidebar.js"></script>
 <script src="./thuchi-store.js"></script>
 <script src="./supplier-store.js"></script>
+<script src="./qranty-confirm.js"></script>
 
 <!-- MAIN -->
 <main class="main">
@@ -553,7 +554,9 @@ function khRender(){
 }
 
 function khDelete(id){
-  if (confirm('Xoá nhà cung cấp này khỏi danh bạ? (Phiếu nhập & công nợ đã ghi vẫn được giữ trong Thu chi)')) { QrantySupplier.remove(id); khRender(); }
+  qConfirm('Xoá nhà cung cấp này khỏi danh bạ? (Phiếu nhập & công nợ đã ghi vẫn được giữ trong Thu chi)', function () {
+    QrantySupplier.remove(id); khRender();
+  }, { title: 'Xóa nhà cung cấp', okText: 'Xóa', danger: true });
 }
 
 document.addEventListener('DOMContentLoaded', khRender);

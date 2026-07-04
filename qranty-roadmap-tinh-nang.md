@@ -87,6 +87,13 @@ Ký hiệu: ✅ Đã có và hoạt động · 🟡 Có nền nhưng chưa đủ
 - 🟡 Cài đặt có dòng "Thông tin cửa hàng" nhưng chưa có form nhập thật — phiếu in (hoá đơn/phiếu bảo hành) hiện đang hardcode "Cửa hàng demo · 0900 000 000"
 - ✅ Cài đặt hiển thị, serial, nhãn in, chế độ Cửa hàng/Trung tâm bảo hành
 
+## 14. Thanh toán & Hóa đơn điện tử (Billing & E-Invoice)
+
+- ⬜ **Luồng mua gói & thanh toán payOS** — Stepper 5 bước trong Cài đặt (Chọn gói -> Xem lại -> Thanh toán QR động payOS -> Hỗ trợ/Báo sự cố -> Hoàn tất).
+- ⬜ **Modal xuất hóa đơn điện tử** — Tự động hiển thị sau khi thanh toán thành công, 4 bước (Xác nhận -> Điền thông tin -> Xem trước hóa đơn -> Kết quả tích hợp CyberBill).
+- ⬜ **Lịch sử thanh toán** — Danh sách giao dịch, trạng thái (Active/Pending/Cancelled), in biên lai, xuất hóa đơn VAT.
+- ⬜ **Thông tin xuất hóa đơn (Profile)** — Cấu hình thông tin pháp lý của khách hàng trong Cài đặt -> Hồ sơ để tự động pre-fill khi xuất hóa đơn.
+
 ---
 
 ## Gợi ý thứ tự (không bắt buộc)

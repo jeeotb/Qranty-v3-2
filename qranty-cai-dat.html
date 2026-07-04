@@ -431,6 +431,10 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
           <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M3 16c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/></svg>
           Tài khoản
         </div>
+        <div class="settings-subnav-item" data-panel="thanh-toan" onclick="selectSettingsTab('thanh-toan')">
+          <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3.5" width="14" height="11" rx="1.5"/><line x1="2" y1="8.5" x2="16" y2="8.5"/><path d="M6 12.5h2"/></svg>
+          Thanh toán & Gói dịch vụ
+        </div>
       </div>
 
       <!-- PANELS -->
@@ -639,10 +643,10 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
           <div class="settings-section">
             <div class="settings-section-title">Tài khoản</div>
             <div class="card">
-              <div class="settings-row">
+              <div class="settings-row" onclick="openShopInfoSlide()" style="cursor:pointer;">
                 <div class="settings-row-text">
-                  <div class="settings-row-title">Thông tin cửa hàng</div>
-                  <div class="settings-row-desc">Tên cửa hàng, địa chỉ, số điện thoại liên hệ hiển thị trên phiếu bảo hành.</div>
+                  <div class="settings-row-title">Thông tin cửa hàng &amp; Hóa đơn VAT ↗</div>
+                  <div class="settings-row-desc">Cấu hình tên, SĐT, địa chỉ cửa hàng và thông tin pháp lý xuất hóa đơn điện tử VAT.</div>
                 </div>
               </div>
               <div class="settings-row">
@@ -657,6 +661,320 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
                   <div class="settings-row-desc">Đã chuyển sang mục riêng — xem trang "Thông báo" trong menu Nội bộ.</div>
                 </div>
                 <a href="./qranty-thong-bao.html" class="btn-secondary" style="height:36px;padding:0 14px;font-size:12.5px">Mở</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- THANH TOÁN & GÓI DỊCH VỤ -->
+        <div class="settings-panel" id="panel-thanh-toan">
+          <!-- Gói hiện tại + quota (render bằng JS: renderCurrentPlanCard) -->
+          <div class="settings-section" style="margin-bottom:24px;">
+            <div class="settings-section-title">Gói dịch vụ hiện tại</div>
+            <div class="card card-body" id="current-plan-card"></div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Nâng cấp / Gia hạn dịch vụ</div>
+            
+            <div class="card card-body">
+              <!-- Stepper Indicator -->
+              <div class="step-wizard">
+                <div class="step-wizard-top">
+                  <span class="step-wizard-counter" id="stepWizardCounter">Bước 1/4</span>
+                </div>
+                <div class="step-wizard-track"><div class="step-wizard-fill" id="stepWizardFill" style="width:0%"></div></div>
+                <ul class="step-wizard-list">
+                  <li class="step-wizard-item active" id="sw-1">Chọn gói</li>
+                  <li class="step-wizard-item" id="sw-2">Xem lại</li>
+                  <li class="step-wizard-item" id="sw-3">Thanh toán</li>
+                  <li class="step-wizard-item" id="sw-4" style="display:none;">Hỗ trợ</li>
+                  <li class="step-wizard-item" id="sw-5">Hoàn tất</li>
+                </ul>
+              </div>
+
+              <!-- Step 1: Chọn gói -->
+              <div id="billing-step-1" class="billing-step-content">
+                <div class="alert-banner" id="downgrade-warning" style="display:none;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span id="downgrade-warning-text"></span>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                  <div style="font-size:12.5px; font-weight:700; color:var(--text-2);">Chọn kỳ hạn thanh toán:</div>
+                  <div class="tab-pill" id="period-pill-select">
+                    <span class="tp-item" data-months="1" onclick="changePeriod(1)">1 tháng</span>
+                    <span class="tp-item active" data-months="3" onclick="changePeriod(3)">3 tháng</span>
+                    <span class="tp-item" data-months="12" onclick="changePeriod(12)">12 tháng</span>
+                  </div>
+                </div>
+
+                <div class="pkg-grid">
+                  <div class="pkg-card" id="pkg-Standard" onclick="selectPackage('Standard')">
+                    <div class="pkg-badge" id="badge-Standard" style="display:none;">Đang dùng</div>
+                    <div class="pkg-card-title">Standard</div>
+                    <div class="pkg-card-price" id="price-Standard">290K <span>/ tháng</span></div>
+                    <ul class="pkg-card-features">
+                      <li>Hỗ trợ 1 chi nhánh</li>
+                      <li>Quản lý tối đa 500 SP</li>
+                      <li>In hóa đơn cơ bản</li>
+                      <li>Quản lý bảo hành</li>
+                    </ul>
+                  </div>
+                  
+                  <div class="pkg-card" id="pkg-Pro" onclick="selectPackage('Pro')">
+                    <div class="pkg-badge" id="badge-Pro" style="display:none;">Đang dùng</div>
+                    <div class="pkg-card-title">Pro</div>
+                    <div class="pkg-card-price" id="price-Pro">490K <span>/ tháng</span></div>
+                    <ul class="pkg-card-features">
+                      <li>Đa chi nhánh (tối đa 3)</li>
+                      <li>Quản lý SP không giới hạn</li>
+                      <li>In mã QR bảo hành động</li>
+                      <li>Quản lý công nợ, thu chi</li>
+                    </ul>
+                  </div>
+
+                  <div class="pkg-card" id="pkg-Enterprise" onclick="selectPackage('Enterprise')">
+                    <div class="pkg-badge" id="badge-Enterprise" style="display:none;">Đang dùng</div>
+                    <div class="pkg-card-title">Enterprise</div>
+                    <div class="pkg-card-price" id="price-Enterprise">990K <span>/ tháng</span></div>
+                    <ul class="pkg-card-features">
+                      <li>Không giới hạn chi nhánh</li>
+                      <li>Phân quyền nhân viên</li>
+                      <li>Hỗ trợ Zalo OA, Email</li>
+                      <li>Xuất báo cáo cao cấp</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="action-row" style="margin-top:24px;">
+                  <button class="btn-primary" id="btn-goto-step2" onclick="goToStep(2)" disabled style="margin-left:auto; width:auto; padding:0 24px;">Thanh toán ngay →</button>
+                </div>
+              </div>
+
+              <!-- Step 2: Xem lại -->
+              <div id="billing-step-2" class="billing-step-content" style="display:none;">
+                <div style="font-size:13px; font-weight:700; color:var(--text-1); margin-bottom:12px; border-bottom:1px solid var(--n100); padding-bottom:8px;">Xác nhận chi tiết đơn hàng</div>
+                
+                <div style="background:var(--n50); border-radius:var(--r-sm); padding:16px; margin-bottom:16px; border:1px solid var(--n200);">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12.5px; font-weight:600;">
+                    <span style="color:var(--text-3);">Gói dịch vụ chọn mua:</span>
+                    <span style="color:var(--text-1); font-weight:800;" id="review-pkg-name">-</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12.5px; font-weight:600;">
+                    <span style="color:var(--text-3);">Kỳ hạn thanh toán:</span>
+                    <span style="color:var(--text-1); font-weight:800;" id="review-period">-</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12.5px; font-weight:600;">
+                    <span style="color:var(--text-3);">Đơn giá:</span>
+                    <span style="color:var(--text-1); font-weight:800;" id="review-price">-</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12.5px; font-weight:600; display:none;" id="review-discount-row">
+                    <span style="color:var(--warning);">Khuyến mãi áp dụng:</span>
+                    <span style="color:var(--warning); font-weight:800;" id="review-discount-val">-</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; border-top:1.5px dashed var(--n300); padding-top:10px; font-size:14px; font-weight:800;">
+                    <span style="color:var(--text-1);">Tổng cộng:</span>
+                    <span style="color:var(--brand);" id="review-total-price">-</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="field-label">Mã giảm giá <span class="opt">(nếu có)</span></div>
+                  <div class="input-with-btn">
+                    <input class="input" id="discount-code" placeholder="Nhập mã ưu đãi (Thử mã: QRANTY10)">
+                    <button class="btn-outline" onclick="applyPromoCode()" style="height:38px;">Áp dụng</button>
+                  </div>
+                  <div id="discount-msg" style="font-size:11px; margin-top:4px; font-weight:600;"></div>
+                </div>
+
+                <div class="action-row" style="margin-top:24px; justify-content:space-between;">
+                  <button class="btn-secondary" onclick="goToStep(1)">← Quay lại</button>
+                  <button class="btn-primary" onclick="confirmAndPay()" style="width:auto; padding:0 24px;">Xác nhận &amp; Thanh toán →</button>
+                </div>
+              </div>
+
+              <!-- Step 3: Thanh toán -->
+              <div id="billing-step-3" class="billing-step-content" style="display:none;">
+                <div class="qa-grid" style="grid-template-columns: 1fr 1.2fr; gap:20px;">
+                  <!-- QR Column -->
+                  <div style="display:flex; flex-direction:column; align-items:center; border-right:1px solid var(--n200); padding-right:16px;">
+                    <div style="font-size:12.5px; font-weight:700; color:var(--text-1); margin-bottom:12px; text-align:center;">Quét QR để thanh toán nhanh</div>
+                    <div style="background:#fff; border:1px solid var(--n200); padding:12px; border-radius:var(--r-sm); display:flex; justify-content:center; align-items:center; margin-bottom:10px;" id="qr-payos-container">
+                      <!-- Render QR dynamically via Canvas or Beautiful Static Element -->
+                      <canvas id="payos-qr-canvas" width="160" height="160"></canvas>
+                    </div>
+                    <div style="font-size:10.5px; color:var(--text-3); font-weight:650; text-align:center;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px; color:var(--success);"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>Tương thích tất cả ngân hàng Việt Nam
+                    </div>
+                  </div>
+
+                  <!-- Text Details Column -->
+                  <div>
+                    <div style="font-size:12.5px; font-weight:700; color:var(--text-1); margin-bottom:12px;">Thông tin chuyển khoản thủ công</div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--n100); padding-bottom:6px;">
+                        <div>
+                          <div style="font-size:10.5px; color:var(--text-3); font-weight:600;">Ngân hàng</div>
+                          <div style="font-size:12.5px; font-weight:800; color:var(--text-1);" id="bank-name-txt">MBBank (Ngân hàng Quân đội)</div>
+                        </div>
+                      </div>
+                      
+                      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--n100); padding-bottom:6px;">
+                        <div>
+                          <div style="font-size:10.5px; color:var(--text-3); font-weight:600;">Số tài khoản</div>
+                          <div style="font-size:13.5px; font-weight:900; color:var(--text-1); font-family:monospace;" id="bank-acct-txt">992563EB2026</div>
+                        </div>
+                        <button class="btn-outline" style="height:28px; padding:0 8px; font-size:11px;" onclick="copyText('bank-acct-txt')">Copy</button>
+                      </div>
+
+                      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--n100); padding-bottom:6px;">
+                        <div>
+                          <div style="font-size:10.5px; color:var(--text-3); font-weight:600;">Số tiền</div>
+                          <div style="font-size:13.5px; font-weight:900; color:var(--brand); font-family:monospace;" id="bank-amt-txt">1,470,000đ</div>
+                        </div>
+                        <button class="btn-outline" style="height:28px; padding:0 8px; font-size:11px;" onclick="copyText('bank-amt-txt')">Copy</button>
+                      </div>
+
+                      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--n100); padding-bottom:6px;">
+                        <div>
+                          <div style="font-size:10.5px; color:var(--text-3); font-weight:600; color:var(--error);">Nội dung chuyển khoản (bắt buộc nhập đúng)</div>
+                          <div style="font-size:13px; font-weight:900; color:var(--text-1); font-family:monospace;" id="bank-memo-txt">QRANTY BILL 12345</div>
+                        </div>
+                        <button class="btn-outline" style="height:28px; padding:0 8px; font-size:11px;" onclick="copyText('bank-memo-txt')">Copy</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Active waiting state & simulator -->
+                <div style="margin-top:20px; border-top:1px solid var(--n200); padding-top:16px;">
+                  <div class="radar-container">
+                    <div class="radar-pulse-ring">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                    <div style="font-size:12.5px; font-weight:800; color:var(--text-2); margin-bottom:4px;">⏳ Đang chờ xác nhận thanh toán...</div>
+                    <div style="font-size:11px; color:var(--text-3); font-weight:600; max-width:400px; line-height:1.5;">
+                      Hệ thống tự động kích hoạt gói ngay khi nhận được chuyển khoản qua payOS. Thường mất dưới <span style="color:var(--brand); font-weight:700;">30 giây</span>.
+                    </div>
+                    <div style="font-size:11px; color:var(--text-4); font-weight:600; margin-top:8px;" id="payment-timer-desc">
+                      Tự động làm mới trong <span id="countdown-sec" style="font-weight:bold; color:var(--text-2);">30</span>s...
+                    </div>
+                    <div style="font-size:11.5px; margin-top:12px; font-weight:600;">
+                      Chưa nhận được sau 15 phút? <a href="javascript:void(0)" onclick="reportIssue()" style="color:var(--brand); text-decoration:underline; font-weight:700;">Báo sự cố / Liên hệ hỗ trợ</a>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="action-row" style="margin-top:14px; justify-content:space-between; align-items:center;">
+                  <button class="btn-secondary" onclick="goToStep(2)">← Quay lại</button>
+                  <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                    <button class="btn-primary" onclick="simulatePaymentSuccess()" style="background:linear-gradient(135deg, #6f42c1, #8553d1); color:#fff; font-weight:800; border:none; box-shadow: 0 4px 12px rgba(111,66,193,.3);">⚡ Giả lập thanh toán (Demo)</button>
+                    <div style="font-size:10px; color:var(--text-4); font-weight:600; margin-top:3px;">Chỉ hiển thị ở môi trường test/demo</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4: Báo sự cố -->
+              <div id="billing-step-4" class="billing-step-content" style="display:none;">
+                <div style="font-size:13px; font-weight:800; color:var(--text-1); margin-bottom:6px;">Gửi yêu cầu hỗ trợ giao dịch</div>
+                <div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-bottom:16px; line-height:1.5;">
+                  Chúng tôi hiểu điều này gây bất tiện cho bạn. Hãy điền thời gian chuyển khoản thực tế để Admin kiểm tra và duyệt nhanh. Tiền của bạn luôn được đảm bảo an toàn.
+                </div>
+
+                <div style="background:var(--n50); border:1px solid var(--n200); border-radius:var(--r-sm); padding:12px; margin-bottom:14px; display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; font-size:11.5px;">
+                  <div><span style="color:var(--text-3);">Mã đơn hàng:</span> <strong id="support-tx-code" style="font-family:monospace;">-</strong></div>
+                  <div><span style="color:var(--text-3);">Số tiền:</span> <strong id="support-tx-amount" style="color:var(--brand);">-</strong></div>
+                  <div style="grid-column: span 2;"><span style="color:var(--text-3);">Thời gian tạo đơn:</span> <span id="support-tx-time">-</span></div>
+                </div>
+
+                <div class="field">
+                  <div class="field-label">Thời gian chuyển khoản thực tế <span class="req">*</span></div>
+                  <input type="text" class="input" id="support-transfer-time" placeholder="Ví dụ: 10:45 hoặc 5 phút trước">
+                  <div id="support-time-error" class="error-msg" style="display:none;">Vui lòng điền thời gian chuyển khoản</div>
+                </div>
+
+                <div class="field">
+                  <div class="field-label">Nội dung ghi chú thêm <span class="opt">(tùy chọn)</span></div>
+                  <textarea class="input" id="support-note" placeholder="Nhập tên ngân hàng của bạn, nội dung CK thực tế hoặc đính kèm link ảnh nếu có..."></textarea>
+                </div>
+
+                <div class="action-row" style="margin-top:24px; justify-content:space-between;" id="support-form-actions">
+                  <button class="btn-secondary" onclick="cancelReportIssue()">← Quay lại thanh toán</button>
+                  <button class="btn-primary" onclick="submitSupportTicket()" style="background:var(--n800); color:#fff; box-shadow:none; font-weight:800; width:auto; padding:0 24px;">📝 Gửi yêu cầu hỗ trợ</button>
+                </div>
+
+                <!-- Inline success state (no browser alert) -->
+                <div id="support-sent-state" style="display:none; text-align:center; padding:18px 0 4px;">
+                  <div style="width:42px; height:42px; border-radius:50%; background:var(--n100); border:2px solid var(--n400); color:var(--n600); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; margin:0 auto 12px;">✓</div>
+                  <div style="font-size:13px; font-weight:800; color:var(--text-1); margin-bottom:4px;">Đã gửi yêu cầu hỗ trợ</div>
+                  <div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-bottom:16px;">Chúng tôi sẽ xử lý và phản hồi trong vòng 2 giờ làm việc.</div>
+                  <button class="btn-secondary" onclick="resetToStep1()">🛒 Về trang Billing</button>
+                </div>
+              </div>
+
+              <!-- Step 5: Hoàn tất -->
+              <div id="billing-step-5" class="billing-step-content" style="display:none;">
+                <div style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:16px 0;">
+                  <div style="width:52px; height:52px; border-radius:50%; background:var(--success-bg); border:2.5px solid var(--success); color:var(--success); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:bold; margin-bottom:14px; box-shadow: 0 4px 12px rgba(34,197,94,.15);">✓</div>
+                  <div style="font-size:15px; font-weight:900; color:var(--text-1); margin-bottom:4px;">Thanh toán thành công!</div>
+                  <div style="font-size:11.5px; color:var(--text-3); font-weight:700; display:flex; align-items:center; gap:6px; margin-bottom:14px;">
+                    <span class="badge-status active" style="font-size:9px; padding:1px 6px;">Đã kích hoạt</span>
+                    <span class="badge-method demo" id="success-badge-mode">Xác nhận tự động qua payOS</span>
+                  </div>
+
+                  <div class="alert-banner" id="prorate-banner" style="display:none; background:#ecfdf5; border-color:#10b981; color:#065f46; font-size:11.5px; width:100%; justify-content:center; align-items:center; gap:6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span id="prorate-banner-text">Cộng dồn từ ngày cũ ...</span>
+                  </div>
+
+                  <!-- Billing Receipt Summary -->
+                  <div style="background:var(--n50); border:1px solid var(--n200); border-radius:var(--r); width:100%; max-width:440px; padding:16px; margin-bottom:20px; text-align:left; display:flex; flex-direction:column; gap:8px;">
+                    <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-3); border-bottom:1px dashed var(--n300); padding-bottom:6px; margin-bottom:4px;">Tóm tắt biên lai</div>
+                    
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Mã giao dịch:</span> <strong id="receipt-tx-id" style="font-family:monospace; color:var(--text-1);">-</strong></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Gói dịch vụ:</span> <strong id="receipt-pkg" style="color:var(--text-1);">-</strong></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Kỳ hạn:</span> <span id="receipt-period" style="font-weight:700; color:var(--text-1);">-</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Số tiền:</span> <strong id="receipt-amount" style="color:var(--brand); font-family:monospace;">-</strong></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Phương thức:</span> <span id="receipt-method" class="badge-method">-</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600;"><span style="color:var(--text-3);">Thời gian xác nhận:</span> <span id="receipt-time" style="font-weight:700; color:var(--text-1);">-</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:600; border-top:1px dashed var(--n200); padding-top:6px;"><span style="color:var(--text-3); font-weight:700;">Hạn sử dụng gói:</span> <strong id="receipt-expiry" style="color:var(--success); font-weight:800;">-</strong></div>
+                  </div>
+
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                    <button class="btn-secondary" onclick="resetToStep1()">🛒 Về trang Billing</button>
+                    <button class="btn-primary" id="btn-manual-invoice" onclick="triggerInvoiceFlowDirectly()" style="background:var(--info); color:#fff; box-shadow:none; font-weight:800;">🧾 Xem lại / Xuất hóa đơn</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LỊCH SỬ THANH TOÁN -->
+          <div class="settings-section" style="margin-top:24px;">
+            <div class="settings-section-title">Lịch sử thanh toán &amp; Hóa đơn</div>
+            
+            <div class="card">
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:12.5px;">
+                  <thead>
+                    <tr style="background:var(--n50); border-bottom:1px solid var(--n200); font-weight:800; color:var(--text-2);">
+                      <th style="padding:12px 16px;" class="bil-col-id">Mã GD</th>
+                      <th style="padding:12px 8px;">Gói</th>
+                      <th style="padding:12px 8px;" class="bil-col-period">Kỳ</th>
+                      <th style="padding:12px 8px;">Số tiền</th>
+                      <th style="padding:12px 8px;">Trạng thái</th>
+                      <th style="padding:12px 8px;" class="bil-col-method">Phương thức</th>
+                      <th style="padding:12px 8px;" class="bil-col-start">Ngày bắt đầu</th>
+                      <th style="padding:12px 8px;" class="bil-col-expiry">Hết hạn</th>
+                      <th style="padding:12px 16px; text-align:right;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="billing-txs-body">
+                    <!-- Loaded dynamically via js -->
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -744,6 +1062,7 @@ function selectSettingsTab(name) {
   if (name === 'truong') renderFieldManager();
   if (name === 'nhan') renderLabelManager();
   if (name === 'trang-thai-sua') rcRenderManager();
+  if (name === 'thanh-toan') initBillingTab();
 }
 
 /* ── Quản lý cột trạng thái sửa chữa (repair-columns-store.js) ──────────── */
@@ -781,7 +1100,9 @@ function rcDelete(key) {
   var cols = QrantyRepairCols.getAll();
   if (cols.length <= 1) { alert('Cần giữ lại ít nhất 1 cột.'); return; }
   var c = cols.filter(function (x) { return x.key === key; })[0];
-  if (confirm('Xoá cột "' + (c ? c.label : key) + '"? Phiếu đang ở cột này sẽ tự dồn về cột đầu tiên.')) { QrantyRepairCols.remove(key); rcRenderManager(); }
+  qConfirm('Xoá cột "' + (c ? c.label : key) + '"? Phiếu đang ở cột này sẽ tự dồn về cột đầu tiên.', function () {
+    QrantyRepairCols.remove(key); rcRenderManager();
+  }, { title: 'Xóa cột quy trình', okText: 'Xóa', danger: true });
 }
 function rcAddCol() {
   var label = (document.getElementById('rcNewLabel').value || '').trim();
@@ -815,9 +1136,13 @@ function lmRemove(kind, name) {
     QrantyKho.removeCategory(name); return true;
   }
   var n = QrantyKho.countByLabel(kind, name);
-  if (n > 0 && !confirm('Có ' + n + ' sản phẩm đang gắn "' + name + '". Vẫn xoá nhãn này?')) return false;
-  if (n === 0 && !confirm('Xoá nhãn "' + name + '"?')) return false;
-  QrantyKho.removeLabel(kind, name); return true;
+  var msg = n > 0
+    ? 'Có ' + n + ' sản phẩm đang gắn "' + name + '". Vẫn xoá nhãn này?'
+    : 'Xoá nhãn "' + name + '"?';
+  qConfirm(msg, function () {
+    QrantyKho.removeLabel(kind, name); renderLabelManager();
+  }, { title: 'Xóa nhãn', okText: 'Xóa', danger: true });
+  return false; // render lại thực hiện trong callback sau khi người dùng xác nhận
 }
 function renderLabelManager() {
   var box = document.getElementById('labelMgrCards');
@@ -905,7 +1230,14 @@ function fmStartRename(btn) { var chip = btn.closest('.tagmgr-chip'); FM_STATE.a
 function fmEditKey(e) { if (e.key === 'Enter') { e.preventDefault(); fmEditCommit(e.target); } else if (e.key === 'Escape') { FM_STATE.editing = null; renderFieldManager(); } }
 function fmEditBlur(e) { if (FM_BUSY) return; FM_STATE.editing = null; renderFieldManager(); }
 function fmEditCommit(el) { FM_BUSY = true; var cat = el.getAttribute('data-cat'), old = el.getAttribute('data-field'), v = (el.value || '').trim(); if (v && v !== old && QrantyKho.renameCatTagDef) QrantyKho.renameCatTagDef(cat, old, v); FM_STATE.editing = null; renderFieldManager(); FM_BUSY = false; }
-function fmRemove(btn) { var chip = btn.closest('.tagmgr-chip'); var cat = chip.getAttribute('data-cat'), f = chip.getAttribute('data-field'); if (!confirm('Xoá trường "' + f + '" khỏi danh mục "' + cat + '"?')) return; if (QrantyKho.removeCatTagDef) QrantyKho.removeCatTagDef(cat, f); renderFieldManager(); }
+function fmRemove(btn) {
+  var chip = btn.closest('.tagmgr-chip');
+  var cat = chip.getAttribute('data-cat'), f = chip.getAttribute('data-field');
+  qConfirm('Xoá trường "' + f + '" khỏi danh mục "' + cat + '"?', function () {
+    if (QrantyKho.removeCatTagDef) QrantyKho.removeCatTagDef(cat, f);
+    renderFieldManager();
+  }, { title: 'Xóa trường', okText: 'Xóa', danger: true });
+}
 
 /* Mở đúng tab + cuộn tới danh mục khi vào từ link "Quản lý trường ↗" */
 document.addEventListener('DOMContentLoaded', function () {
@@ -918,6 +1250,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var el = document.querySelector('#fieldMgrCards .tagmgr-card[data-cat="' + (window.CSS && CSS.escape ? CSS.escape(cat) : cat) + '"]');
         if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('fm-highlight'); setTimeout(function () { el.classList.remove('fm-highlight'); }, 1900); }
       }
+    } else if (qs.get('settings') === 'thanh-toan') {
+      selectSettingsTab('thanh-toan');
     }
   } catch (e) {}
 });
@@ -1040,7 +1374,907 @@ function doConfirmModeSwitch() {
   if (!__pendingModeSwitch) return;
   setAppMode(__pendingModeSwitch);
   closeConfirmModeModal();
-}</script>
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* ── BILLING & E-INVOICE CONTROLLER ─────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────────── */
+var billingState = {
+  currentPkg: 'Standard',
+  selectedPkg: '',
+  selectedPeriod: 3, // default: 3 months
+  discountCode: '',
+  discountPercent: 0,
+  countdownVal: 30,
+  countdownInterval: null,
+  activeTxId: null,
+  invoiceStep: 1,
+  activeInvoiceTx: null
+};
+
+var PKG_PRICES = {
+  Standard: 290000,
+  Pro: 490000,
+  Enterprise: 990000
+};
+
+/* Fills the thin step-wizard track + "Bước X/Y" counter based on which
+   step-wizard-item ids are currently visible and which one is .active. */
+function refreshStepWizard(ids, fillId, counterId) {
+  var visible = ids.filter(function (id) {
+    var el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  var activeIdx = 0;
+  visible.forEach(function (id, i) {
+    if (document.getElementById(id).classList.contains('active')) activeIdx = i;
+  });
+  var pct = visible.length > 1 ? Math.round((activeIdx / (visible.length - 1)) * 100) : 100;
+  var fill = document.getElementById(fillId);
+  if (fill) fill.style.width = pct + '%';
+  var counter = document.getElementById(counterId);
+  if (counter) counter.textContent = 'Bước ' + (activeIdx + 1) + '/' + visible.length;
+}
+
+function goToStep(step) {
+  document.querySelectorAll('.billing-step-content').forEach(function(el) {
+    el.style.display = 'none';
+  });
+
+  var stepEl = document.getElementById('billing-step-' + step);
+  if (stepEl) stepEl.style.display = 'block';
+
+  var sw4 = document.getElementById('sw-4');
+  if (step === 4) {
+    sw4.style.display = 'flex';
+  } else if (billingState.activeTxId === null) {
+    sw4.style.display = 'none';
+  }
+
+  var steps = [1, 2, 3, 4, 5];
+  steps.forEach(function(s) {
+    var item = document.getElementById('sw-' + s);
+    if (!item) return;
+    item.classList.remove('active', 'completed');
+    if (s < step) {
+      item.classList.add('completed');
+    } else if (s === step) {
+      item.classList.add('active');
+    }
+  });
+
+  refreshStepWizard(['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5'], 'stepWizardFill', 'stepWizardCounter');
+
+  if (step === 2) {
+    updateTotalPriceReview();
+  }
+
+  if (step === 3) {
+    startPaymentTimer();
+    drawQR();
+  } else {
+    stopPaymentTimer();
+  }
+}
+
+function initBillingTab() {
+  if (!window.QrantyBilling) return;
+  var plan = QrantyBilling.getPlan();
+  billingState.currentPkg = plan.name;
+  
+  billingState.selectedPkg = '';
+  document.getElementById('btn-goto-step2').disabled = true;
+  document.getElementById('downgrade-warning').style.display = 'none';
+
+  document.querySelectorAll('.pkg-badge').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  
+  var activeBadge = document.getElementById('badge-' + plan.name);
+  if (activeBadge) {
+    activeBadge.style.display = 'block';
+    activeBadge.className = 'pkg-badge current';
+  }
+
+  document.querySelectorAll('.pkg-card').forEach(function(el) {
+    el.classList.remove('active');
+  });
+
+  changePeriod(billingState.selectedPeriod);
+  renderCurrentPlanCard();
+  renderBillingTxs();
+  refreshStepWizard(['sw-1', 'sw-2', 'sw-3', 'sw-4', 'sw-5'], 'stepWizardFill', 'stepWizardCounter');
+}
+
+/* ── GÓI HIỆN TẠI & QUOTA ─────────────────────────────────────────────── */
+function quotaBarHtml(label, used, limit) {
+  var pct = Math.min(100, Math.round((used / limit) * 100));
+  var color = pct >= 90 ? 'var(--error)' : (pct >= 70 ? 'var(--warning)' : 'var(--success)');
+  return '<div style="margin-bottom:10px;">'
+    + '<div style="display:flex; justify-content:space-between; font-size:11.5px; font-weight:700; margin-bottom:4px;">'
+    +   '<span style="color:var(--text-2);">' + label + '</span>'
+    +   '<span style="color:' + color + ';">' + used + ' / ' + limit + ' <span style="color:var(--text-4); font-weight:600;">(còn ' + Math.max(0, limit - used) + ')</span></span>'
+    + '</div>'
+    + '<div style="height:6px; background:var(--n100); border-radius:99px; overflow:hidden;">'
+    +   '<div style="height:100%; width:' + pct + '%; background:' + color + '; border-radius:99px;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderCurrentPlanCard() {
+  var el = document.getElementById('current-plan-card');
+  if (!el || !window.QrantyBilling) return;
+  var plan = QrantyBilling.getPlan();
+  var isFree = plan.name === 'Free';
+  var html = '';
+
+  if (isFree) {
+    var usage = QrantyBilling.getUsage();
+    var limits = QrantyBilling.getLimits('Free');
+    var maxPct = Math.max(usage.products / limits.products, usage.orders / limits.orders) * 100;
+
+    html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">'
+      + '<div>'
+      +   '<div style="display:flex; align-items:center; gap:8px;">'
+      +     '<span style="font-size:17px; font-weight:900; color:var(--text-1);">Free</span>'
+      +     '<span class="badge-status active" style="font-size:9px; padding:1px 6px;">Đang sử dụng</span>'
+      +   '</div>'
+      +   '<div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-top:2px;">Gói miễn phí — không giới hạn thời gian, giới hạn theo mức sử dụng bên dưới.</div>'
+      + '</div>'
+      + '<button class="btn-primary" onclick="document.querySelector(\'.pkg-grid\').scrollIntoView({behavior:\'smooth\'})" style="width:auto; padding:0 18px;">⬆ Nâng cấp ngay</button>'
+      + '</div>';
+
+    if (maxPct >= 80) {
+      html += '<div class="alert-banner" style="background:#fffbeb; border-color:#f59e0b; color:#856404; font-size:11.5px; margin-bottom:12px;">'
+        + '⚠️ Bạn sắp chạm giới hạn của gói Free. Nâng cấp để không bị gián đoạn khi hết quota.'
+        + '</div>';
+    }
+
+    html += quotaBarHtml('Sản phẩm đang quản lý', usage.products, limits.products);
+    html += quotaBarHtml('Đơn hàng trong tháng này', usage.orders, limits.orders);
+  } else {
+    var expiry = new Date(plan.expiry);
+    var validExpiry = plan.expiry && !isNaN(expiry.getTime());
+    var daysLeft = validExpiry ? Math.max(0, Math.ceil((expiry - new Date()) / 86400000)) : 0;
+
+    html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">'
+      + '<div>'
+      +   '<div style="display:flex; align-items:center; gap:8px;">'
+      +     '<span style="font-size:17px; font-weight:900; color:var(--text-1);">' + plan.name + '</span>'
+      +     '<span class="badge-status active" style="font-size:9px; padding:1px 6px;">Đang hoạt động</span>'
+      +   '</div>'
+      +   '<div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-top:2px;">'
+      +     (validExpiry
+            ? 'Hiệu lực đến <strong style="color:var(--text-1);">' + expiry.toLocaleDateString('vi-VN') + '</strong> — còn <strong style="color:' + (daysLeft <= 7 ? 'var(--error)' : 'var(--success)') + ';">' + daysLeft + ' ngày</strong>.'
+            : 'Chưa có thông tin hạn dùng.')
+      +   '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // Toggle demo xem giao diện gói Free / quay về gói trả phí
+  html += '<div style="margin-top:12px; border-top:1px dashed var(--n200); padding-top:8px; text-align:right;">'
+    + '<a href="javascript:void(0)" onclick="togglePlanDemo()" style="font-size:10.5px; color:var(--text-4); font-weight:600; text-decoration:underline;">'
+    + (isFree ? '⚡ Quay về gói trả phí (Demo)' : '⚡ Xem thử hiển thị gói Free (Demo)')
+    + '</a></div>';
+
+  el.innerHTML = html;
+}
+
+function togglePlanDemo() {
+  if (!window.QrantyBilling) return;
+  var plan = QrantyBilling.getPlan();
+  if (plan.name === 'Free') {
+    var prev = null;
+    try { prev = JSON.parse(localStorage.getItem('qranty-billing-demo-prev')); } catch (e) {}
+    QrantyBilling.setPlan(prev && prev.name ? prev.name : 'Pro', prev && prev.expiry ? prev.expiry : '2027-06-20T08:30:00.000Z');
+  } else {
+    localStorage.setItem('qranty-billing-demo-prev', JSON.stringify(plan));
+    QrantyBilling.setPlan('Free', '');
+  }
+  initBillingTab();
+}
+
+function changePeriod(months) {
+  billingState.selectedPeriod = months;
+  
+  var selectEl = document.getElementById('period-pill-select');
+  selectEl.querySelectorAll('.tp-item').forEach(function(item) {
+    item.classList.toggle('active', parseInt(item.dataset.months) === months);
+  });
+
+  var multiplier = months;
+  var discount = months === 3 ? 0.05 : (months === 12 ? 0.15 : 0.0);
+  
+  var names = ['Standard', 'Pro', 'Enterprise'];
+  names.forEach(function(name) {
+    var rawPrice = PKG_PRICES[name];
+    var discountedPrice = Math.round(rawPrice * (1 - discount));
+    var priceTxt = (discountedPrice / 1000) + 'K';
+    
+    var priceEl = document.getElementById('price-' + name);
+    if (priceEl) {
+      priceEl.innerHTML = priceTxt + ' <span>/ tháng</span>';
+    }
+  });
+
+  if (billingState.selectedPkg) {
+    selectPackage(billingState.selectedPkg);
+  }
+}
+
+function selectPackage(name) {
+  billingState.selectedPkg = name;
+  
+  document.querySelectorAll('.pkg-card').forEach(function(el) {
+    el.classList.toggle('active', el.id === 'pkg-' + name);
+  });
+  
+  document.getElementById('btn-goto-step2').disabled = false;
+
+  var orderOfPlans = { 'Standard': 1, 'Pro': 2, 'Enterprise': 3 };
+  var currentRank = orderOfPlans[billingState.currentPkg] || 0;
+  var selectedRank = orderOfPlans[name] || 0;
+  var warnEl = document.getElementById('downgrade-warning');
+
+  if (selectedRank < currentRank) {
+    var planData = QrantyBilling.getPlan();
+    var expiryFormatted = new Date(planData.expiry).toLocaleDateString('vi-VN');
+    
+    document.getElementById('downgrade-warning-text').textContent = 
+      'Gói ' + name + ' thấp hơn gói hiện tại (' + billingState.currentPkg + ') còn hiệu lực đến ' + expiryFormatted + '. Bạn không thể chuyển xuống gói thấp hơn khi gói hiện tại chưa hết hạn.';
+    warnEl.style.display = 'flex';
+    document.getElementById('btn-goto-step2').disabled = true;
+  } else {
+    warnEl.style.display = 'none';
+  }
+}
+
+function applyPromoCode() {
+  var code = document.getElementById('discount-code').value.trim().toUpperCase();
+  var msgEl = document.getElementById('discount-msg');
+  
+  if (code === 'QRANTY10') {
+    billingState.discountCode = code;
+    billingState.discountPercent = 10;
+    msgEl.textContent = '✓ Áp dụng mã thành công! Giảm thêm 10% tổng hóa đơn.';
+    msgEl.style.color = 'var(--success)';
+    updateTotalPriceReview();
+  } else if (code === '') {
+    billingState.discountCode = '';
+    billingState.discountPercent = 0;
+    msgEl.textContent = '';
+    updateTotalPriceReview();
+  } else {
+    billingState.discountCode = '';
+    billingState.discountPercent = 0;
+    msgEl.textContent = 'Mã giảm giá không hợp lệ.';
+    msgEl.style.color = 'var(--error)';
+    updateTotalPriceReview();
+  }
+}
+
+function formatVND(amt) {
+  return amt.toLocaleString('vi-VN') + 'đ';
+}
+
+function updateTotalPriceReview() {
+  var name = billingState.selectedPkg;
+  var months = billingState.selectedPeriod;
+  var rawPrice = PKG_PRICES[name];
+  
+  var periodDiscount = months === 3 ? 0.05 : (months === 12 ? 0.15 : 0.0);
+  var pricePerMonth = Math.round(rawPrice * (1 - periodDiscount));
+  var subtotal = pricePerMonth * months;
+  
+  var discountRow = document.getElementById('review-discount-row');
+  var finalTotal = subtotal;
+
+  if (billingState.discountPercent > 0) {
+    var promoDiscountVal = Math.round(subtotal * (billingState.discountPercent / 100));
+    finalTotal = subtotal - promoDiscountVal;
+    
+    discountRow.style.display = 'flex';
+    document.getElementById('review-discount-val').textContent = '-' + formatVND(promoDiscountVal) + ' (Mã ' + billingState.discountCode + ')';
+  } else {
+    discountRow.style.display = 'none';
+  }
+
+  document.getElementById('review-pkg-name').textContent = name;
+  document.getElementById('review-period').textContent = months + ' tháng';
+  document.getElementById('review-price').textContent = formatVND(pricePerMonth) + ' / tháng';
+  document.getElementById('review-total-price').textContent = formatVND(finalTotal);
+  
+  return finalTotal;
+}
+
+function confirmAndPay() {
+  var finalTotal = updateTotalPriceReview();
+  var randomCode = Math.floor(10000 + Math.random() * 90000);
+  var memo = 'QRANTY BILL ' + randomCode;
+  
+  document.getElementById('bank-amt-txt').textContent = formatVND(finalTotal);
+  document.getElementById('bank-memo-txt').textContent = memo;
+
+  var dateStr = new Date().toISOString();
+  var datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  var txId = 'BIL-' + datePrefix + '-' + randomCode.toString().slice(0, 3);
+  billingState.activeTxId = txId;
+
+  goToStep(3);
+}
+
+function drawQR() {
+  var canvas = document.getElementById('payos-qr-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width;
+  var h = canvas.height;
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#0F2D4E';
+  
+  function drawPositionSquare(x, y, size) {
+    ctx.strokeStyle = '#0F2D4E';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(x, y, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 5, y + 5, size - 10, size - 10);
+    ctx.fillStyle = '#0F2D4E';
+    ctx.fillRect(x + 8, y + 8, size - 16, size - 16);
+  }
+  
+  drawPositionSquare(10, 10, 40);
+  drawPositionSquare(w - 50, 10, 40);
+  drawPositionSquare(10, h - 50, 40);
+  
+  ctx.fillStyle = '#334155';
+  for (var i = 0; i < 28; i++) {
+    for (var j = 0; j < 28; j++) {
+      if ((i < 8 && j < 8) || (i > 19 && j < 8) || (i < 8 && j > 19)) continue;
+      if (Math.sin(i * 12 + j * 9) > 0.0) {
+        ctx.fillRect(10 + i * 5, 10 + j * 5, 5, 5);
+      }
+    }
+  }
+  
+  var logoSize = 34;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(w/2 - logoSize/2, h/2 - logoSize/2, logoSize, logoSize);
+  ctx.strokeStyle = '#2563EB';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(w/2 - logoSize/2, h/2 - logoSize/2, logoSize, logoSize);
+  
+  ctx.fillStyle = '#2563EB';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('payOS', w/2, h/2);
+}
+
+function startPaymentTimer() {
+  billingState.countdownVal = 30;
+  var secEl = document.getElementById('countdown-sec');
+  if (secEl) secEl.textContent = billingState.countdownVal;
+
+  if (billingState.countdownInterval) clearInterval(billingState.countdownInterval);
+  billingState.countdownInterval = setInterval(function() {
+    billingState.countdownVal--;
+    if (billingState.countdownVal < 0) {
+      billingState.countdownVal = 30;
+      flashTimer();
+    }
+    if (secEl) secEl.textContent = billingState.countdownVal;
+  }, 1000);
+}
+
+function stopPaymentTimer() {
+  if (billingState.countdownInterval) {
+    clearInterval(billingState.countdownInterval);
+    billingState.countdownInterval = null;
+  }
+}
+
+function flashTimer() {
+  var descEl = document.getElementById('payment-timer-desc');
+  if (descEl) {
+    descEl.style.color = 'var(--brand)';
+    descEl.style.transform = 'scale(1.05)';
+    descEl.style.transition = 'all 0.15s ease';
+    setTimeout(function() {
+      descEl.style.color = '';
+      descEl.style.transform = '';
+    }, 300);
+  }
+}
+
+function copyText(elId) {
+  var text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    alert('Đã sao chép: ' + text);
+  });
+}
+
+function simulatePaymentSuccess() {
+  stopPaymentTimer();
+  if (!window.QrantyBilling) return;
+
+  var pkg = billingState.selectedPkg;
+  var months = billingState.selectedPeriod;
+  var finalTotal = updateTotalPriceReview();
+  var currentPlanData = QrantyBilling.getPlan();
+  
+  var baseDate = new Date();
+  var isSamePackage = (pkg === currentPlanData.name);
+  var currentExpiry = new Date(currentPlanData.expiry);
+  
+  var prorated = false;
+  var oldExpiryText = '';
+  
+  if (isSamePackage && currentExpiry > baseDate) {
+    baseDate = currentExpiry;
+    prorated = true;
+    oldExpiryText = currentExpiry.toLocaleDateString('vi-VN');
+  }
+
+  baseDate.setMonth(baseDate.getMonth() + months);
+  var newExpiryStr = baseDate.toISOString();
+  
+  QrantyBilling.setPlan(pkg, newExpiryStr);
+  
+  var txId = billingState.activeTxId || ('BIL-' + Date.now().toString().slice(-6));
+  var newTx = {
+    id: txId,
+    package: pkg,
+    period: months + ' tháng',
+    amount: finalTotal,
+    status: 'Active',
+    method: 'payOS',
+    createdAt: new Date().toISOString(),
+    expiry: newExpiryStr,
+    hasInvoice: false,
+    invoiceId: '',
+    receiptId: 'REC-' + txId.slice(-7)
+  };
+  QrantyBilling.addTransaction(newTx);
+  
+  document.getElementById('receipt-tx-id').textContent = txId;
+  document.getElementById('receipt-pkg').textContent = pkg;
+  document.getElementById('receipt-period').textContent = months + ' tháng';
+  document.getElementById('receipt-amount').textContent = formatVND(finalTotal);
+  
+  var methodBadge = document.getElementById('receipt-method');
+  methodBadge.textContent = 'payOS';
+  methodBadge.className = 'badge-method payos';
+  
+  document.getElementById('receipt-time').textContent = new Date().toLocaleString('vi-VN');
+  document.getElementById('receipt-expiry').textContent = baseDate.toLocaleDateString('vi-VN');
+
+  var prorateBanner = document.getElementById('prorate-banner');
+  if (prorated) {
+    document.getElementById('prorate-banner-text').textContent = 'Cộng dồn kỳ hạn từ ngày cũ ' + oldExpiryText + ' → gia hạn hiệu lực đến ' + baseDate.toLocaleDateString('vi-VN');
+    prorateBanner.style.display = 'flex';
+  } else {
+    prorateBanner.style.display = 'none';
+  }
+
+  goToStep(5);
+  renderBillingTxs();
+  
+  // Xuất hóa đơn là mặc định — luôn mở luồng xuất sau khi thanh toán thành công
+  setTimeout(function() {
+    triggerInvoiceFlow(txId);
+  }, 1200);
+}
+
+function resetToStep1() {
+  initBillingTab();
+  goToStep(1);
+}
+
+function reportIssue() {
+  goToStep(4);
+  var finalTotal = updateTotalPriceReview();
+  document.getElementById('support-tx-code').textContent = billingState.activeTxId || '-';
+  document.getElementById('support-tx-amount').textContent = formatVND(finalTotal);
+  document.getElementById('support-tx-time').textContent = new Date().toLocaleString('vi-VN');
+  
+  document.getElementById('support-transfer-time').value = '';
+  document.getElementById('support-note').value = '';
+  document.getElementById('support-time-error').style.display = 'none';
+  document.getElementById('support-form-actions').style.display = 'flex';
+  document.getElementById('support-sent-state').style.display = 'none';
+}
+
+function cancelReportIssue() {
+  goToStep(3);
+}
+
+function submitSupportTicket() {
+  var transferTime = document.getElementById('support-transfer-time').value.trim();
+  if (!transferTime) {
+    document.getElementById('support-time-error').style.display = 'block';
+    document.getElementById('support-transfer-time').focus();
+    return;
+  }
+  document.getElementById('support-time-error').style.display = 'none';
+  
+  var pkg = billingState.selectedPkg;
+  var months = billingState.selectedPeriod;
+  var finalTotal = updateTotalPriceReview();
+  var txId = billingState.activeTxId;
+  
+  var pendingTx = {
+    id: txId,
+    package: pkg,
+    period: months + ' tháng',
+    amount: finalTotal,
+    status: 'Pending',
+    method: 'payOS',
+    createdAt: new Date().toISOString(),
+    expiry: '',
+    hasInvoice: false,
+    invoiceId: '',
+    receiptId: 'REC-' + txId.slice(-7)
+  };
+  QrantyBilling.addTransaction(pendingTx);
+  renderBillingTxs();
+
+  document.getElementById('support-form-actions').style.display = 'none';
+  document.getElementById('support-sent-state').style.display = 'block';
+}
+
+function renderBillingTxs() {
+  if (!window.QrantyBilling) return;
+  var list = QrantyBilling.getTransactions();
+  var tbody = document.getElementById('billing-txs-body');
+  if (!tbody) return;
+
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:16px; text-align:center; color:var(--text-4); font-style:italic;">Chưa có lịch sử thanh toán</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(function(t) {
+    var statusClass = 'badge-status ' + t.status.toLowerCase();
+    var statusText = t.status === 'Active' ? 'Active' : (t.status === 'Pending' ? 'Pending' : 'Cancelled');
+    var methodClass = 'badge-method ' + t.method.toLowerCase();
+    var startText = t.createdAt ? new Date(t.createdAt).toLocaleDateString('vi-VN') : '-';
+    var expiryText = t.expiry ? new Date(t.expiry).toLocaleDateString('vi-VN') : '-';
+
+    var receiptBtn = '<button class="btn-outline" style="height:28px; padding:0 7px; font-size:12.5px;" onclick="viewReceipt(\'' + t.id + '\')" title="Xem biên lai nội bộ">📄</button>';
+    var extraBtn = '';
+    if (t.status === 'Active') {
+      if (t.hasInvoice) {
+        extraBtn = '<a href="./qranty-hoa-don-invoice.html?id=' + t.invoiceId + '" target="_blank" class="btn-outline" title="Xem file đơn hàng" style="height:28px; padding:0 8px; font-size:11.5px; color:var(--success); border-color:var(--success-border); background:var(--success-bg); text-decoration:none; display:inline-flex; align-items:center; gap:4px;">🧾 Đơn hàng</a>';
+      } else {
+        extraBtn = '<button class="btn-primary-sm" onclick="triggerInvoiceFlow(\'' + t.id + '\')" style="height:28px; padding:0 8px; font-size:11.5px; background:var(--info); border:none; box-shadow:none;">🧾 Xuất đơn hàng</button>';
+      }
+    }
+    var actionHtml = '<div style="display:flex; gap:6px; justify-content:flex-end;">' + receiptBtn + extraBtn + '</div>';
+
+    return '<tr style="border-bottom:1px solid var(--n100);">'
+      + '<td style="padding:12px 16px; font-family:monospace; font-weight:700; color:var(--text-2);" class="bil-col-id">' + t.id + '</td>'
+      + '<td style="padding:12px 8px; font-weight:750; color:var(--text-1);">' + t.package + '</td>'
+      + '<td style="padding:12px 8px; color:var(--text-2);" class="bil-col-period">' + t.period + '</td>'
+      + '<td style="padding:12px 8px; font-weight:800; color:var(--brand); font-family:monospace;">' + formatVND(t.amount) + '</td>'
+      + '<td style="padding:12px 8px;"><span class="' + statusClass + '">' + statusText + '</span></td>'
+      + '<td style="padding:12px 8px;" class="bil-col-method"><span class="' + methodClass + '">' + t.method + '</span></td>'
+      + '<td style="padding:12px 8px; font-weight:600; color:var(--text-3);" class="bil-col-start">' + startText + '</td>'
+      + '<td style="padding:12px 8px; font-weight:600; color:var(--text-3);" class="bil-col-expiry">' + expiryText + '</td>'
+      + '<td style="padding:12px 16px; text-align:right;">' + actionHtml + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function viewReceipt(txId) {
+  if (!window.QrantyBilling) return;
+  var list = QrantyBilling.getTransactions();
+  var tx = list.filter(function (t) { return t.id === txId; })[0];
+  if (!tx) return;
+
+  var statusLabel = { Active: 'Đã kích hoạt', Pending: 'Đang chờ xác nhận', Cancelled: 'Đã hủy' };
+
+  document.getElementById('rcpt-id').textContent = tx.receiptId || ('REC-' + txId.slice(-7));
+  document.getElementById('rcpt-tx-id').textContent = tx.id;
+  document.getElementById('rcpt-pkg').textContent = tx.package;
+  document.getElementById('rcpt-period').textContent = tx.period;
+  document.getElementById('rcpt-amount').textContent = formatVND(tx.amount);
+  document.getElementById('rcpt-status').innerHTML = '<span class="badge-status ' + tx.status.toLowerCase() + '">' + (statusLabel[tx.status] || tx.status) + '</span>';
+  document.getElementById('rcpt-method').innerHTML = '<span class="badge-method ' + tx.method.toLowerCase() + '">' + tx.method + '</span>';
+  document.getElementById('rcpt-created').textContent = tx.createdAt ? new Date(tx.createdAt).toLocaleString('vi-VN') : '-';
+  document.getElementById('rcpt-expiry').textContent = tx.expiry ? new Date(tx.expiry).toLocaleDateString('vi-VN') : 'Chưa kích hoạt';
+
+  document.getElementById('receipt-modal-backdrop').classList.add('open');
+}
+
+function closeReceiptModal() {
+  document.getElementById('receipt-modal-backdrop').classList.remove('open');
+}
+
+function triggerInvoiceFlowDirectly() {
+  if (billingState.activeTxId) {
+    triggerInvoiceFlow(billingState.activeTxId);
+  }
+}
+
+function triggerInvoiceFlow(txId) {
+  if (!window.QrantyBilling) return;
+  var list = QrantyBilling.getTransactions();
+  var tx = list.filter(function(t) { return t.id === txId; })[0];
+  if (!tx) return;
+
+  // Đã xuất rồi → mở file đơn hàng trực tiếp, không chạy lại luồng xuất
+  if (tx.hasInvoice && tx.invoiceId) {
+    window.open('./qranty-hoa-don-invoice.html?id=' + tx.invoiceId, '_blank');
+    return;
+  }
+
+  billingState.activeInvoiceTx = tx;
+  document.getElementById('im-tx-code').textContent = tx.id;
+  document.getElementById('im-tx-pkg').textContent = tx.package + ' (' + tx.period + ')';
+  document.getElementById('im-tx-amount').textContent = formatVND(tx.amount);
+
+  var info = QrantyBilling.getInvoiceConfig();
+  document.getElementById('im-input-name').value = info.companyName || '';
+  document.getElementById('im-input-tax').value = info.taxId || '';
+  document.getElementById('im-input-address').value = info.address || '';
+  document.getElementById('im-input-email').value = info.email || '';
+
+  document.getElementById('im-name-error').style.display = 'none';
+  document.getElementById('im-addr-error').style.display = 'none';
+  document.getElementById('im-email-error').style.display = 'none';
+
+  var hasCompleteProfile = info.companyName && info.address && info.email;
+
+  // Revert buttons to standard flow state
+  var nextBtn = document.getElementById('btn-im-next');
+  nextBtn.style.display = 'inline-flex';
+  nextBtn.className = 'btn-primary';
+  nextBtn.style.background = '';
+  nextBtn.style.boxShadow = '';
+  nextBtn.onclick = function() { nextInvoiceStep(); };
+
+  document.getElementById('invoice-modal-backdrop').classList.add('open');
+
+  // Hồ sơ đủ thông tin → vào thẳng bước xem trước
+  goToInvoiceStep(hasCompleteProfile ? 2 : 1);
+}
+
+function closeInvoiceModal() {
+  document.getElementById('invoice-modal-backdrop').classList.remove('open');
+}
+
+function goToInvoiceStep(step) {
+  billingState.invoiceStep = step;
+
+  document.querySelectorAll('.im-step-content').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  document.getElementById('im-step-' + step).style.display = 'block';
+
+  var backBtn = document.getElementById('btn-im-back');
+  var closeBtn = document.getElementById('btn-im-decline');
+  var nextBtn = document.getElementById('btn-im-next');
+
+  for (var s = 1; s <= 3; s++) {
+    var item = document.getElementById('im-sw-' + s);
+    if (item) {
+      item.classList.remove('active', 'completed');
+      if (s < step) item.classList.add('completed');
+      else if (s === step) item.classList.add('active');
+    }
+  }
+
+  refreshStepWizard(['im-sw-1', 'im-sw-2', 'im-sw-3'], 'invStepFill', 'invStepCounter');
+
+  if (step === 1) {
+    backBtn.style.display = 'none';
+    closeBtn.style.display = 'none';
+    nextBtn.style.display = 'inline-flex';
+    nextBtn.textContent = 'Tiếp tục (Xem trước) →';
+    nextBtn.disabled = false;
+  } else if (step === 2) {
+    backBtn.style.display = 'inline-flex';
+    closeBtn.style.display = 'none';
+    nextBtn.style.display = 'inline-flex';
+    nextBtn.textContent = '✅ Xác nhận xuất hóa đơn';
+    nextBtn.disabled = false;
+    fillInvoicePreview();
+  } else if (step === 3) {
+    backBtn.style.display = 'none';
+    closeBtn.style.display = 'inline-flex';
+    closeBtn.textContent = '✓ Đóng';
+    closeBtn.onclick = function() { closeInvoiceModal(); };
+  }
+}
+
+function prevInvoiceStep() {
+  if (billingState.invoiceStep > 1) {
+    goToInvoiceStep(billingState.invoiceStep - 1);
+  }
+}
+
+function nextInvoiceStep() {
+  var step = billingState.invoiceStep;
+  if (step === 1) {
+    var name = document.getElementById('im-input-name').value.trim();
+    var tax = document.getElementById('im-input-tax').value.trim();
+    var address = document.getElementById('im-input-address').value.trim();
+    var email = document.getElementById('im-input-email').value.trim();
+    
+    var valid = true;
+    if (!name) {
+      document.getElementById('im-name-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('im-name-error').style.display = 'none';
+    }
+
+    if (!address) {
+      document.getElementById('im-addr-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('im-addr-error').style.display = 'none';
+    }
+
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      document.getElementById('im-email-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('im-email-error').style.display = 'none';
+    }
+
+    if (!valid) return;
+
+    var info = {
+      companyName: name,
+      taxId: tax,
+      address: address,
+      email: email
+    };
+    QrantyBilling.saveInvoiceConfig(info);
+
+    goToInvoiceStep(2);
+  } else if (step === 2) {
+    executeInvoiceGeneration();
+  }
+}
+
+function fillInvoicePreview() {
+  var tx = billingState.activeInvoiceTx;
+  if (!tx) return;
+
+  var name = document.getElementById('im-input-name').value.trim();
+  var tax = document.getElementById('im-input-tax').value.trim() || 'Cá nhân không có MST';
+  var address = document.getElementById('im-input-address').value.trim();
+  var email = document.getElementById('im-input-email').value.trim();
+
+  document.getElementById('inv-preview-date').textContent = new Date().toLocaleDateString('vi-VN');
+  
+  document.getElementById('inv-preview-buyer-name').textContent = name;
+  document.getElementById('inv-preview-buyer-tax').textContent = tax;
+  document.getElementById('inv-preview-buyer-addr').textContent = address;
+  document.getElementById('inv-preview-buyer-email').textContent = email;
+
+  document.getElementById('inv-preview-item-name').textContent = 'Gói phần mềm Qranty ' + tx.package;
+  document.getElementById('inv-preview-item-period').textContent = tx.period;
+  
+  var totalVal = tx.amount;
+  var preTaxVal = Math.round(totalVal / 1.1);
+  var vatVal = totalVal - preTaxVal;
+
+  document.getElementById('inv-preview-item-pretax').textContent = formatVND(preTaxVal);
+  document.getElementById('inv-preview-item-total').textContent = formatVND(preTaxVal);
+
+  document.getElementById('inv-preview-sum-pretax').textContent = formatVND(preTaxVal);
+  document.getElementById('inv-preview-sum-vat').textContent = formatVND(vatVal);
+  document.getElementById('inv-preview-sum-total').textContent = formatVND(totalVal);
+}
+
+function executeInvoiceGeneration() {
+  var nextBtn = document.getElementById('btn-im-next');
+  nextBtn.disabled = true;
+  nextBtn.textContent = '⏳ Đang xuất hóa đơn...';
+
+  setTimeout(function() {
+    if (!window.QrantyBilling || !billingState.activeInvoiceTx) return;
+
+    var tx = billingState.activeInvoiceTx;
+    var name = document.getElementById('im-input-name').value.trim();
+    var tax = document.getElementById('im-input-tax').value.trim();
+    var address = document.getElementById('im-input-address').value.trim();
+    var email = document.getElementById('im-input-email').value.trim();
+
+    var buyerInfo = {
+      name: name,
+      taxId: tax,
+      address: address,
+      email: email
+    };
+
+    var invId = QrantyBilling.issueInvoice(tx.id, buyerInfo);
+
+    document.getElementById('im-result-success').style.display = 'flex';
+    document.getElementById('im-result-error').style.display = 'none';
+
+    document.getElementById('inv-result-no').textContent = invId;
+    document.getElementById('inv-result-date').textContent = new Date().toLocaleDateString('vi-VN');
+    document.getElementById('inv-result-email').textContent = email;
+
+    var actionBtn = document.getElementById('btn-im-next');
+    actionBtn.style.display = 'inline-flex';
+    actionBtn.disabled = false;
+    actionBtn.className = 'btn-primary';
+    actionBtn.style.background = 'var(--success)';
+    actionBtn.style.boxShadow = 'none';
+    actionBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg> Xem hóa đơn';
+    actionBtn.onclick = function() {
+      window.open('./qranty-hoa-don-invoice.html?id=' + invId, '_blank');
+    };
+
+    goToInvoiceStep(3);
+    renderBillingTxs();
+  }, 1500);
+}
+
+function openShopInfoSlide() {
+  if (!window.QrantyBilling) return;
+  var info = QrantyBilling.getInvoiceConfig();
+  
+  document.getElementById('cfg-vat-name').value = info.companyName || '';
+  document.getElementById('cfg-vat-tax').value = info.taxId || '';
+  document.getElementById('cfg-vat-address').value = info.address || '';
+  document.getElementById('cfg-vat-email').value = info.email || '';
+
+  document.getElementById('shopInfoSlideBackdrop').classList.add('open');
+}
+
+function closeShopInfoSlide() {
+  document.getElementById('shopInfoSlideBackdrop').classList.remove('open');
+}
+
+function reloadShopInfoSlide() {
+  openShopInfoSlide();
+}
+
+function saveShopInfoSlide() {
+  if (!window.QrantyBilling) return;
+
+  var shopName = document.getElementById('cfg-shop-name').value.trim();
+  var shopPhone = document.getElementById('cfg-shop-phone').value.trim();
+  var shopAddress = document.getElementById('cfg-shop-address').value.trim();
+  
+  var name = document.getElementById('cfg-vat-name').value.trim();
+  var tax = document.getElementById('cfg-vat-tax').value.trim();
+  var address = document.getElementById('cfg-vat-address').value.trim();
+  var email = document.getElementById('cfg-vat-email').value.trim();
+
+  if (!shopName || !shopPhone || !shopAddress || !name || !address || !email) {
+    alert('Vui lòng điền đầy đủ các trường bắt buộc (*).');
+    return;
+  }
+
+  var info = {
+    companyName: name,
+    taxId: tax,
+    address: address,
+    email: email
+  };
+  QrantyBilling.saveInvoiceConfig(info);
+
+  var alertEl = document.getElementById('shop-info-success-alert');
+  alertEl.style.display = 'flex';
+  setTimeout(function() {
+    alertEl.style.display = 'none';
+    closeShopInfoSlide();
+  }, 2000);
+}
+</script>
 
 <!-- Confirm mode switch modal -->
 <div class="fin-slide-backdrop" id="confirmModeBackdrop" onclick="if(event.target===this) closeConfirmModeModal()">
@@ -1060,7 +2294,284 @@ function doConfirmModeSwitch() {
   </div>
 </div>
 
+<!-- E-Invoice Modal (Area B) -->
+<div class="billing-modal-backdrop" id="invoice-modal-backdrop" onclick="if(event.target===this) closeInvoiceModal()">
+  <div class="billing-modal-content">
+    <div class="billing-modal-hdr">
+      <div class="billing-modal-title">Xuất Hóa Đơn Điện Tử VAT</div>
+      <button class="billing-modal-close" onclick="closeInvoiceModal()">&times;</button>
+    </div>
+    
+    <!-- Modal Stepper Progress -->
+    <div style="padding:10px 20px 0; border-bottom:1px solid var(--n100);">
+      <div class="step-wizard" style="padding:0; margin-bottom:10px;">
+        <div class="step-wizard-top" style="max-width:440px;">
+          <span class="step-wizard-counter" id="invStepCounter" style="font-size:10px;">Bước 1/3</span>
+        </div>
+        <div class="step-wizard-track" style="max-width:440px; height:3px;"><div class="step-wizard-fill" id="invStepFill" style="width:0%"></div></div>
+        <ul class="step-wizard-list" style="max-width:440px;">
+          <li class="step-wizard-item active" id="im-sw-1" style="font-size:9.5px;">Thông tin</li>
+          <li class="step-wizard-item" id="im-sw-2" style="font-size:9.5px;">Xem trước</li>
+          <li class="step-wizard-item" id="im-sw-3" style="font-size:9.5px;">Hoàn tất</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="billing-modal-body">
+      <!-- Step 1: Điền thông tin xuất hóa đơn -->
+      <div id="im-step-1" class="im-step-content">
+        <div style="font-size:13px; font-weight:850; color:var(--text-1); margin-bottom:6px;">Thông tin xuất hóa đơn VAT</div>
+        <div style="font-size:11px; color:var(--text-4); font-weight:600; margin-bottom:14px;">Hóa đơn được xuất tự động cho mỗi giao dịch và gửi về email của bạn. Thông tin sẽ được lưu để tự động áp dụng cho các lần sau.</div>
+
+        <div style="background:var(--n50); border:1px solid var(--n200); border-radius:var(--r-sm); padding:12px; margin-bottom:16px; display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
+          <div><span style="color:var(--text-3);">Mã giao dịch:</span> <strong id="im-tx-code" style="font-family:monospace;">-</strong></div>
+          <div><span style="color:var(--text-3);">Gói dịch vụ:</span> <strong id="im-tx-pkg">-</strong></div>
+          <div><span style="color:var(--text-3);">Số tiền thanh toán:</span> <strong id="im-tx-amount" style="color:var(--brand);">-</strong></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Tên công ty / Cá nhân mua hàng <span class="req">*</span></div>
+          <input class="input" id="im-input-name" placeholder="Ví dụ: Công ty TNHH Qranty Việt Nam hoặc Nguyễn Văn A">
+          <div id="im-name-error" class="error-msg" style="display:none;">Tên mua hàng là bắt buộc</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">
+            Mã số thuế (MST) 
+            <span class="tooltip-wrap" style="margin-left:4px;">
+              ℹ️
+              <span class="tooltip-txt">Để trống nếu là cá nhân không có MST</span>
+            </span>
+          </div>
+          <input class="input" id="im-input-tax" placeholder="Ví dụ: 0109123456 (bỏ trống nếu là cá nhân)">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Địa chỉ đăng ký <span class="req">*</span></div>
+          <input class="input" id="im-input-address" placeholder="Nhập địa chỉ đăng ký thuế hoặc địa chỉ cá nhân">
+          <div id="im-addr-error" class="error-msg" style="display:none;">Địa chỉ là bắt buộc</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Email nhận hóa đơn <span class="req">*</span></div>
+          <input class="input" id="im-input-email" type="email" placeholder="Ví dụ: ke-toan@congty.com">
+          <div id="im-email-error" class="error-msg" style="display:none;">Email không đúng định dạng</div>
+        </div>
+      </div>
+
+      <!-- Step 2: Xem trước hóa đơn -->
+      <div id="im-step-2" class="im-step-content" style="display:none;">
+        <div class="alert-banner" style="background:#fffbeb; border-color:#f59e0b; color:#856404; font-size:11px; margin-bottom:12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Vui lòng kiểm tra kỹ thông tin trước khi xác nhận xuất hóa đơn.
+        </div>
+
+        <!-- Simulated VAT Invoice Preview -->
+        <div class="invoice-preview-box">
+          <div class="invoice-title-sec">
+            <h3>HÓA ĐƠN GIÁ TRỊ GIA TĂNG (PREVIEW)</h3>
+            <div style="font-size:10px; color:var(--text-3); margin-top:2px;">Ngày xuất: <span id="inv-preview-date">-</span> | Mẫu số: 1/001</div>
+          </div>
+
+          <div class="invoice-grid-2">
+            <!-- Seller -->
+            <div>
+              <div class="invoice-sect-title">Đơn vị bán hàng</div>
+              <strong style="color:var(--text-1);">CÔNG TY CỔ PHẦN QRANTY VIỆT NAM</strong>
+              <div>MST: 0317888999</div>
+              <div>Địa chỉ: Tầng 5, Tòa nhà Qranty, Q.1, TP. HCM</div>
+              <div>Email: billing@qranty.vn</div>
+            </div>
+
+            <!-- Buyer -->
+            <div class="invoice-inline-editable">
+              <div class="invoice-sect-title">Đơn vị / Người mua hàng</div>
+              <button class="edit-icon-btn" onclick="goToInvoiceStep(1)">✏️ Sửa nhanh</button>
+              <strong id="inv-preview-buyer-name" style="color:var(--text-1);">-</strong>
+              <div>MST: <span id="inv-preview-buyer-tax">-</span></div>
+              <div>Địa chỉ: <span id="inv-preview-buyer-addr">-</span></div>
+              <div>Email: <span id="inv-preview-buyer-email">-</span></div>
+            </div>
+          </div>
+
+          <table class="invoice-items-table">
+            <thead>
+              <tr>
+                <th>Tên dịch vụ</th>
+                <th>Kỳ hạn</th>
+                <th>Đơn giá (chưa VAT)</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="inv-preview-item-name">-</td>
+                <td id="inv-preview-item-period">-</td>
+                <td id="inv-preview-item-pretax" style="text-align:right;">-</td>
+                <td id="inv-preview-item-total" style="text-align:right;">-</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <table class="invoice-summary-table" style="width:240px;">
+              <tr>
+                <td style="color:var(--text-3); font-weight:600;">Tiền trước VAT:</td>
+                <td id="inv-preview-sum-pretax" style="font-weight:700;">-</td>
+              </tr>
+              <tr>
+                <td style="color:var(--text-3); font-weight:600;">VAT (10%):</td>
+                <td id="inv-preview-sum-vat" style="font-weight:700;">-</td>
+              </tr>
+              <tr class="total-row">
+                <td>Tổng thanh toán:</td>
+                <td id="inv-preview-sum-total">-</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Kết quả xuất hóa đơn -->
+      <div id="im-step-3" class="im-step-content" style="display:none;">
+        <!-- Success State -->
+        <div id="im-result-success" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:10px 0;">
+          <div style="width:48px; height:48px; border-radius:50%; background:#ecfdf5; border:2.5px solid #10b981; color:#10b981; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; margin-bottom:12px;">✓</div>
+          <div style="font-size:14px; font-weight:900; color:var(--text-1); margin-bottom:4px;">Hóa đơn đã được phát hành!</div>
+          <div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-bottom:16px;">Hóa đơn điện tử VAT hợp lệ đã được gửi về email của bạn.</div>
+
+          <div style="background:var(--n50); border:1px solid var(--n200); border-radius:var(--r-sm); width:100%; padding:12px; text-align:left; font-size:11.5px; display:flex; flex-direction:column; gap:6px; margin-bottom:16px;">
+            <div><span style="color:var(--text-3);">Số hóa đơn điện tử:</span> <strong id="inv-result-no" style="font-family:monospace; color:var(--text-1);">-</strong></div>
+            <div><span style="color:var(--text-3);">Ngày phát hành:</span> <strong id="inv-result-date" style="color:var(--text-1);">-</strong></div>
+            <div><span style="color:var(--text-3);">Email đã gửi:</span> <span id="inv-result-email" style="font-weight:700; color:var(--text-1);">-</span></div>
+          </div>
+          
+          <div style="font-size:10.5px; color:var(--text-4); font-weight:600; margin-bottom:14px;">Hóa đơn có thể tra cứu lại trong Lịch sử thanh toán bất kỳ lúc nào.</div>
+        </div>
+
+        <!-- Error State -->
+        <div id="im-result-error" style="display:none; flex-direction:column; align-items:center; text-align:center; padding:10px 0;">
+          <div style="width:48px; height:48px; border-radius:50%; background:var(--error-bg); border:2.5px solid var(--error); color:var(--error); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; margin-bottom:12px;">&times;</div>
+          <div style="font-size:14px; font-weight:900; color:var(--text-1); margin-bottom:4px;">Lỗi kết nối CyberBill!</div>
+          <div style="font-size:11.5px; color:var(--error); font-weight:700; margin-bottom:16px;" id="inv-error-message">Không thể kết nối đến cổng hóa đơn điện tử. Vui lòng thử lại.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="billing-modal-footer">
+      <button class="btn-secondary" id="btn-im-back" onclick="prevInvoiceStep()" style="display:none;">Quay lại</button>
+      <button class="btn-secondary" id="btn-im-decline" onclick="closeInvoiceModal()" style="display:none;">✓ Đóng</button>
+      <button class="btn-primary" id="btn-im-next" onclick="nextInvoiceStep()">Tiếp tục (Xem trước) →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Internal Receipt Modal (Area C) -->
+<div class="billing-modal-backdrop" id="receipt-modal-backdrop" onclick="if(event.target===this) closeReceiptModal()">
+  <div class="billing-modal-content" style="max-width:400px;">
+    <div class="billing-modal-hdr">
+      <div class="billing-modal-title">Biên lai nội bộ</div>
+      <button class="billing-modal-close" onclick="closeReceiptModal()">&times;</button>
+    </div>
+    <div class="billing-modal-body">
+      <div style="background:var(--n50); border:1px solid var(--n200); border-radius:var(--r-sm); padding:14px; display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3);">Mã biên lai:</span> <strong id="rcpt-id" style="font-family:monospace; color:var(--text-1);">-</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3);">Mã giao dịch:</span> <strong id="rcpt-tx-id" style="font-family:monospace; color:var(--text-1);">-</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3);">Gói dịch vụ:</span> <strong id="rcpt-pkg" style="color:var(--text-1);">-</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3);">Kỳ hạn:</span> <span id="rcpt-period" style="font-weight:700; color:var(--text-1);">-</span></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3);">Số tiền:</span> <strong id="rcpt-amount" style="color:var(--brand); font-family:monospace;">-</strong></div>
+        <div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--text-3);">Trạng thái:</span> <span id="rcpt-status">-</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--text-3);">Phương thức:</span> <span id="rcpt-method">-</span></div>
+        <div style="display:flex; justify-content:space-between; border-top:1px dashed var(--n200); padding-top:6px;"><span style="color:var(--text-3);">Ngày tạo:</span> <span id="rcpt-created" style="font-weight:700; color:var(--text-1);">-</span></div>
+        <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-3); font-weight:700;">Hết hạn:</span> <strong id="rcpt-expiry" style="color:var(--success);">-</strong></div>
+      </div>
+      <div style="font-size:10.5px; color:var(--text-4); font-weight:600; margin-top:10px; line-height:1.4;">Biên lai nội bộ dùng để đối chiếu giao dịch trong hệ thống — không thay thế hóa đơn điện tử VAT.</div>
+    </div>
+    <div class="billing-modal-footer">
+      <button class="btn-secondary" onclick="closeReceiptModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shop Info and VAT configuration Slide Panel (Area D) -->
+<div class="billing-modal-backdrop" id="shopInfoSlideBackdrop" onclick="if(event.target===this) closeShopInfoSlide()">
+  <div class="billing-modal-content" style="width:480px;">
+    <div class="billing-modal-hdr">
+      <div class="billing-modal-title">Cấu hình hồ sơ &amp; Hóa đơn</div>
+      <button class="billing-modal-close" onclick="closeShopInfoSlide()">&times;</button>
+    </div>
+
+    <div class="billing-modal-body">
+      <div style="font-size:11.5px; color:var(--text-3); font-weight:600; margin-bottom:16px; line-height:1.5;">
+        Cập nhật hồ sơ cửa hàng dùng cho in ấn và cấu hình VAT.
+      </div>
+      <!-- Success Toast Alert inside modal -->
+      <div class="alert-banner" id="shop-info-success-alert" style="display:none; background:#ecfdf5; border-color:#10b981; color:#065f46;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/></svg>
+        Đã lưu thông tin cấu hình thành công!
+      </div>
+
+      <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-3); margin-bottom:12px;">Thông tin cửa hàng</div>
+      
+      <div class="field">
+        <div class="field-label">Tên cửa hàng <span class="req">*</span></div>
+        <input class="input" id="cfg-shop-name" value="Quốc Hậu">
+      </div>
+      
+      <div class="field">
+        <div class="field-label">Số điện thoại liên hệ <span class="req">*</span></div>
+        <input class="input" id="cfg-shop-phone" value="0917314687">
+      </div>
+      
+      <div class="field">
+        <div class="field-label">Địa chỉ cửa hàng <span class="req">*</span></div>
+        <input class="input" id="cfg-shop-address" value="Số 125, Đường Lê Lợi, Quận 1, TP. Hồ Chí Minh">
+      </div>
+
+      <div style="margin-top:24px; border-top:1.5px dashed var(--n200); padding-top:16px; margin-bottom:12px;">
+        <div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--text-3); display:flex; align-items:center; gap:6px;">
+          🧾 Thông tin xuất hóa đơn
+        </div>
+        <div style="font-size:11px; color:var(--text-4); margin-top:4px; font-weight:600; line-height:1.4;">
+          Thông tin này dùng để xuất hóa đơn điện tử VAT sau mỗi lần thanh toán dịch vụ. Được lưu lại và tự động điền cho các lần sau.
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Tên trên hóa đơn (Công ty/Cá nhân) <span class="req">*</span></div>
+        <input class="input" id="cfg-vat-name" placeholder="Nhập tên đơn vị hoặc người mua hàng">
+      </div>
+
+      <div class="field">
+        <div class="field-label">Mã số thuế (MST) <span class="opt">(bỏ trống nếu là cá nhân)</span></div>
+        <input class="input" id="cfg-vat-tax" placeholder="Nhập mã số thuế doanh nghiệp">
+      </div>
+
+      <div class="field">
+        <div class="field-label">Địa chỉ đăng ký VAT <span class="req">*</span></div>
+        <input class="input" id="cfg-vat-address" placeholder="Nhập địa chỉ đăng ký thuế">
+      </div>
+
+      <div class="field">
+        <div class="field-label">Email nhận hóa đơn điện tử <span class="req">*</span></div>
+        <input class="input" id="cfg-vat-email" type="email" placeholder="Nhập email nhận hóa đơn">
+      </div>
+
+      <div style="font-size:10.5px; color:var(--text-4); font-weight:600; margin-top:12px; line-height:1.4;">
+        🧾 Hóa đơn điện tử VAT được xuất tự động cho mỗi lần thanh toán dịch vụ, dựa trên thông tin ở trên.
+      </div>
+    </div>
+
+    <div class="billing-modal-footer">
+      <button class="btn-secondary" onclick="reloadShopInfoSlide()">🔄 Tải lại</button>
+      <button class="btn-primary" onclick="saveShopInfoSlide()" style="width:auto; padding:0 20px;">💾 Lưu thông tin</button>
+    </div>
+  </div>
+</div>
+
+<script src="./billing-store.js"></script>
 <script src="./kho-store.js"></script>
+<script src="./qranty-confirm.js"></script>
 <script src="./repair-columns-store.js"></script>
 <script src="./qranty-notify.js"></script>
 </body>

@@ -244,6 +244,8 @@ table.kh-table.cat-table { min-width: 780px; }
 .apm-attr-newinput { height: 32px; border: 1px solid var(--brand); border-radius: var(--r-sm); font-family: inherit; font-size: 12.5px; padding: 0 10px; outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.12); min-width: 190px; }
 .apm-attr-manage { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--text-3); text-decoration: none; }
 .apm-attr-manage:hover { color: var(--brand); }
+.apm-notice-btn { margin-left: auto; flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 800; color: #fff; background: var(--brand); border: none; border-radius: 999px; padding: 6px 12px; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.apm-notice-btn:hover { opacity: .9; }
 /* Gợi ý chuyển sang Nhập kho khi cần nhập cả lô (modal Hàng hóa chỉ còn nhập lẻ) */
 .apm-lot-hint { font-size: 12px; color: var(--text-3); background: var(--s50); border: 1px dashed var(--n300); border-radius: var(--r-sm); padding: 8px 12px; margin-bottom: 14px; line-height: 1.5; }
 .apm-lot-hint a { color: var(--brand); font-weight: 700; text-decoration: none; white-space: nowrap; }
@@ -442,6 +444,7 @@ tr.std-hidden { display: none; }
 .kh-qty-bar-fill.ok { background: var(--success); }
 .kh-qty-bar-fill.low { background: var(--warning); }
 .kh-qty-bar-fill.out { background: var(--error); }
+.kh-qty-sub { font-size: 11px; color: var(--text-4); font-weight: 600; margin-top: 2px; white-space: nowrap; }
 
 /* Accessory chips */
 .kh-acc-chips { display: flex; gap: 4px; flex-wrap: wrap; max-width: 220px; }
@@ -594,6 +597,8 @@ body.apm-panel-open .main { margin-right: 420px; transition: margin-right .25s e
 <script src="./customer-store.js"></script>
 <script src="./warranty-store.js"></script>
 <script src="./kho-store.js"></script>
+<script src="./date-range-filter.js"></script>
+<script src="./qranty-confirm.js"></script>
 <script src="./qr-draw.js"></script>
 
 <!-- MAIN -->
@@ -762,6 +767,7 @@ body.apm-panel-open .main { margin-right: 420px; transition: margin-right .25s e
           </span>
           <input class="input" id="lotSearch" placeholder="Tìm theo nhà cung cấp hoặc mã phiếu..." oninput="renderLotList()">
         </div>
+        <span id="lotDateRange" title="Lọc theo ngày nhập"></span>
         <div class="kh-spacer"></div>
       </div>
       <div class="card">
@@ -1197,9 +1203,13 @@ body.apm-panel-open .main { margin-right: 420px; transition: margin-right .25s e
           <input type="number" id="apmStock" class="input" placeholder="0" min="0">
         </div>
       </div>
-      <div class="notice" id="apmStockNotice" style="margin-bottom:14px">
+      <div class="notice" id="apmStockNotice" style="margin-bottom:14px;flex-wrap:wrap">
         <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="7.2"/><path d="M9 8v4.5M9 5.5v.01"/></svg>
-        Để bổ sung tồn kho, hãy dùng <strong>Tạo phiếu nhập kho</strong> (tab Nhập kho / Lô hàng). Tồn kho sẽ tự động cộng dồn khi nhập phiếu.
+        <span style="flex:1 1 200px">Sản phẩm mới sẽ tạo với tồn kho 0. Để nhập hàng về kho, hãy dùng <strong>Tạo phiếu nhập kho</strong> — tồn kho sẽ tự động cộng dồn khi nhập phiếu.</span>
+        <a class="apm-notice-btn" href="./qranty-nhap-hang.html">
+          <svg width="12" height="12" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v10M4 9h10"/></svg>
+          Tạo phiếu nhập hàng
+        </a>
       </div>
 
       <div class="field">
@@ -1941,7 +1951,10 @@ function saveSingleProduct() {
   if (subcatVal && categoryVal && QrantyKho.addSubcategory) QrantyKho.addSubcategory(categoryVal, subcatVal);
   var brandVal = document.getElementById('apmBrand').value;
   var salePriceVal = parseFloat(document.getElementById('apmPrice').value) || 0;
-  var qtyVal = parseFloat(document.getElementById('apmStock').value) || 0;
+  // Tạo mới luôn bắt đầu với tồn kho 0 — số lượng chỉ được cộng qua Phiếu nhập hàng
+  // (kể cả khi đang ở chế độ "Lô" nhập serial hàng loạt trong modal này). Sửa sản
+  // phẩm đã có thì vẫn cho chỉnh số lượng trực tiếp (điều chỉnh/kiểm kê tồn kho).
+  var qtyVal = _editSku ? (parseFloat(document.getElementById('apmStock').value) || 0) : 0;
   var costPriceVal = parseFloat(document.getElementById('apmCostPrice').value) || 0;
   var descVal = document.getElementById('apmDesc').value.trim();
   var originSelect = document.querySelector('#addProductModal select[onchange*="Xuất xứ"]');
@@ -2384,19 +2397,21 @@ function khDeleteCat(cat) {
   if (QrantyKho.countInCategory(cat) > 0) {
     _apmShowToast('Phải xoá hết sản phẩm trong "' + cat + '" trước khi xoá danh mục'); return;
   }
-  if (!confirm('Xoá danh mục "' + cat + '"?')) return;
-  QrantyKho.removeCategory(cat);
-  if (KH_CAT.cat === cat) { KH_CAT.cat = 'all'; KH_CAT.sub = null; KH_CAT.brand = null; }
-  renderGoodsTable();
+  qConfirm('Xoá danh mục "' + cat + '"?', function () {
+    QrantyKho.removeCategory(cat);
+    if (KH_CAT.cat === cat) { KH_CAT.cat = 'all'; KH_CAT.sub = null; KH_CAT.brand = null; }
+    renderGoodsTable();
+  }, { title: 'Xóa danh mục', okText: 'Xóa', danger: true });
 }
 function khDeleteSub(cat, sub) {
   if (QrantyKho.countInSubcategory(cat, sub) > 0) {
     _apmShowToast('Phải xoá hết sản phẩm trong danh mục con "' + sub + '" trước'); return;
   }
-  if (!confirm('Xoá danh mục con "' + sub + '"?')) return;
-  QrantyKho.removeSubcategory(cat, sub);
-  if (KH_CAT.cat === cat && KH_CAT.sub === sub) KH_CAT.sub = null;
-  renderGoodsTable();
+  qConfirm('Xoá danh mục con "' + sub + '"?', function () {
+    QrantyKho.removeSubcategory(cat, sub);
+    if (KH_CAT.cat === cat && KH_CAT.sub === sub) KH_CAT.sub = null;
+    renderGoodsTable();
+  }, { title: 'Xóa danh mục con', okText: 'Xóa', danger: true });
 }
 
 function khCatSearch(v) { KH_CAT.search = v || ''; renderCatFilter(); }
@@ -2487,6 +2502,13 @@ function renderGoodsTable() {
     } else {
       statusHtml = '<span class="kh-status in-stock"><span class="kh-status-dot"></span>Còn hàng</span>';
     }
+    // Nếu SKU có theo dõi serial theo lô → hiện thêm số đã/chưa kích hoạt, thay vì
+    // chỉ hiện tổng số lượng chung chung (không rõ trong đó còn bao nhiêu chưa bán).
+    var serialStats = (typeof QrantyKho.getSerialStatsBySku === 'function') ? QrantyKho.getSerialStatsBySku(p.sku) : null;
+    var qtySubHtml = '';
+    if (serialStats && serialStats.total > 0) {
+      qtySubHtml = '<div class="kh-qty-sub">' + serialStats.pending + '/' + serialStats.total + ' chưa kích hoạt</div>';
+    }
 
     var iconSvg = grp === 'part' ? 
       '<svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3.5L12 6 10 4l2.5-2.5A4 4 0 0 0 5 7.5L2 10.5l3 3 3-3A4 4 0 0 0 14.5 3.5z"/></svg>' :
@@ -2516,6 +2538,7 @@ function renderGoodsTable() {
         '<div class="kh-qty">' +
           '<span class="kh-qty-num">' + p.qty + '</span>' +
           '<div class="kh-qty-bar"><div class="kh-qty-bar-fill ' + (p.qty <= 3 ? 'warning' : 'ok') + '" style="width:' + Math.min(100, p.qty * 5) + '%"></div></div>' +
+          qtySubHtml +
         '</div>' +
       '</td>' +
       '<td>' + lotText + '</td>' +
@@ -2671,12 +2694,12 @@ function cloneProduct(sku) {
 function deleteProduct(sku) {
   var p = QrantyKho.getProduct(sku);
   if (!p) return;
-  if (confirm('Bạn có chắc chắn muốn xóa sản phẩm "' + p.name + '" khỏi kho hàng?')) {
+  qConfirm('Bạn có chắc chắn muốn xóa sản phẩm "' + p.name + '" khỏi kho hàng?', function () {
     QrantyKho.removeProduct(sku);
     renderGoodsTable();
     renderCategoryTable();
     _apmShowToast('Đã xóa sản phẩm ' + p.name);
-  }
+  }, { title: 'Xóa sản phẩm', okText: 'Xóa', danger: true });
 }
 
 var LOTS = [];
@@ -3317,6 +3340,7 @@ function renderLotList() {
   }
   var q = (document.getElementById('lotSearch') ? document.getElementById('lotSearch').value.trim().toLowerCase() : '');
   var list = pnkList.filter(function (p) {
+    if (window.lotDR && !lotDR.inRange(p.date)) return false;   // lọc theo ngày nhập
     if (!q) return true;
     return (p.code || '').toLowerCase().indexOf(q) !== -1 ||
            (p.supplier || '').toLowerCase().indexOf(q) !== -1 ||
@@ -3336,16 +3360,16 @@ function deleteLotRow(lotId) {
   var msg = c.active > 0
     ? 'Lô "' + lot.name + '" đang có ' + c.active + '/' + c.total + ' sản phẩm đã kích hoạt bảo hành cho khách hàng. Xóa lô có thể làm mất liên kết bảo hành của những khách hàng đó. Vẫn xóa?'
     : 'Xóa lô "' + lot.name + '" (' + c.total + ' sản phẩm)? Không thể hoàn tác.';
-  if (!confirm(msg)) return;
-  
-  var pnkList = QrantyKho.getPNKList();
-  var updatedPnkList = pnkList.filter(function(x) { return x.code !== lotId; });
-  localStorage.setItem('qranty-pnk-history', JSON.stringify(updatedPnkList));
-  
-  syncLotsFromPNK();
-  renderLotList();
-  renderPNKList();
-  _apmShowToast('Đã xóa lô/phiếu nhập kho "' + lot.name + '"');
+  qConfirm(msg, function () {
+    var pnkList = QrantyKho.getPNKList();
+    var updatedPnkList = pnkList.filter(function(x) { return x.code !== lotId; });
+    localStorage.setItem('qranty-pnk-history', JSON.stringify(updatedPnkList));
+
+    syncLotsFromPNK();
+    renderLotList();
+    renderPNKList();
+    _apmShowToast('Đã xóa lô/phiếu nhập kho "' + lot.name + '"');
+  }, { title: 'Xóa lô nhập kho', okText: 'Xóa', danger: true });
 }
 
 /* ═══ Modal "Kích hoạt / Thu hồi bảo hành hàng loạt" — dùng chung 1 modal cho cả 2 chiều ═══ */
@@ -3457,51 +3481,81 @@ function bhBulkConfirm() {
   var phone = (document.getElementById('bhBulkPhone').value || '').trim();
 
   var status = isActivate ? 'active' : 'pending';
-  QrantyKho.updatePNKSerials(_bhBulk.lotId, null, codes, status, phone);
+  var duplicates = [];
+  var okCodes = codes;
 
   if (isActivate) {
-    var custResult = QrantyKhach.upsert({
-      phone: phone,
-      name: 'Khách mua Lô ' + lot.name
+    // Chặn kích hoạt trùng: serial nào đang có bảo hành hiệu lực (ví dụ đã được
+    // kích hoạt qua phiếu bán hàng khác) thì bỏ qua, không tạo thêm 1 phiếu nữa
+    // cho cùng 1 serial — tránh 2 khách hàng cùng dùng chung 1 sản phẩm.
+    okCodes = codes.filter(function (cCode) {
+      if (window.QrantyWarranty && QrantyWarranty.isSerialActive(cCode)) {
+        duplicates.push(cCode);
+        return false;
+      }
+      return true;
     });
-    codes.forEach(function (cCode) {
-      var sObj = lot.serials.find(function(x) { return x.code === cCode; });
-      var productName = sObj ? sObj.productName : lot.name;
-      var productSku = sObj ? sObj.productSku : '';
-      var warrantyDays = sObj ? sObj.warrantyDays : 365;
+  }
 
-      var activatedAt = new Date();
-      var expiresAt = new Date(activatedAt.getTime() + warrantyDays * 24 * 60 * 60 * 1000);
-      var fmtDate = function(d) {
-        return [String(d.getDate()).padStart(2, '0'), String(d.getMonth()+1).padStart(2, '0'), d.getFullYear()].join('/');
-      };
-      QrantyWarranty.addWarranty({
-        serial: cCode,
-        productSku: productSku,
-        productName: productName,
-        customerName: custResult.record.name,
-        customerPhone: phone,
-        activatedAt: fmtDate(activatedAt),
-        expiresAt: fmtDate(expiresAt),
-        status: 'active'
+  if (okCodes.length) {
+    QrantyKho.updatePNKSerials(_bhBulk.lotId, null, okCodes, status, phone);
+  }
+
+  if (isActivate) {
+    if (okCodes.length) {
+      var custResult = QrantyKhach.upsert({
+        phone: phone,
+        name: 'Khách mua Lô ' + lot.name
       });
-    });
+      okCodes.forEach(function (cCode) {
+        var sObj = lot.serials.find(function(x) { return x.code === cCode; });
+        var productName = sObj ? sObj.productName : lot.name;
+        var productSku = sObj ? sObj.productSku : '';
+        var warrantyDays = sObj ? sObj.warrantyDays : 365;
+
+        var activatedAt = new Date();
+        var expiresAt = new Date(activatedAt.getTime() + warrantyDays * 24 * 60 * 60 * 1000);
+        var fmtDate = function(d) {
+          return [String(d.getDate()).padStart(2, '0'), String(d.getMonth()+1).padStart(2, '0'), d.getFullYear()].join('/');
+        };
+        var res = QrantyWarranty.addWarranty({
+          serial: cCode,
+          productSku: productSku,
+          productName: productName,
+          customerName: custResult.record.name,
+          customerPhone: phone,
+          activatedAt: fmtDate(activatedAt),
+          expiresAt: fmtDate(expiresAt),
+          status: 'active'
+        });
+        if (res && res.error === 'duplicate') duplicates.push(cCode);
+      });
+    }
   } else {
-    codes.forEach(function (cCode) {
+    okCodes.forEach(function (cCode) {
       QrantyWarranty.recall(cCode, 'Thu hồi hàng loạt từ lô ' + lot.id);
     });
   }
 
   closeBhBulkModal();
   renderLotList();
-  _apmShowToast(isActivate
-    ? 'Đã kích hoạt bảo hành cho ' + codes.length + ' sản phẩm trong lô "' + lot.name + '"'
-    : 'Đã thu hồi bảo hành cho ' + codes.length + ' sản phẩm trong lô "' + lot.name + '"');
+  if (typeof renderGoodsTable === 'function') renderGoodsTable();
+
+  if (duplicates.length) {
+    _apmShowToast((okCodes.length ? 'Đã kích hoạt ' + okCodes.length + ' sản phẩm. ' : '') +
+      'Bỏ qua ' + duplicates.length + ' serial đã được kích hoạt bảo hành từ trước (' + duplicates.join(', ') + ').');
+  } else {
+    _apmShowToast(isActivate
+      ? 'Đã kích hoạt bảo hành cho ' + okCodes.length + ' sản phẩm trong lô "' + lot.name + '"'
+      : 'Đã thu hồi bảo hành cho ' + okCodes.length + ' sản phẩm trong lô "' + lot.name + '"');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   syncLotsFromPNK();
-  
+
+  window.lotDR = QrantyDateRange.mount({ el: '#lotDateRange', onChange: renderLotList });
+
   renderGoodsTable();
   renderCategoryTable();
   renderLotList();

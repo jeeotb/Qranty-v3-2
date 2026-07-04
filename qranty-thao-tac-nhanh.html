@@ -532,6 +532,7 @@ function applyModeLabels() {
   var t = document.querySelector('.tb-title'); if (t) t.textContent = isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành';
   var s = document.getElementById('submitLabel'); if (s) s.textContent = isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành';
   if (document.title) document.title = 'Qranty — ' + (isStore ? 'Tạo phiếu bán hàng' : 'Tạo phiếu bảo hành');
+  if (window.qrantyUpdateQuickLabel) window.qrantyUpdateQuickLabel();
 }
 function setAppMode(mode, e) {
   if (e) e.stopPropagation();
@@ -1044,6 +1045,18 @@ document.getElementById('qaSubmit').addEventListener('click', () => {
   const isStore = document.body.classList.contains('mode-store');
 
   const warrantyItems = QA_ITEMS.filter(it => it.hasWarranty);
+
+  // Chặn kích hoạt trùng: serial nào đã có bảo hành hiệu lực (kích hoạt từ phiếu
+  // khác / lô khác) thì dừng lại và báo ngay, không tạo thêm phiếu bảo hành thứ 2
+  // cho cùng 1 serial (tránh 2 khách hàng cùng dùng chung 1 sản phẩm).
+  if (window.QrantyWarranty) {
+    const dupItem = warrantyItems.find(it => it.serial && QrantyWarranty.isSerialActive(it.serial));
+    if (dupItem) {
+      alert('Serial "' + dupItem.serial + '" đã được kích hoạt bảo hành từ trước. Vui lòng kiểm tra lại hoặc dùng serial khác.');
+      return;
+    }
+  }
+
   const newQrCount = warrantyItems.filter(it => !(it.productMeta && it.productMeta.stock)).length;
   const existingQrCount = warrantyItems.length - newQrCount;
   const itemNames = QA_ITEMS.map(it => it.name || 'sản phẩm').join(', ');
@@ -1075,6 +1088,7 @@ document.getElementById('qaSubmit').addEventListener('click', () => {
       const remain = total - paid;
       const custName  = document.getElementById('qaName').value.trim() || 'Khách lẻ';
       const custPhone = document.getElementById('qaPhone').value.trim();
+      const custNote  = (document.getElementById('qaNote') || {}).value || '';
       var _thuEntry = QrantyThuChi.addEntry('thu', {
         name: custName, code: custPhone, amount: total, paid: paid, remain: remain,
         ref: 'Phiếu bán hàng — ' + itemNames, source: 'banhang'
@@ -1082,7 +1096,7 @@ document.getElementById('qaSubmit').addEventListener('click', () => {
       // Lưu phiếu bán (giữ line items) để Lịch sử bán hàng bung chi tiết + in lại đúng dòng
       if (window.QrantyOrders) {
         QrantyOrders.addOrder({
-          customerName: custName, customerPhone: custPhone,
+          customerName: custName, customerPhone: custPhone, note: custNote.trim(),
           items: QA_ITEMS.map(function (it) {
             return {
               name: it.name || 'Sản phẩm', sku: (it.productMeta && it.productMeta.sku) || '',

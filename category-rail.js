@@ -25,7 +25,7 @@
   function injectCSS() {
     if (document.getElementById('qcrStyle')) return;
     var css = ''
-      + '.qcr-rail{width:230px;flex-shrink:0;background:#fff;border:1px solid var(--n200);border-radius:var(--r);box-shadow:var(--shadow-card);padding:10px;position:sticky;top:16px;max-height:calc(100vh - 90px);overflow-y:auto;}'
+      + '.qcr-rail{width:230px;flex-shrink:0;background:#fff;border:1px solid var(--n200);border-radius:var(--r);box-shadow:var(--shadow-card);padding:10px;position:sticky;top:calc(var(--topbar-h,56px) + 14px);max-height:calc(100vh - var(--topbar-h,56px) - 30px);overflow-y:auto;}'
       + '.qcr-hdr{font-size:13px;font-weight:800;color:var(--text-1);padding:6px 8px 12px;}'
       + '.qcr-item{display:flex;align-items:center;gap:6px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text-2);}'
       + '.qcr-item:hover{background:var(--n50);}'

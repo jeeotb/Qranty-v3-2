@@ -120,6 +120,9 @@ select.input { appearance: none; -webkit-appearance: none; padding-right: 30px; 
 
 /* TABLE */
 .kh-table-wrap { overflow-x: auto; }
+.bh-cat-layout { display: flex; gap: 18px; align-items: flex-start; }
+.bh-cat-main { flex: 1; min-width: 0; }
+@media (max-width: 980px) { .bh-cat-layout { flex-direction: column; } }
 table.kh-table { width: 100%; border-collapse: collapse; min-width: 1100px; }
 table.kh-table.hide-c1 th:nth-child(1), table.kh-table.hide-c1 td:nth-child(1) { display: none; }
 table.kh-table.hide-c2 th:nth-child(2), table.kh-table.hide-c2 td:nth-child(2) { display: none; }
@@ -167,9 +170,10 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
 .kh-icon-btn.success:hover { background: var(--success-bg); color: var(--success); }
 
 /* PAGINATION */
-.kh-pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-top: 1px solid var(--n200); }
-.kh-pagination-info { font-size: 12px; color: var(--text-4); font-weight: 600; }
+.kh-pagination { display: flex; align-items: center; justify-content: center; padding: 14px 16px; border-top: 1px solid var(--n200); position: relative; }
+.kh-pagination-info { font-size: 12px; color: var(--text-4); font-weight: 600; position: absolute; left: 16px; }
 .kh-pagination-controls { display: flex; align-items: center; gap: 6px; }
+@media (max-width: 720px) { .kh-pagination-info { display: none; } }
 .kh-page-btn { width: 30px; height: 30px; border-radius: var(--r-sm); border: 1px solid var(--n200); background: #fff; color: var(--text-2); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .13s; }
 .kh-page-btn:hover { border-color: var(--p500); color: var(--p600); }
 .kh-page-btn.active { background: var(--p500); border-color: var(--p500); color: #fff; }
@@ -252,6 +256,9 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
 <script src="./sidebar.js"></script>
 <script src="./warranty-store.js"></script>
 <script src="./kho-store.js"></script>
+<script src="./date-range-filter.js"></script>
+<script src="./qranty-confirm.js"></script>
+<script src="./category-rail.js"></script>
 <script src="./qr-draw.js"></script>
 
 <!-- MAIN -->
@@ -300,17 +307,19 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
+    <div class="bh-cat-layout">
+    <aside class="qcr-rail" id="bhCatRail"></aside>
+    <div class="bh-cat-main">
+
     <!-- TOOLBAR -->
     <div class="kh-toolbar">
       <div class="kh-search">
         <span class="kh-search-icon">
           <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M12.2 12.2 16 16"/></svg>
         </span>
-        <input class="input" id="searchWarranty" placeholder="Tìm theo serial, tên sản phẩm, khách hàng, SĐT..." oninput="bhCurrentPage = 1; handleSearch(this.value)">
+        <input class="input" id="searchWarranty" placeholder="Tìm theo serial, tên sản phẩm, khách hàng, SĐT..." oninput="handleSearch(this.value)">
       </div>
-      <select class="input" id="bhCatFilter" style="width:200px;flex:0 0 auto" onchange="bhCurrentPage = 1; bhSetCat(this.value)" title="Lọc theo danh mục (chung với Kho hàng)">
-        <option value="">Tất cả danh mục</option>
-      </select>
+      <span id="bhDateRange" title="Lọc theo ngày kích hoạt"></span>
       <div class="kh-spacer"></div>
       <div class="col-filter-wrap">
         <button class="btn-outline">
@@ -373,6 +382,9 @@ table.kh-table tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
     </div>
+
+    </div><!-- /bh-cat-main -->
+    </div><!-- /bh-cat-layout -->
   </div>
 </main>
 
@@ -491,30 +503,34 @@ function setAppMode(mode, e) {
 
 /* ── Stat card bấm-lọc: đếm theo trạng thái + lọc bảng ── */
 var currentFilter = 'all';
-var currentCat = '';   // lọc theo danh mục (chung taxonomy với Kho hàng)
+var currentCat = '';   // danh mục cha (chung taxonomy với Kho hàng)
+var currentSub = '';   // danh mục con
 var searchQuery = '';
 
-// Danh mục của 1 phiếu BH lấy từ kho qua SKU (QrantyKho là const top-level)
+// Danh mục cha/con của 1 phiếu BH lấy từ kho qua SKU (QrantyKho là const top-level)
 function _bhKho() { return (typeof QrantyKho !== 'undefined') ? QrantyKho : null; }
 function _bhCatOf(w) {
   var k = _bhKho();
-  if (k && w.productSku) { var p = k.getProduct(w.productSku); if (p && p.category) return p.category; }
+  if (k && w.productSku) { var p = k.getProduct(w.productSku); if (p && (p.category || '').trim()) return p.category.trim(); }
   return 'Chưa phân loại';
 }
-function bhSetCat(v) { currentCat = v; renderWarrantyTable(); }
-function bhPopulateCatFilter() {
-  var sel = document.getElementById('bhCatFilter'); if (!sel) return;
+function _bhSubOf(w) {
   var k = _bhKho();
-  var cats = (k && k.getCategories) ? k.getCategories().slice() : [];
-  // Bổ sung danh mục đang xuất hiện trong phiếu BH (kể cả Chưa phân loại)
-  var present = {};
-  (typeof QrantyWarranty !== 'undefined' ? QrantyWarranty.getData() : []).forEach(function (w) { present[_bhCatOf(w)] = true; });
-  Object.keys(present).forEach(function (c) { if (c !== 'Chưa phân loại' && cats.indexOf(c) < 0) cats.push(c); });
-  cats.sort(function (a, b) { return a.localeCompare(b, 'vi'); });
-  if (present['Chưa phân loại']) cats.push('Chưa phân loại');
-  var cur = sel.value;
-  sel.innerHTML = '<option value="">Tất cả danh mục</option>' + cats.map(function (c) { return '<option value="' + c.replace(/"/g, '&quot;') + '">' + c + '</option>'; }).join('');
-  sel.value = cur;
+  if (k && w.productSku) { var p = k.getProduct(w.productSku); if (p) return (p.subCategory || '').trim(); }
+  return '';
+}
+// Rail danh mục DÙNG CHUNG (cha → con) — giống Nhóm hàng ở Kho hàng & QR
+function bhBuildCatRail() {
+  if (typeof QrantyCatRail === 'undefined') return;
+  var items = (typeof QrantyWarranty !== 'undefined' ? QrantyWarranty.getData() : []).map(function (w) {
+    return { category: _bhCatOf(w), subCategory: _bhSubOf(w) };
+  });
+  QrantyCatRail.render({
+    container: document.getElementById('bhCatRail'),
+    items: items,
+    sel: { cat: currentCat, sub: currentSub },
+    onSelect: function (cat, sub) { currentCat = cat || ''; currentSub = sub || ''; renderWarrantyTable(); }
+  });
 }
 
 function _bhEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -525,9 +541,12 @@ function _bhStatus(w){
   if (s==='het-han')       return {cls:'expired', label:'Đã hết hạn'};
   return {cls:'recalled', label:'Đã thu hồi'};
 }
+var _wdmCurrent = null; // phiếu BH đang mở trong modal chi tiết
+
 function viewWarrantyDetail(serial) {
   var w = QrantyWarranty.getData().find(function(x) { return x.serial === serial; });
   if (!w) return;
+  _wdmCurrent = w;
   var st = _bhStatus(w);
   document.getElementById('wdmSerial').textContent = w.serial;
   document.getElementById('wdmProduct').textContent = w.productName || '—';
@@ -554,6 +573,28 @@ function viewWarrantyDetail(serial) {
 }
 function closeWarrantyDetail(){ document.getElementById('warrantyDetailModal').classList.remove('open'); }
 
+/* Tạo phiếu sửa chữa từ phiếu bảo hành đang xem — chuyển qua trang Sửa chữa
+   với thông tin KH + thiết bị điền sẵn (trang kia đọc query param taoSuaChua). */
+function createRepairFromWarranty() {
+  var w = _wdmCurrent;
+  if (!w) return;
+  var qs = new URLSearchParams({
+    taoSuaChua: '1',
+    name: w.customerName || '',
+    phone: w.customerPhone || '',
+    device: w.productName || '',
+    serial: w.serial || ''
+  });
+  window.location.href = './qranty-repair-kanban.html?' + qs.toString();
+}
+
+function deleteWarranty(serial) {
+  qConfirm('Xóa vĩnh viễn phiếu bảo hành (serial ' + serial + ')?\n\nHành động này KHÔNG thể hoàn tác. Nếu chỉ muốn ngừng hiệu lực bảo hành, hãy dùng "Thu hồi" thay vì xóa.', function () {
+    if (window.QrantyWarranty && QrantyWarranty.remove) QrantyWarranty.remove(serial);
+    renderWarrantyTable();
+  }, { title: 'Xóa phiếu bảo hành', okText: 'Xóa vĩnh viễn', danger: true });
+}
+
 function confirmRecall(serial, btn) {
   var wrap = btn.closest('.recall-popover');
   var txt = wrap.querySelector('.recall-textarea');
@@ -569,8 +610,11 @@ function renderWarrantyTable() {
   
   tbody.innerHTML = '';
   
+  bhBuildCatRail();
   var filteredList = list.filter(function(w) {
-    if (currentCat && _bhCatOf(w) !== currentCat) return false;   // lọc theo danh mục (chung với Kho hàng)
+    if (currentCat && _bhCatOf(w) !== currentCat) return false;   // danh mục cha (chung với Kho hàng)
+    if (currentSub && _bhSubOf(w) !== currentSub) return false;   // danh mục con
+    if (window.bhDR && !bhDR.inRange(w.activatedAt)) return false; // lọc theo ngày kích hoạt
     if (currentFilter === 'all') return true;
     return w.resolvedStatus === currentFilter;
   });
@@ -642,6 +686,7 @@ function renderWarrantyTable() {
       actionHtml = '\
         <div class="kh-actions-cell">\
           <button class="kh-icon-btn" title="Xem" onclick="viewWarrantyDetail(\'' + w.serial + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9S4 3.5 9 3.5 16.5 9 16.5 9 14 14.5 9 14.5 1.5 9 1.5 9z"/><circle cx="9" cy="9" r="2.3"/></svg></button>\
+          <button class="kh-icon-btn danger" title="Xóa phiếu" onclick="deleteWarranty(\'' + w.serial + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M7 5V3.2A1 1 0 0 1 8 2.2h2a1 1 0 0 1 1 1V5M5 5l.6 9.5A1.5 1.5 0 0 0 7.1 16h3.8a1.5 1.5 0 0 0 1.5-1.5L13 5"/></svg></button>\
           <div style="position:relative;">\
             <button class="kh-icon-btn danger recall-btn" title="Thu hồi bảo hành" onclick="toggleRecall(this, event)">\
               <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8 2 5l3-3"/><path d="M2 5h9a4 4 0 0 1 0 8H6"/></svg>\
@@ -665,6 +710,7 @@ function renderWarrantyTable() {
       actionHtml = '\
         <div class="kh-actions-cell">\
           <button class="kh-icon-btn" title="Xem lý do thu hồi" onclick="viewWarrantyDetail(\'' + w.serial + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 9S4 3.5 9 3.5 16.5 9 16.5 9 14 14.5 9 14.5 1.5 9 1.5 9z"/><circle cx="9" cy="9" r="2.3"/></svg></button>\
+          <button class="kh-icon-btn danger" title="Xóa phiếu" onclick="deleteWarranty(\'' + w.serial + '\')"><svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M7 5V3.2A1 1 0 0 1 8 2.2h2a1 1 0 0 1 1 1V5M5 5l.6 9.5A1.5 1.5 0 0 0 7.1 16h3.8a1.5 1.5 0 0 0 1.5-1.5L13 5"/></svg></button>\
         </div>\
       ';
     }
@@ -714,6 +760,7 @@ function bhFilter(key, el) {
 
 function handleSearch(val) {
   searchQuery = val;
+  bhCurrentPage = 1;
   renderWarrantyTable();
 }
 
@@ -733,7 +780,7 @@ document.addEventListener('click', function (e) {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-  bhPopulateCatFilter();
+  window.bhDR = QrantyDateRange.mount({ el: '#bhDateRange', onChange: renderWarrantyTable });
   renderWarrantyTable();
 });
 </script>
@@ -779,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .wdm-row { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--n100); font-size: 13px; }
 .wdm-key { color: var(--text-3); font-weight: 600; flex-shrink: 0; }
 .wdm-val { color: var(--text-1); font-weight: 700; text-align: right; word-break: break-word; }
-.wdm-footer { display: flex; padding: 14px 20px; border-top: 1px solid var(--n100); background: #fafafa; flex-shrink: 0; }
+.wdm-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--n100); background: #fafafa; flex-shrink: 0; }
 .wdm-footer .btn-secondary { flex: 1; }
 </style>
 <div class="wdm-backdrop" id="warrantyDetailModal" onclick="if(event.target===this) closeWarrantyDetail()">
@@ -802,6 +849,10 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="wdm-footer">
       <button class="btn-secondary" onclick="closeWarrantyDetail()">Đóng</button>
+      <button class="btn-primary" onclick="createRepairFromWarranty()" style="width:auto; padding:0 16px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Tạo phiếu sửa chữa
+      </button>
     </div>
   </div>
 </div>

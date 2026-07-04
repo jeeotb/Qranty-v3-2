@@ -221,11 +221,13 @@ body.sb-collapsed .sb-account-menu { left: 8px; right: auto; width: 230px; borde
 .qr-empty-sub { font-size: 13px; }
 
 /* ── Pagination ── */
-.qr-pagination { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 0; }
+.qr-pagination { display: flex; align-items: center; justify-content: center; padding: 16px 0 0; position: relative; }
+.qr-pagination .pg-info { position: absolute; left: 0; }
+@media (max-width: 720px) { .qr-pagination .pg-info { display: none; } }
 
 /* Rail xem theo danh mục (giống Kho hàng) */
 .qrcat-layout { display: flex; gap: 18px; align-items: flex-start; }
-.qrcat-rail { width: 210px; flex-shrink: 0; background: #fff; border: 1px solid var(--n200); border-radius: var(--r); box-shadow: var(--shadow-card); padding: 10px; position: sticky; top: 16px; max-height: calc(100vh - 90px); overflow-y: auto; }
+.qrcat-rail { width: 210px; flex-shrink: 0; background: #fff; border: 1px solid var(--n200); border-radius: var(--r); box-shadow: var(--shadow-card); padding: 10px; position: sticky; top: calc(var(--topbar-h, 56px) + 14px); max-height: calc(100vh - var(--topbar-h, 56px) - 30px); overflow-y: auto; }
 .qrcat-main { flex: 1; min-width: 0; }
 .qrcat-hdr { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-4); padding: 4px 8px 10px; }
 .qrcat-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
@@ -253,6 +255,8 @@ body.mode-store th.fin-only, body.mode-store td.fin-only { background: var(--suc
 <script src="./qr-draw.js"></script>
 <script src="./warranty-store.js"></script>
 <script src="./kho-store.js"></script>
+<script src="./category-rail.js"></script>
+<script src="./date-range-filter.js"></script>
 
 <div class="main">
   <!-- Topbar -->
@@ -288,13 +292,10 @@ body.mode-store th.fin-only, body.mode-store td.fin-only { background: var(--suc
       </div>
 
       <div class="qr-filter-wrap">
-        <select class="qr-select" onchange="filterQR()" id="filterProduct">
-          <option value="">Tất cả sản phẩm</option>
-          <option>Bếp Điện</option>
-          <option>TV Samsung</option>
-          <option>Máy Lạnh</option>
-          <option>Tủ Lạnh</option>
-          <option>Máy Giặt</option>
+        <!-- Lọc theo TÊN sản phẩm cụ thể (khác rail "Nhóm hàng": lọc theo danh mục).
+             Danh sách đổ động từ dữ liệu thật, xem populateProductFilter(). -->
+        <select class="qr-select" onchange="filterQR()" id="filterProduct" title="Lọc theo tên sản phẩm cụ thể">
+          <option value="">Tất cả tên sản phẩm</option>
         </select>
         <select class="qr-select" onchange="filterQR()" id="filterStatus">
           <option value="">Tất cả trạng thái</option>
@@ -302,6 +303,7 @@ body.mode-store th.fin-only, body.mode-store td.fin-only { background: var(--suc
           <option value="expired">Hết hạn</option>
           <option value="recalled">Thu hồi</option>
         </select>
+        <span id="qrDateRange" title="Lọc theo ngày tạo / kích hoạt"></span>
       </div>
 
       <!-- View toggle -->
@@ -402,11 +404,11 @@ function _warrantyDuration(w) {
 }
 // QrantyKho là const top-level (không nằm trên window) — tham chiếu trực tiếp.
 function _kho() { return (typeof QrantyKho !== 'undefined') ? QrantyKho : null; }
-// Danh mục lấy từ kho (dùng CHUNG taxonomy với Kho hàng) qua SKU sản phẩm.
-function _catOfSku(sku, fallback) {
+// Danh mục cha + con lấy từ kho (taxonomy DUY NHẤT) qua SKU sản phẩm.
+function _catSubOfSku(sku) {
   var k = _kho();
-  if (k && sku) { var p = k.getProduct(sku); if (p && p.category) return p.category; }
-  return fallback || 'Chưa phân loại';
+  if (k && sku) { var p = k.getProduct(sku); if (p) return { cat: (p.category || '').trim() || 'Chưa phân loại', sub: (p.subCategory || '').trim() }; }
+  return { cat: 'Chưa phân loại', sub: '' };
 }
 
 // (1) QR đã kích hoạt = phiếu bảo hành thật
@@ -415,9 +417,10 @@ function buildWarrantyItems() {
   return ws.map(function (w) {
     var rs = w.resolvedStatus; // dang-bao-hanh | sap-het-han | het-han | thu-hoi
     var status = rs === 'het-han' ? 'expired' : (rs === 'thu-hoi' ? 'recalled' : 'active');
+    var cs = _catSubOfSku(w.productSku);
     return {
       kind: 'warranty', serial: w.serial, product: w.productName || '—', sku: w.productSku || '',
-      category: _catOfSku(w.productSku, ''), warranty: _warrantyDuration(w), status: status,
+      category: cs.cat, subCategory: cs.sub, warranty: _warrantyDuration(w), status: status,
       customer: w.customerName || 'N/A', phone: w.customerPhone || '',
       date: w.activatedAt || '', expires: w.expiresAt || '',
       remain: w.remainingDaysText || '', recalledReason: w.recalledReason || '',
@@ -433,11 +436,13 @@ function buildPendingItems() {
   var out = [];
   k.getPNKList().forEach(function (pnk) {
     (pnk.items || []).forEach(function (it) {
+      var cs = _catSubOfSku(it.sku);
+      var cat = cs.cat !== 'Chưa phân loại' ? cs.cat : ((it.category || '').trim() || 'Chưa phân loại');
       (it.serials || []).forEach(function (s) {
         if (!s || s.status === 'active') return;   // đã kích hoạt thì nằm ở danh sách bảo hành
         out.push({
           kind: 'pending', serial: s.code, product: it.name || '—', sku: it.sku || '',
-          category: it.category || _catOfSku(it.sku, ''), warranty: it.warrantyDays ? (it.warrantyDays + ' ngày') : '—',
+          category: cat, subCategory: cs.sub, warranty: it.warrantyDays ? (it.warrantyDays + ' ngày') : '—',
           status: 'unused', customer: 'Chưa gán khách', phone: '',
           date: pnk.date || '', lot: pnk.code || '', expires: '', remain: '', recalledReason: '',
           tab: 'pending'
@@ -454,7 +459,21 @@ function buildItems() {
   return list;
 }
 var ALL_ITEMS = buildItems();
-function refreshItems() { ALL_ITEMS = buildItems(); }
+function refreshItems() { ALL_ITEMS = buildItems(); populateProductFilter(); }
+
+/* Đổ danh sách tên sản phẩm thật vào select #filterProduct (bỏ hardcode demo).
+   Giữ nguyên lựa chọn hiện tại nếu tên đó vẫn còn trong dữ liệu. */
+function populateProductFilter() {
+  var sel = document.getElementById('filterProduct');
+  if (!sel) return;
+  var cur = sel.value;
+  var names = {};
+  ALL_ITEMS.forEach(function (i) { if (i.product && i.product !== '—') names[i.product] = 1; });
+  var sorted = Object.keys(names).sort(function (a, b) { return a.localeCompare(b, 'vi'); });
+  sel.innerHTML = '<option value="">Tất cả tên sản phẩm</option>' +
+    sorted.map(function (n) { return '<option>' + n + '</option>'; }).join('');
+  if (cur && names[cur]) sel.value = cur;
+}
 function updateTabCounts() {
   var p = ALL_ITEMS.filter(function (i) { return i.tab === 'pending'; }).length;
   var a = ALL_ITEMS.filter(function (i) { return i.tab === 'active'; }).length;
@@ -468,7 +487,8 @@ function updateTabCounts() {
 // ────────────────────────────────────────
 var currentView = 'grid';
 var currentTab  = 'pending';   // 'pending' (chưa kích hoạt) | 'active' (đã kích hoạt)
-var QR_CAT      = '';   // lọc theo danh mục (rỗng = tất cả)
+var QR_CAT      = '';   // lọc theo danh mục cha (rỗng = tất cả)
+var QR_SUBCAT   = '';   // lọc theo danh mục con
 var selectedIds = new Set();
 var PAGE_SIZE   = 20;
 var currentPage = 1;
@@ -490,10 +510,12 @@ function getFiltered() {
   var stat = document.getElementById('filterStatus').value;
   return ALL_ITEMS.filter(function(item) {
     if (item.tab !== currentTab) return false;
-    if (QR_CAT && item.category !== QR_CAT) return false;
+    if (QR_CAT && (item.category || 'Chưa phân loại') !== QR_CAT) return false;
+    if (QR_SUBCAT && (item.subCategory || '') !== QR_SUBCAT) return false;
     if (q && item.serial.toLowerCase().indexOf(q) < 0 && item.product.toLowerCase().indexOf(q) < 0 && item.customer.toLowerCase().indexOf(q) < 0) return false;
     if (prod && item.product !== prod) return false;
     if (stat && currentTab === 'active' && item.status !== stat) return false;   // lọc trạng thái chỉ ở tab đã kích hoạt
+    if (window.qrDR && !qrDR.inRange(item.date)) return false;                   // lọc theo ngày tạo / kích hoạt
     return true;
   });
 }
@@ -627,29 +649,18 @@ function updateSelectUI() {
   else        { bar.classList.remove('show'); }
 }
 
-function _qrEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+// Rail danh mục DÙNG CHUNG (cha → con) lấy thẳng taxonomy kho — giống Nhóm hàng ở Kho hàng.
 function buildCatRail() {
-  var rail = document.getElementById('qrCatRail'); if (!rail) return;
+  if (typeof QrantyCatRail === 'undefined') return;
   var items = ALL_ITEMS.filter(function (i) { return i.tab === currentTab; });
-  var counts = {};
-  items.forEach(function (i) { var c = i.category || 'Chưa phân loại'; counts[c] = (counts[c] || 0) + 1; });
-  if (QR_CAT && counts[QR_CAT] === undefined) QR_CAT = '';   // danh mục đang chọn không còn → về Tất cả
-  var cats = Object.keys(counts).sort(function (a, b) {
-    if (a === 'Chưa phân loại') return 1; if (b === 'Chưa phân loại') return -1;
-    return a.localeCompare(b, 'vi');
+  QrantyCatRail.render({
+    container: document.getElementById('qrCatRail'),
+    items: items,
+    sel: { cat: QR_CAT, sub: QR_SUBCAT },
+    onSelect: function (cat, sub) { qrSelectCat(cat, sub); }
   });
-  var html = '<div class="qrcat-hdr">Danh mục</div>';
-  html += '<div class="qrcat-item' + (QR_CAT === '' ? ' active' : '') + '" data-cat="" onclick="qrSelectCat(\'\')">'
-    + '<span class="qrcat-name">Tất cả</span><span class="qrcat-count">' + items.length + '</span></div>';
-  cats.forEach(function (c) {
-    var safe = c.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    html += '<div class="qrcat-item' + (QR_CAT === c ? ' active' : '') + '" onclick="qrSelectCat(\'' + safe + '\')">'
-      + '<span class="qrcat-name"><span class="qrcat-dot"></span>' + _qrEsc(c) + '</span>'
-      + '<span class="qrcat-count">' + counts[c] + '</span></div>';
-  });
-  rail.innerHTML = html;
 }
-function qrSelectCat(c) { QR_CAT = c; currentPage = 1; selectedIds.clear(); render(); }
+function qrSelectCat(cat, sub) { QR_CAT = cat || ''; QR_SUBCAT = sub || ''; currentPage = 1; selectedIds.clear(); render(); }
 
 function render() {
   refreshItems();
@@ -767,9 +778,15 @@ function notify(msg) {
 })();
 
 // ── Modal chi tiết QR / bảo hành ──
+var _qrdCurrent = null; // item đang mở trong modal chi tiết QR
+
 function openQrDetail(id) {
   var item = ALL_ITEMS.find(function (i) { return i.id === id; });
   if (!item) return;
+  _qrdCurrent = item;
+  // Nút "Sửa chữa" chỉ hiện với QR đã kích hoạt (phiếu bảo hành có khách hàng)
+  var repairBtn = document.getElementById('qrdRepairBtn');
+  if (repairBtn) repairBtn.style.display = item.kind === 'warranty' ? '' : 'none';
   document.getElementById('qrdSerial').textContent = item.serial;
   document.getElementById('qrdProduct').textContent = item.product;
   var pill = document.getElementById('qrdStatus');
@@ -811,6 +828,21 @@ function openQrDetail(id) {
   });
 }
 function closeQrDetail() { document.getElementById('qrDetailModal').classList.remove('open'); }
+
+/* Tạo phiếu sửa chữa từ mã QR bảo hành đang xem — qua trang Sửa chữa với
+   thông tin khách hàng điền sẵn (trang kia đọc query param taoSuaChua). */
+function qrdCreateRepair() {
+  var it = _qrdCurrent;
+  if (!it || it.kind !== 'warranty') return;
+  var qs = new URLSearchParams({
+    taoSuaChua: '1',
+    name: it.customer !== 'N/A' ? it.customer : '',
+    phone: it.phone || '',
+    device: it.product !== '—' ? it.product : '',
+    serial: it.serial || ''
+  });
+  window.location.href = './qranty-repair-kanban.html?' + qs.toString();
+}
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeQrDetail(); });
 </script>
 
@@ -858,6 +890,10 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') clos
     </div>
     <div class="qrd-footer">
       <button class="btn-secondary" onclick="closeQrDetail()">Đóng</button>
+      <button class="btn-primary" id="qrdRepairBtn" onclick="qrdCreateRepair()" style="display:none; background:var(--info); box-shadow:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Sửa chữa
+      </button>
       <button class="btn-primary" id="qrdDownloadBtn">
         <svg width="13" height="13" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v10M5 8l4 4 4-4M3 16h12"/></svg>
         Tải mã QR
@@ -899,6 +935,8 @@ document.addEventListener('click', function(e) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
+  window.qrDR = QrantyDateRange.mount({ el: '#qrDateRange', onChange: filterQR });
+
   // Store item click
   document.querySelectorAll('.qr-store-item').forEach(function(item) {
     item.addEventListener('click', function() {

@@ -135,6 +135,7 @@ vẽ từ serial qua `QrantyQR.draw`, qr-draw.js).
 
 **Đang chờ / kế tiếp:**
 
+- **Thanh toán & Hóa đơn điện tử**: Tích hợp luồng thanh toán tự động payOS (quét QR động) và tự động xuất hóa đơn VAT CyberBill (5 bước mua gói, modal 4 bước xuất hóa đơn), quản lý lịch sử thanh toán và thông tin xuất hóa đơn.
 - Bước 3: gỡ store `qranty-lots` cũ — Lô hàng giờ đọc thẳng `getPNKList()` nên `qranty-lots` đã thừa.
 - Tùy chọn: `supplier-store` đối xứng `customer-store` cho Nhà cung cấp.
 
@@ -237,6 +238,7 @@ modal full thông tin SP/khách/hạn bảo hành.
 | QR Code | `qranty-qr-code.html` | ✅ | Đọc Bảo hành thật, modal chi tiết, đã gỡ mock |
 | Tài chính | `qranty-tai-chinh.html` | ✅ | Sổ quỹ + lọc ngày, chỉ-đọc |
 | Cài đặt | `qranty-cai-dat.html` | ✅ | + tab "Trạng thái sửa chữa" (thêm/sửa/xoá/đổi màu/đổi thứ tự cột) |
+| Thanh toán & Hóa đơn | `qranty-cai-dat.html` (Tab Thanh toán & Hồ sơ) | ⬜ | Đăng ký gói (payOS), xuất hóa đơn (CyberBill), Lịch sử thanh toán & Cài đặt thông tin |
 | Dashboard | `qranty-dashboard.html` | 🟡 | Số liệu còn mock, chưa nối Thu chi/Đơn thật |
 
 ### Cột trạng thái sửa chữa (mới)

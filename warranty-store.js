@@ -173,10 +173,43 @@
     });
   }
 
+  /**
+   * Kiểm tra 1 serial có đang được bảo hành hiệu lực hay không (chưa hết hạn,
+   * chưa bị thu hồi). Dùng để chặn kích hoạt trùng — 1 serial vật lý không thể
+   * đồng thời gắn cho 2 khách hàng khác nhau.
+   */
+  function isSerialActive(serial) {
+    if (!serial) return false;
+    var found = getAll().find(function (x) { return x.serial === serial; });
+    if (!found) return false;
+    var r = resolveStatus(found);
+    return r.status === 'dang-bao-hanh' || r.status === 'sap-het-han';
+  }
+
+  /** Lấy bản ghi bảo hành hiện tại (đã resolve status) của 1 serial, hoặc null. */
+  function getBySerial(serial) {
+    if (!serial) return null;
+    var found = getAll().find(function (x) { return x.serial === serial; });
+    if (!found) return null;
+    var r = resolveStatus(found);
+    return Object.assign({}, found, { resolvedStatus: r.status, remainingDaysText: r.remainingDaysText });
+  }
+
+  /**
+   * Tạo phiếu bảo hành mới cho 1 serial.
+   * Chặn trùng: nếu serial này đang có bảo hành hiệu lực (chưa hết hạn / chưa thu hồi)
+   * thì KHÔNG tạo bản ghi mới — trả về { error: 'duplicate', existing } để nơi gọi
+   * báo cho người dùng, tránh tình trạng 2 khách hàng cùng dùng chung 1 serial.
+   */
   function addWarranty(w) {
     var list = getAll();
+    var serial = w.serial || ('SN-' + Date.now().toString(36).toUpperCase());
+    var dup = list.find(function (x) { return x.serial === serial; });
+    if (dup && (resolveStatus(dup).status === 'dang-bao-hanh' || resolveStatus(dup).status === 'sap-het-han')) {
+      return { error: 'duplicate', existing: dup };
+    }
     var rec = {
-      serial: w.serial || ('SN-' + Date.now().toString(36).toUpperCase()),
+      serial: serial,
       productSku: w.productSku || '',
       productName: w.productName || 'Sản phẩm không tên',
       customerName: w.customerName || 'Khách lẻ',
@@ -206,6 +239,11 @@
     return null;
   }
 
+  function remove(serial) {
+    var list = getAll().filter(function (x) { return x.serial !== serial; });
+    _save(list);
+  }
+
   function search(q) {
     var data = getData();
     if (!q) return data;
@@ -222,6 +260,9 @@
     getData: getData,
     addWarranty: addWarranty,
     recall: recall,
-    search: search
+    remove: remove,
+    search: search,
+    isSerialActive: isSerialActive,
+    getBySerial: getBySerial
   };
 })();
