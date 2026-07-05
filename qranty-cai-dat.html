@@ -714,6 +714,7 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
                     <div class="pkg-badge" id="badge-Standard" style="display:none;">Đang dùng</div>
                     <div class="pkg-card-title">Standard</div>
                     <div class="pkg-card-price" id="price-Standard">290K <span>/ tháng</span></div>
+                    <div class="pkg-save-badge" id="save-Standard"></div>
                     <ul class="pkg-card-features">
                       <li>Hỗ trợ 1 chi nhánh</li>
                       <li>Quản lý tối đa 500 SP</li>
@@ -722,10 +723,12 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
                     </ul>
                   </div>
                   
-                  <div class="pkg-card" id="pkg-Pro" onclick="selectPackage('Pro')">
+                  <div class="pkg-card popular" id="pkg-Pro" onclick="selectPackage('Pro')">
+                    <div class="pkg-popular-tag">★ Nhiều người dùng nhất</div>
                     <div class="pkg-badge" id="badge-Pro" style="display:none;">Đang dùng</div>
                     <div class="pkg-card-title">Pro</div>
                     <div class="pkg-card-price" id="price-Pro">490K <span>/ tháng</span></div>
+                    <div class="pkg-save-badge" id="save-Pro"></div>
                     <ul class="pkg-card-features">
                       <li>Đa chi nhánh (tối đa 3)</li>
                       <li>Quản lý SP không giới hạn</li>
@@ -738,6 +741,7 @@ textarea.input { height: 70px; padding: 10px 12px; resize: vertical; font-family
                     <div class="pkg-badge" id="badge-Enterprise" style="display:none;">Đang dùng</div>
                     <div class="pkg-card-title">Enterprise</div>
                     <div class="pkg-card-price" id="price-Enterprise">990K <span>/ tháng</span></div>
+                    <div class="pkg-save-badge" id="save-Enterprise"></div>
                     <ul class="pkg-card-features">
                       <li>Không giới hạn chi nhánh</li>
                       <li>Phân quyền nhân viên</li>
@@ -1591,10 +1595,22 @@ function changePeriod(months) {
     var rawPrice = PKG_PRICES[name];
     var discountedPrice = Math.round(rawPrice * (1 - discount));
     var priceTxt = (discountedPrice / 1000) + 'K';
-    
+
     var priceEl = document.getElementById('price-' + name);
     if (priceEl) {
       priceEl.innerHTML = priceTxt + ' <span>/ tháng</span>';
+    }
+
+    // Badge số tiền tiết kiệm cho cả kỳ hạn (3 tháng -5%, 12 tháng -15%)
+    var saveEl = document.getElementById('save-' + name);
+    if (saveEl) {
+      var savedTotal = (rawPrice - discountedPrice) * months;
+      if (discount > 0 && savedTotal > 0) {
+        saveEl.textContent = 'Tiết kiệm ' + formatVND(savedTotal) + ' (-' + Math.round(discount * 100) + '%)';
+        saveEl.style.display = 'inline-block';
+      } else {
+        saveEl.style.display = 'none';
+      }
     }
   });
 

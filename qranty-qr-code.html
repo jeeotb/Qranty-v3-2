@@ -160,7 +160,9 @@ body.sb-collapsed .sb-account-menu { left: 8px; right: auto; width: 230px; borde
 .qr-meta { font-size: 11px; color: var(--text-4); text-align: center; margin-bottom: 14px; }
 
 
-.qr-card-links { display: flex; align-items: center; gap: 8px; width: 100%; }
+/* Nút TẢI VỀ trong card: full-width + cách hàng nút dưới (layout scoped, không đổi style nút chung) */
+.qr-card .btn-primary-sm { width: 100%; justify-content: center; }
+.qr-card-links { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; }
 .qr-link-btn {
   flex: 1; height: 28px; border: 1.5px solid var(--n200); border-radius: 6px;
   background: #fff; font-size: 11px; font-weight: 700; color: var(--text-3);

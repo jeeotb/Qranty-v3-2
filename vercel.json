@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "uxuiv3qranty",
+  "name": "qranty-v3-2",
   "builds": [
     { "src": "**/*.html", "use": "@vercel/static" },
     { "src": "**/*.css",  "use": "@vercel/static" },
