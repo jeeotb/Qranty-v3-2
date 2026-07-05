@@ -637,8 +637,10 @@ tr.qr-pending:hover > td { background: #FEE2E2; }
   font-size: 10px; font-weight: 800; letter-spacing: .01em;
 }
 
-/* Gói nổi bật (Pro) — màu riêng + tag trên viền */
-.pkg-card.popular { border-color: #7c3aed; }
+/* Gói nổi bật (Pro) — viền tím nhạt + tag trên viền; khi chọn (.active) viền brand rõ như các gói khác */
+.pkg-card.popular { border-color: #ddd6fe; }
+.pkg-card.popular:hover { border-color: #c4b5fd; }
+.pkg-card.popular.active { border-color: var(--brand); }
 .pkg-card.popular .pkg-card-price { color: #7c3aed; }
 .pkg-popular-tag {
   position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
